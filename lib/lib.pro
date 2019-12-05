@@ -28,11 +28,16 @@ HEADERS += \
     UPower/desktopupowerdevicesmodel.h \
     libtdesktopenvironment_global.h
 
-# Default rules for deployment.
 unix {
+    header.files = *.h
+    module.files = qt_tdesktopenvironment.pri
+
     target.path = /usr/lib
+    header.path = /usr/include/libtdesktopenvironment
+    module.path = $$[QMAKE_MKSPECS]/modules
+
+    INSTALLS += target header module
 }
-!isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
     qt_tdesktopenvironment.pri
