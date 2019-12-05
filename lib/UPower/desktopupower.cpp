@@ -28,13 +28,17 @@
 
 struct DesktopUPowerPrivate {
     QDBusInterface* interface;
+    QDBusInterface* tsInterface;
+
     QMap<QDBusObjectPath, DesktopUPowerDevice*> devices;
+    bool powerStretch = false;
 };
 
 DesktopUPower::DesktopUPower(QObject *parent) : QObject(parent)
 {
     d = new DesktopUPowerPrivate();
     d->interface = new QDBusInterface("org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower", QDBusConnection::systemBus());
+    d->tsInterface = new QDBusInterface("org.thesuite.theShell", "/org/thesuite/Power", "org.thesuite.Power");
 
     QDBusPendingCallWatcher* devices = new QDBusPendingCallWatcher(d->interface->asyncCall("EnumerateDevices"));
     connect(devices, &QDBusPendingCallWatcher::finished, this, [=] {
@@ -47,6 +51,16 @@ DesktopUPower::DesktopUPower(QObject *parent) : QObject(parent)
             this->deviceAdded(path);
         }
         emit devicesChanged();
+    });
+
+    QDBusConnection::sessionBus().connect("org.thesuite.theshell", "/org/thesuite/Power", "org.thesuite.Power", "powerStretchChanged", this, SIGNAL(powerStretchChanged(bool)));
+    QDBusPendingCallWatcher* powerStretch = new QDBusPendingCallWatcher(d->tsInterface->asyncCall("powerStretch"));
+    connect(powerStretch, &QDBusPendingCallWatcher::finished, this, [=] {
+        QDBusMessage msg = powerStretch->reply();
+        if (msg.type() != QDBusMessage::ErrorMessage) {
+            d->powerStretch = powerStretch->reply().arguments().first().toBool();
+            emit overallStateChanged();
+        }
     });
 }
 
@@ -72,19 +86,23 @@ bool DesktopUPower::shouldShowOverallState()
 QString DesktopUPower::overallStateDescription()
 {
     QStringList parts;
-    int extraBatteriesCount = 0;
+
+    if (d->powerStretch) {
+        parts.append(tr("Power Stretch On"));
+    }
+
+    int extraBatteriesCount = -1;
     for (DesktopUPowerDevice* device : this->devices()) {
         if (device->type() == DesktopUPowerDevice::Battery) {
-            if (parts.isEmpty()) {
+            if (extraBatteriesCount < 0) {
                 parts.append(QStringLiteral("%1%").arg(device->percentage()));
                 parts.append(device->stateString());
-            } else {
-                extraBatteriesCount++;
             }
+            extraBatteriesCount++;
         }
     }
 
-    if (extraBatteriesCount != 0) parts.append(tr("%n more batteries", nullptr, extraBatteriesCount));
+    if (extraBatteriesCount > 0) parts.append(tr("%n more batteries", nullptr, extraBatteriesCount));
 
     return parts.join(" · ");
 }
@@ -118,4 +136,10 @@ void DesktopUPower::deviceRemoved(QDBusObjectPath device)
         emit deviceRemoved(deviceObject);
         emit overallStateChanged();
     }
+}
+
+void DesktopUPower::powerStretchChanged(bool isOn)
+{
+    d->powerStretch = isOn;
+    emit overallStateChanged();
 }

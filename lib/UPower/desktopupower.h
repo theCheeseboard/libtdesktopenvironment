@@ -49,6 +49,7 @@ class DesktopUPower : public QObject
     private slots:
         void deviceAdded(QDBusObjectPath device);
         void deviceRemoved(QDBusObjectPath device);
+        void powerStretchChanged(bool isOn);
 
     private:
         DesktopUPowerPrivate* d;
