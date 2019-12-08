@@ -56,16 +56,19 @@ HEADERS += \
     libtdesktopenvironment_global.h
 
 unix {
-    header.files = *.h \
-                    UPower/*.h
-                    Wm/*.h
+    upowerheader.files = UPower/*.h
+    upowerheader.path = /usr/include/libtdesktopenvironment/UPower
+    wmheader.files = Wm/*.h
+    wmheader.path = /usr/include/libtdesktopenvironment/Wm
+    header.files = *.h
+    header.path = /usr/include/libtdesktopenvironment
+
     module.files = qt_tdesktopenvironment.pri
 
     target.path = /usr/lib
-    header.path = /usr/include/libtdesktopenvironment
     module.path = $$[QMAKE_MKSPECS]/modules
 
-    INSTALLS += target header module
+    INSTALLS += target upowerheader wmheader header module
 }
 
 DISTFILES += \
