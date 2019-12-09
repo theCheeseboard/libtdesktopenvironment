@@ -160,9 +160,15 @@ QIcon X11Window::icon()
 
 void X11Window::activate()
 {
-    qDebug() << "activate";
     TX11::WindowPropertyPtr<long> userTime = TX11::getWindowProperty<long>("_NET_WM_USER_TIME", d->wid, XA_CARDINAL);
-    TX11::sendMessageToRootWindow("_NET_ACTIVE_WINDOW", d->wid, 2, userTime->first(), static_cast<long>(static_cast<X11Window*>(DesktopWm::activeWindow().data())->d->wid));
+
+    long userTimeValue;
+    if (userTime->nItems > 0) {
+        userTimeValue = userTime->first();
+    } else {
+        userTimeValue = CurrentTime;
+    }
+    TX11::sendMessageToRootWindow("_NET_ACTIVE_WINDOW", d->wid, 2, userTimeValue, static_cast<long>(static_cast<X11Window*>(DesktopWm::activeWindow().data())->d->wid));
 }
 
 quint64 X11Window::pid()

@@ -38,6 +38,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    TimeDate/desktoptimedate.cpp \
     UPower/desktopupower.cpp \
     UPower/desktopupowerdevice.cpp \
     UPower/desktopupowerdevicesmodel.cpp \
@@ -47,6 +48,7 @@ SOURCES += \
     Wm/x11/x11functions.cpp
 
 HEADERS += \
+    TimeDate/desktoptimedate.h \
     UPower/desktopupower.h \
     UPower/desktopupowerdevice.h \
     UPower/desktopupowerdevicesmodel.h \
@@ -60,6 +62,8 @@ unix {
     upowerheader.path = /usr/include/libtdesktopenvironment/UPower
     wmheader.files = Wm/*.h
     wmheader.path = /usr/include/libtdesktopenvironment/Wm
+    timedateheaders.files = TimeDate/*.h
+    timedateheaders.path = /usr/include/libtdesktopenvironment/TimeDate
     header.files = *.h
     header.path = /usr/include/libtdesktopenvironment
 
@@ -68,7 +72,7 @@ unix {
     target.path = /usr/lib
     module.path = $$[QMAKE_MKSPECS]/modules
 
-    INSTALLS += target upowerheader wmheader header module
+    INSTALLS += target upowerheader wmheader timedateheaders header module
 }
 
 DISTFILES += \
