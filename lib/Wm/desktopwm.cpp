@@ -64,6 +64,11 @@ void DesktopWm::setCurrentDesktop(uint desktopNumber)
     d->instance->setCurrentDesktop(desktopNumber);
 }
 
+void DesktopWm::setSystemWindow(QWidget*widget)
+{
+    d->instance->setSystemWindow(widget);
+}
+
 DesktopWm::DesktopWm() : QObject(nullptr)
 {
     //Figure out the best backend to use

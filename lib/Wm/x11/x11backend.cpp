@@ -21,6 +21,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QX11Info>
+#include <QWidget>
 
 #include "x11backend.h"
 #include "x11window.h"
@@ -147,12 +148,14 @@ QStringList X11Backend::desktops()
     QList<QByteArray> desktopNamesList = desktopNamesBytes.split('\0');
     desktopNamesList.takeLast(); //Remove the trailing null character
 
-    for (int i = 0; static_cast<uint>(i) < desktopCountMessage->first(); i++) {
-        if (i < desktopNamesList.count()) {
-            QString desktopName = desktopNamesList.at(i);
-            desktops.append(desktopName);
-        } else {
-            desktops.append(tr("Desktop %1").arg(i));
+    if (desktopCountMessage->nItems > 0) {
+        for (int i = 0; static_cast<uint>(i) < desktopCountMessage->first(); i++) {
+            if (i < desktopNamesList.count()) {
+                QString desktopName = desktopNamesList.at(i);
+                desktops.append(desktopName);
+            } else {
+                desktops.append(tr("Desktop %1").arg(i));
+            }
         }
     }
 
@@ -162,11 +165,28 @@ QStringList X11Backend::desktops()
 uint X11Backend::currentDesktop()
 {
     TX11::WindowPropertyPtr<quint32> currentDesktop = TX11::getRootWindowProperty<quint32>("_NET_CURRENT_DESKTOP", XA_CARDINAL);
-    return currentDesktop->first();
+    if (currentDesktop->nItems > 0) {
+        return currentDesktop->first();
+    } else {
+        return 0;
+    }
 }
 
 
 void X11Backend::setCurrentDesktop(uint desktopNumber)
 {
     TX11::sendMessageToRootWindow("_NET_CURRENT_DESKTOP", QX11Info::appRootWindow(), desktopNumber, CurrentTime);
+}
+
+void X11Backend::setSystemWindow(QWidget*widget)
+{
+    //Skip the taskbar
+    unsigned long skipTaskbar = 1;
+    XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_THESHELL_SKIP_TASKBAR", False),
+                     XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&skipTaskbar), 1);
+
+    //Set visible on all desktops
+    unsigned long desktop = 0xFFFFFFFF;
+    XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_DESKTOP", False),
+                     XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&desktop), 1);
 }

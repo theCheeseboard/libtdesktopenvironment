@@ -47,6 +47,8 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter
         uint currentDesktop();
         void setCurrentDesktop(uint desktopNumber);
 
+        void setSystemWindow(QWidget*widget);
+
     signals:
 
     public slots:
@@ -55,6 +57,7 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter
         X11BackendPrivate* d;
 
         void addWindow(Window window);
+
 };
 
 #endif // X11BACKEND_H

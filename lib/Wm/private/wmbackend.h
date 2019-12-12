@@ -35,6 +35,8 @@ class WmBackend : public QObject
         virtual uint currentDesktop() = 0;
         virtual void setCurrentDesktop(uint desktopNumber) = 0;
 
+        virtual void setSystemWindow(QWidget* widget) = 0;
+
     signals:
         void windowAdded(DesktopWmWindowPtr window);
         void windowRemoved(DesktopWmWindowPtr window);
