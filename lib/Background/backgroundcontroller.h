@@ -78,9 +78,12 @@ class BackgroundController : public QObject
     private:
         BackgroundControllerPrivate* d;
 
+        void timerEvent(QTimerEvent* event);
+
         tPromise<QNetworkReply*>* get(QString path);
         tPromise<void>* getNewCommunityBackground();
         tPromise<BackgroundData>* getCurrentCommunityBackground();
+        uint communityBackgroundPeriod();
 };
 
 #endif // BACKGROUNDCONTROLLER_H

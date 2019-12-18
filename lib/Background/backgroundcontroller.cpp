@@ -32,6 +32,9 @@ struct BackgroundControllerPrivate {
     BackgroundController::BackgroundType type;
     bool retrievingImages = false;
     int downloadCount = 0;
+
+    int timerId;
+    uint lastPeriod = 0;
 };
 
 BackgroundController::BackgroundController(BackgroundType type, QObject *parent) : QObject(parent)
@@ -41,6 +44,8 @@ BackgroundController::BackgroundController(BackgroundType type, QObject *parent)
     d = new BackgroundControllerPrivate();
     d->settings = new QSettings("theSuite", "theShell");
     d->type = type;
+
+    d->timerId = this->startTimer(60000, Qt::VeryCoarseTimer);
 }
 
 BackgroundController::~BackgroundController()
@@ -251,6 +256,19 @@ bool BackgroundController::shouldShowCommunityLabels()
     return d->settings->value("desktop/showLabels", true).toBool();
 }
 
+void BackgroundController::timerEvent(QTimerEvent*event)
+{
+    //Check to see if the community background has changed
+    if (event->timerId() == d->timerId) {
+        uint currentPeriod = this->communityBackgroundPeriod();
+        if (d->lastPeriod != 0 && d->lastPeriod != currentPeriod) {
+            if (currentBackgroundName(BackgroundController::Desktop) == "community") emit currentBackgroundChanged(BackgroundController::Desktop);
+            if (currentBackgroundName(BackgroundController::LockScreen) == "community") emit currentBackgroundChanged(BackgroundController::LockScreen);
+        }
+        d->lastPeriod = currentPeriod;
+    }
+}
+
 tPromise<QNetworkReply*>*BackgroundController::get(QString path)
 {
     return tPromise<QNetworkReply*>::runOnSameThread([=](tPromiseFunctions<QNetworkReply*>::SuccessFunction res, tPromiseFunctions<QNetworkReply*>::FailureFunction rej) {
@@ -366,7 +384,7 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
         allBackgrounds.removeAll("");
 
         //TODO: Fix algorithm
-        QRandomGenerator generator(QDateTime::currentSecsSinceEpoch() / (30 * 60));
+        QRandomGenerator generator(this->communityBackgroundPeriod());
 
         QString background = allBackgrounds.at(generator.bounded(allBackgrounds.count()));
 
@@ -421,4 +439,9 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
             });
         }
     });
+}
+
+uint BackgroundController::communityBackgroundPeriod()
+{
+    return static_cast<uint>(QDateTime::currentSecsSinceEpoch() / (30 * 60));
 }
