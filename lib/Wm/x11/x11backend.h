@@ -46,6 +46,7 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter
         QStringList desktops();
         uint currentDesktop();
         void setCurrentDesktop(uint desktopNumber);
+        void setShowDesktop(bool showDesktop);
 
         void setSystemWindow(QWidget*widget);
 

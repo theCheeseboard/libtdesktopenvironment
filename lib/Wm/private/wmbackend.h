@@ -34,6 +34,7 @@ class WmBackend : public QObject
         virtual QStringList desktops() = 0;
         virtual uint currentDesktop() = 0;
         virtual void setCurrentDesktop(uint desktopNumber) = 0;
+        virtual void setShowDesktop(bool showDesktop) = 0;
 
         virtual void setSystemWindow(QWidget* widget) = 0;
 

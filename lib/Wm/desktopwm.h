@@ -37,6 +37,8 @@ class DesktopWm : public QObject
         static uint currentDesktop();
         static void setCurrentDesktop(uint desktopNumber);
 
+        static void setShowDesktop(bool showDesktop);
+
         static void setSystemWindow(QWidget* widget);
 
     signals:

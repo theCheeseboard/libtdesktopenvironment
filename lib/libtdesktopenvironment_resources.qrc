@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/libtdesktopenvironment">
+        <file>backgrounds/arrows.svg</file>
+        <file>backgrounds/beach.svg</file>
+        <file>backgrounds/blueprint.svg</file>
+        <file>backgrounds/leftwaves.svg</file>
+        <file>backgrounds/nav.svg</file>
+        <file>backgrounds/ribbon.svg</file>
+        <file>backgrounds/shatter.svg</file>
+        <file>backgrounds/slice.svg</file>
+        <file>backgrounds/triangles.svg</file>
+        <file>backgrounds/triplecircle.svg</file>
+        <file>backgrounds/waves.svg</file>
+    </qresource>
+</RCC>

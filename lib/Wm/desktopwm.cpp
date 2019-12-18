@@ -64,6 +64,11 @@ void DesktopWm::setCurrentDesktop(uint desktopNumber)
     d->instance->setCurrentDesktop(desktopNumber);
 }
 
+void DesktopWm::setShowDesktop(bool showDesktop)
+{
+    d->instance->setShowDesktop(showDesktop);
+}
+
 void DesktopWm::setSystemWindow(QWidget*widget)
 {
     d->instance->setSystemWindow(widget);

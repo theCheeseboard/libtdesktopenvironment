@@ -190,3 +190,9 @@ void X11Backend::setSystemWindow(QWidget*widget)
     XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_DESKTOP", False),
                      XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&desktop), 1);
 }
+
+
+void X11Backend::setShowDesktop(bool showDesktop)
+{
+    TX11::sendMessageToRootWindow("_NET_SHOWING_DESKTOP", QX11Info::appRootWindow(), showDesktop ? 1 : 0);
+}

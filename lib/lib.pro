@@ -1,4 +1,4 @@
-QT += widgets dbus
+QT += widgets dbus thelib network svg
 
 TEMPLATE = lib
 DEFINES += LIBTDESKTOPENVIRONMENT_LIBRARY
@@ -38,6 +38,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Background/backgroundselectionmodel.cpp \
     TimeDate/desktoptimedate.cpp \
     UPower/desktopupower.cpp \
     UPower/desktopupowerdevice.cpp \
@@ -45,9 +46,11 @@ SOURCES += \
     Wm/desktopwm.cpp \
     Wm/desktopwmwindow.cpp \
     Wm/private/wmbackend.cpp \
-    Wm/x11/x11functions.cpp
+    Wm/x11/x11functions.cpp \
+    Background/backgroundcontroller.cpp
 
 HEADERS += \
+    Background/backgroundselectionmodel.h \
     TimeDate/desktoptimedate.h \
     UPower/desktopupower.h \
     UPower/desktopupowerdevice.h \
@@ -55,6 +58,7 @@ HEADERS += \
     Wm/desktopwm.h \
     Wm/desktopwmwindow.h \
     Wm/private/wmbackend.h \
+    Background/backgroundcontroller.h \
     libtdesktopenvironment_global.h
 
 unix {
@@ -64,6 +68,8 @@ unix {
     wmheader.path = /usr/include/libtdesktopenvironment/Wm
     timedateheaders.files = TimeDate/*.h
     timedateheaders.path = /usr/include/libtdesktopenvironment/TimeDate
+    backgroundheaders.files = Background/*.h
+    backgroundheaders.path = /usr/include/libtdesktopenvironment/Background
     header.files = *.h
     header.path = /usr/include/libtdesktopenvironment
 
@@ -72,8 +78,11 @@ unix {
     target.path = /usr/lib
     module.path = $$[QMAKE_MKSPECS]/modules
 
-    INSTALLS += target upowerheader wmheader timedateheaders header module
+    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders header module
 }
 
 DISTFILES += \
     qt_tdesktopenvironment.pri
+
+RESOURCES += \
+    libtdesktopenvironment_resources.qrc
