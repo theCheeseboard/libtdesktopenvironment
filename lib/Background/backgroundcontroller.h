@@ -84,6 +84,7 @@ class BackgroundController : public QObject
         tPromise<void>* getNewCommunityBackground();
         tPromise<BackgroundData>* getCurrentCommunityBackground();
         uint communityBackgroundPeriod();
+        tPromise<QStringList>* searchWallpapers(QString searchPath);
 };
 
 #endif // BACKGROUNDCONTROLLER_H

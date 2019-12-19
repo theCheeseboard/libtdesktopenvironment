@@ -145,8 +145,10 @@ QIcon X11Window::icon()
             QImage image(static_cast<int>(width), static_cast<int>(height), QImage::Format_ARGB32);
             for (long y = 0; y < height; y++) {
                 QRgb* scanLine = reinterpret_cast<QRgb*>(image.scanLine(y));
-                for (long x = 0; x < height; x++) {
-                    scanLine[x] = static_cast<QRgb>(icons->at(offset++));
+                if (scanLine) {
+                    for (long x = 0; x < height; x++) {
+                        scanLine[x] = static_cast<QRgb>(icons->at(offset++));
+                    }
                 }
             }
             d->windowIcon.addPixmap(QPixmap::fromImage(image));

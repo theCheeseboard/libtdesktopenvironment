@@ -24,6 +24,7 @@
 #include <QSvgRenderer>
 #include <QPainter>
 #include <QStandardPaths>
+#include <QDirIterator>
 
 struct BackgroundControllerPrivate {
     QNetworkAccessManager mgr;
@@ -35,6 +36,8 @@ struct BackgroundControllerPrivate {
 
     int timerId;
     uint lastPeriod = 0;
+
+    QStringList additionalWallpapers;
 };
 
 BackgroundController::BackgroundController(BackgroundType type, QObject *parent) : QObject(parent)
@@ -46,6 +49,15 @@ BackgroundController::BackgroundController(BackgroundType type, QObject *parent)
     d->type = type;
 
     d->timerId = this->startTimer(60000, Qt::VeryCoarseTimer);
+
+
+    //Find backgrounds from /usr/share/wallpapers and /usr/share/backgrounds
+    searchWallpapers("/usr/share/wallpapers")->then([=](QStringList wallpapers) {
+        d->additionalWallpapers.append(wallpapers);
+    });
+    searchWallpapers("/usr/share/backgrounds")->then([=](QStringList wallpapers) {
+        d->additionalWallpapers.append(wallpapers);
+    });
 }
 
 BackgroundController::~BackgroundController()
@@ -64,6 +76,49 @@ tPromise<BackgroundController::BackgroundData>*BackgroundController::getBackgrou
         BackgroundData data;
         data.px = QPixmap(screenSize);
 
+        auto drawBackground = [=](QPixmap pixmap) {
+            QPixmap newPixmap(screenSize);
+
+            QPainter painter(&newPixmap);
+            painter.setRenderHint(QPainter::SmoothPixmapTransform);
+
+            //Draw newPixmap
+            switch (d->settings->value("desktop/stretchStyle", 0).toInt()) {
+                case 0: //Stretch
+                    painter.drawPixmap(0, 0, newPixmap.width(), newPixmap.height(), pixmap);
+                    break;
+                case 1: { //Zoom and Crop
+                    QRect rect;
+                    rect.setSize(pixmap.size().scaled(newPixmap.width(), newPixmap.height(), Qt::KeepAspectRatioByExpanding));
+                    rect.moveLeft(newPixmap.width() / 2 - rect.width() / 2);
+                    rect.moveTop(newPixmap.height() / 2 - rect.height() / 2);
+                    painter.drawPixmap(rect, pixmap);
+                    break;
+                }
+                case 2: { //Center
+                    QRect rect;
+                    rect.setSize(pixmap.size());
+                    rect.moveLeft(newPixmap.width() / 2 - rect.width() / 2);
+                    rect.moveTop(newPixmap.height() / 2 - rect.height() / 2);
+                    painter.drawPixmap(rect, pixmap);
+                    break;
+                }
+                case 3: //Tile
+                    painter.drawTiledPixmap(0, 0, newPixmap.width(), newPixmap.height(), pixmap);
+                    break;
+                case 4: { //Zoom and Fit
+                    QRect rect;
+                    rect.setSize(pixmap.size().scaled(newPixmap.width(), newPixmap.height(), Qt::KeepAspectRatio));
+                    rect.moveLeft(newPixmap.width() / 2 - rect.width() / 2);
+                    rect.moveTop(newPixmap.height() / 2 - rect.height() / 2);
+                    painter.drawPixmap(rect, pixmap);
+                    break;
+                }
+            }
+
+            return newPixmap;
+        };
+
         if (backgroundName.startsWith("inbuilt:")) { //Inbuilt background
             QSvgRenderer renderer(QStringLiteral(":/libtdesktopenvironment/backgrounds/%1.svg").arg(backgroundName.mid(backgroundName.indexOf(':') + 1)));
             if (!renderer.isValid()) {
@@ -81,44 +136,7 @@ tPromise<BackgroundController::BackgroundData>*BackgroundController::getBackgrou
 
             auto chooseBackground = [=] {
                 this->getCurrentCommunityBackground()->then([=](BackgroundData data) {
-                    QPixmap background(screenSize);
-                    QPainter painter(&background);
-
-                    //Draw background
-                    switch (d->settings->value("desktop/stretchStyle", 0).toInt()) {
-                        case 0: //Stretch
-                            painter.drawPixmap(0, 0, background.width(), background.height(), data.px);
-                            break;
-                        case 1: { //Zoom and Crop
-                            QRect rect;
-                            rect.setSize(data.px.size().scaled(background.width(), background.height(), Qt::KeepAspectRatioByExpanding));
-                            rect.moveLeft(background.width() / 2 - rect.width() / 2);
-                            rect.moveTop(background.height() / 2 - rect.height() / 2);
-                            painter.drawPixmap(rect, data.px);
-                            break;
-                        }
-                        case 2: { //Center
-                            QRect rect;
-                            rect.setSize(data.px.size());
-                            rect.moveLeft(background.width() / 2 - rect.width() / 2);
-                            rect.moveTop(background.height() / 2 - rect.height() / 2);
-                            painter.drawPixmap(rect, data.px);
-                            break;
-                        }
-                        case 3: //Tile
-                            painter.drawTiledPixmap(0, 0, background.width(), background.height(), data.px);
-                            break;
-                        case 4: { //Zoom and Fit
-                            QRect rect;
-                            rect.setSize(data.px.size().scaled(background.width(), background.height(), Qt::KeepAspectRatio));
-                            rect.moveLeft(background.width() / 2 - rect.width() / 2);
-                            rect.moveTop(background.height() / 2 - rect.height() / 2);
-                            painter.drawPixmap(rect, data.px);
-                            break;
-                        }
-                    }
-
-                    data.px = background;
+                    data.px = drawBackground(data.px);
                     res(data);
                 })->error([=](QString error) {
                     rej(error);
@@ -143,47 +161,7 @@ tPromise<BackgroundController::BackgroundData>*BackgroundController::getBackgrou
                 return;
             }
 
-            QPainter painter(&data.px);
-
-            //Clear background
-            painter.setBrush(QColor(0, 0, 0));
-            painter.setPen(Qt::transparent);
-            painter.drawRect(0, 0, data.px.width(), data.px.height());
-
-            //Draw background
-            switch (d->settings->value("desktop/stretchStyle", 0).toInt()) {
-                case 0: //Stretch
-                    painter.drawPixmap(0, 0, data.px.width(), data.px.height(), image);
-                    break;
-                case 1: { //Zoom and Crop
-                    QRect rect;
-                    rect.setSize(image.size().scaled(data.px.width(), data.px.height(), Qt::KeepAspectRatioByExpanding));
-                    rect.moveLeft(data.px.width() / 2 - rect.width() / 2);
-                    rect.moveTop(data.px.height() / 2 - rect.height() / 2);
-                    painter.drawPixmap(rect, image);
-                    break;
-                }
-                case 2: { //Center
-                    QRect rect;
-                    rect.setSize(image.size());
-                    rect.moveLeft(data.px.width() / 2 - rect.width() / 2);
-                    rect.moveTop(data.px.height() / 2 - rect.height() / 2);
-                    painter.drawPixmap(rect, image);
-                    break;
-                }
-                case 3: //Tile
-                    painter.drawTiledPixmap(0, 0, data.px.width(), data.px.height(), image);
-                    break;
-                case 4: { //Zoom and Fit
-                    QRect rect;
-                    rect.setSize(image.size().scaled(data.px.width(), data.px.height(), Qt::KeepAspectRatio));
-                    rect.moveLeft(data.px.width() / 2 - rect.width() / 2);
-                    rect.moveTop(data.px.height() / 2 - rect.height() / 2);
-                    painter.drawPixmap(rect, image);
-                    break;
-                }
-            }
-
+            data.px = drawBackground(image);
             res(data);
         }
     });
@@ -191,10 +169,15 @@ tPromise<BackgroundController::BackgroundData>*BackgroundController::getBackgrou
 
 QStringList BackgroundController::availableBackgrounds()
 {
+
     QStringList backgrounds = {
         "community",
         "inbuilt:triangles",
-        "inbuilt:ribbon",
+        "inbuilt:ribbon"
+    };
+
+    backgrounds.append(d->additionalWallpapers);
+    backgrounds.append({
         "inbuilt:arrows",
         "inbuilt:beach",
         "inbuilt:leftwaves",
@@ -206,7 +189,7 @@ QStringList BackgroundController::availableBackgrounds()
         currentBackgroundName(BackgroundType::Desktop),
         currentBackgroundName(BackgroundType::LockScreen),
         "custom"
-    };
+    });
     backgrounds.removeDuplicates();
     return backgrounds;
 }
@@ -444,4 +427,51 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
 uint BackgroundController::communityBackgroundPeriod()
 {
     return static_cast<uint>(QDateTime::currentSecsSinceEpoch() / (30 * 60));
+}
+
+tPromise<QStringList>*BackgroundController::searchWallpapers(QString searchPath)
+{
+    return tPromise<QStringList>::runOnNewThread([=](tPromiseFunctions<QStringList>::SuccessFunction res, tPromiseFunctions<QStringList>::FailureFunction rej) {
+        QStringList wallpapers;
+        struct WallpaperInformation {
+            int w, h;
+            QString suffix;
+
+            bool operator<(WallpaperInformation other) {
+                return (w * h) < (other.w * other.h);
+            }
+        };
+
+        QMap<QString, WallpaperInformation> largestImages;
+        QDirIterator iterator(searchPath, QDirIterator::Subdirectories);
+        while (iterator.hasNext()) {
+            iterator.next();
+            QFileInfo fi = iterator.fileInfo();
+            if (QStringList({"png","jpg","jpeg"}).contains(fi.suffix())) {
+                if (fi.filePath().contains("contents") && QRegularExpression("^(\\d+x\\d+)|(screenshot)$").match(fi.baseName()).hasMatch()) {
+                    if (fi.baseName() == "screenshot") continue; //Ignore
+
+                    //Find only the largest image in this set
+                    WallpaperInformation info;
+                    info.w = fi.fileName().split("x").first().toInt();
+                    info.h = fi.fileName().split("x").at(1).split(".").first().toInt();
+                    info.suffix = fi.suffix();
+
+                    WallpaperInformation oldInfo = largestImages.value(fi.path(), {0, 0, ""});
+                    if (oldInfo < info) {
+                        largestImages.insert(fi.path(), info);
+                    }
+                } else {
+                    wallpapers.append(fi.filePath());
+                }
+            }
+        }
+
+        for (QString path : largestImages.keys()) {
+            WallpaperInformation info = largestImages.value(path);
+            wallpapers.append(QStringLiteral("%1/%2x%3.%4").arg(path).arg(info.w).arg(info.h).arg(info.suffix));
+        }
+
+        res(wallpapers);
+    });
 }
