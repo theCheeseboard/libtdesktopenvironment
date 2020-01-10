@@ -3,7 +3,7 @@ TEMPLATE = subdirs
 libproj.subdir = lib
 
 testproj.subdir = test
-testproj.depends = lib
+testproj.depends = libproj
 
 SUBDIRS += \
     libproj \
