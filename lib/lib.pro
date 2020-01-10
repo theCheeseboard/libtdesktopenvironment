@@ -15,6 +15,20 @@ unix {
         DEFINES += HAVE_X11
         QT += x11extras
 
+        packagesExist(xscrnsaver) {
+            PKGCONFIG += xscrnsaver
+            DEFINES += HAVE_XSCRNSAVER
+        } else {
+            message("xscrnsaver not found on this system.");
+        }
+
+        packagesExist(xext) {
+            PKGCONFIG += xext
+            DEFINES += HAVE_XEXT
+        } else {
+            message("xext not found on this system.");
+        }
+
         SOURCES += Wm/x11/x11backend.cpp \
                    Wm/x11/x11window.cpp
         HEADERS += Wm/x11/x11backend.h \

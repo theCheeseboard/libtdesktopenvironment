@@ -38,6 +38,10 @@ class WmBackend : public QObject
 
         virtual void setSystemWindow(QWidget* widget) = 0;
 
+        virtual void setScreenOff(bool screenOff) = 0;
+        virtual bool isScreenOff() = 0;
+        virtual quint64 msecsIdle() = 0;
+
     signals:
         void windowAdded(DesktopWmWindowPtr window);
         void windowRemoved(DesktopWmWindowPtr window);

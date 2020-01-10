@@ -41,6 +41,10 @@ class DesktopWm : public QObject
 
         static void setSystemWindow(QWidget* widget);
 
+        static void setScreenOff(bool screenOff);
+        static bool isScreenOff();
+        static quint64 msecsIdle();
+
     signals:
         void windowAdded(DesktopWmWindowPtr window);
         void windowRemoved(DesktopWmWindowPtr window);

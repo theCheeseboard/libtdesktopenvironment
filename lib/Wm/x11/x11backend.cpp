@@ -22,14 +22,26 @@
 #include <QDebug>
 #include <QX11Info>
 #include <QWidget>
+#include <QScopedPointer>
 
 #include "x11backend.h"
 #include "x11window.h"
 #include "x11functions.h"
 
+#ifdef HAVE_XSCRNSAVER
+#include <X11/extensions/scrnsaver.h>
+#endif
+
+#ifdef HAVE_XEXT
+#include <X11/extensions/dpms.h>
+#endif
+
 struct X11BackendPrivate {
     QMap<Window, X11WindowPtr> windows;
     QMap<QString, std::function<void()>> propertyChangeEvents;
+
+    bool haveScrnsaver = false;
+    bool haveDpms = false;
 };
 
 X11Backend::X11Backend() : WmBackend()
@@ -80,6 +92,14 @@ X11Backend::X11Backend() : WmBackend()
     d->propertyChangeEvents.insert("_NET_CURRENT_DESKTOP", [=] {
         emit currentDesktopChanged();
     });
+
+    int eventBase, errorBase;
+    #ifdef HAVE_XSCRNSAVER
+        if (XScreenSaverQueryExtension(QX11Info::display(), &eventBase, &errorBase)) d->haveScrnsaver = true;
+    #endif
+    #ifdef HAVE_XEXT
+        if (DPMSQueryExtension(QX11Info::display(), &eventBase, &errorBase) && DPMSCapable(QX11Info::display())) d->haveDpms = true;
+    #endif
 }
 
 bool X11Backend::isSuitable()
@@ -195,4 +215,52 @@ void X11Backend::setSystemWindow(QWidget*widget)
 void X11Backend::setShowDesktop(bool showDesktop)
 {
     TX11::sendMessageToRootWindow("_NET_SHOWING_DESKTOP", QX11Info::appRootWindow(), showDesktop ? 1 : 0);
+}
+
+
+quint64 X11Backend::msecsIdle()
+{
+    #ifdef HAVE_XSCRNSAVER
+        if (d->haveScrnsaver) {
+            QScopedPointer<XScreenSaverInfo, TX11::XDeleter> info(XScreenSaverAllocInfo());
+            if (info.isNull()) return 0;
+            if (!XScreenSaverQueryInfo(QX11Info::display(), QX11Info::appRootWindow(), info.data())) return 0;
+
+            return info->idle;
+        }
+    #endif
+
+    return 0;
+}
+
+
+void X11Backend::setScreenOff(bool screenOff)
+{
+    #ifdef HAVE_XEXT
+        if (d->haveDpms) {
+            if (screenOff) {
+                DPMSForceLevel(QX11Info::display(), DPMSModeOff);
+            } else {
+                DPMSForceLevel(QX11Info::display(), DPMSModeOff);
+            }
+        }
+    #endif
+}
+
+bool X11Backend::isScreenOff()
+{
+    #ifdef HAVE_XEXT
+        if (d->haveDpms) {
+            BOOL state;
+            CARD16 powerLevel;
+            DPMSInfo(QX11Info::display(), &powerLevel, &state);
+
+            if (powerLevel == DPMSModeOn) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    #endif
+    return false;
 }

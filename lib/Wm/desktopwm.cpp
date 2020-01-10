@@ -74,6 +74,21 @@ void DesktopWm::setSystemWindow(QWidget*widget)
     d->instance->setSystemWindow(widget);
 }
 
+void DesktopWm::setScreenOff(bool screenOff)
+{
+    d->instance->setScreenOff(screenOff);
+}
+
+bool DesktopWm::isScreenOff()
+{
+    return d->instance->isScreenOff();
+}
+
+quint64 DesktopWm::msecsIdle()
+{
+    return d->instance->msecsIdle();
+}
+
 DesktopWm::DesktopWm() : QObject(nullptr)
 {
     //Figure out the best backend to use

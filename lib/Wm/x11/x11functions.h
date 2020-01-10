@@ -134,6 +134,12 @@ namespace TX11 {
         return getRootWindowProperty<T>(property, XInternAtom(QX11Info::display(), qPrintable(type), true), offset, length);
     }
 
+    struct XDeleter {
+            static inline void cleanup(void* pointer) {
+                XFree(pointer);
+            }
+    };
+
     void sendMessageToRootWindow(QString message, Window window, long data0, long data1 = 0, long data2 = 0, long data3 = 0, long data4 = 0);
 }
 

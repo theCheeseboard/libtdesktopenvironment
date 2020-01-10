@@ -50,6 +50,10 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter
 
         void setSystemWindow(QWidget*widget);
 
+        void setScreenOff(bool screenOff);
+        bool isScreenOff();
+        quint64 msecsIdle();
+
     signals:
 
     public slots:
