@@ -53,6 +53,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     Background/backgroundselectionmodel.cpp \
+    SystemSlide/private/slidehud.cpp \
+    SystemSlide/private/slidempriscontroller.cpp \
+    SystemSlide/systemslide.cpp \
     TimeDate/desktoptimedate.cpp \
     UPower/desktopupower.cpp \
     UPower/desktopupowerdevice.cpp \
@@ -61,10 +64,15 @@ SOURCES += \
     Wm/desktopwmwindow.cpp \
     Wm/private/wmbackend.cpp \
     Wm/x11/x11functions.cpp \
-    Background/backgroundcontroller.cpp
+    Background/backgroundcontroller.cpp \
+    mpris/mprisengine.cpp \
+    mpris/mprisplayer.cpp
 
 HEADERS += \
     Background/backgroundselectionmodel.h \
+    SystemSlide/private/slidehud.h \
+    SystemSlide/private/slidempriscontroller.h \
+    SystemSlide/systemslide.h \
     TimeDate/desktoptimedate.h \
     UPower/desktopupower.h \
     UPower/desktopupowerdevice.h \
@@ -73,7 +81,9 @@ HEADERS += \
     Wm/desktopwmwindow.h \
     Wm/private/wmbackend.h \
     Background/backgroundcontroller.h \
-    libtdesktopenvironment_global.h
+    libtdesktopenvironment_global.h \
+    mpris/mprisengine.h \
+    mpris/mprisplayer.h
 
 unix {
     upowerheader.files = UPower/*.h
@@ -100,3 +110,8 @@ DISTFILES += \
 
 RESOURCES += \
     libtdesktopenvironment_resources.qrc
+
+FORMS += \
+    SystemSlide/private/slidehud.ui \
+    SystemSlide/private/slidempriscontroller.ui \
+    SystemSlide/systemslide.ui
