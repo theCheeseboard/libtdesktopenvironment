@@ -50,9 +50,17 @@ class SystemSlide : public QWidget {
 
         void activate();
         void deactivate();
+        bool isActive();
+
+        void setDeactivateSpeedThreshold(int speedThreshold);
+        void setDeactivateOnClick(bool deactivateOnClick);
+
+        void mprisPlayPause();
+        void mprisBack();
+        void mprisNext();
 
     signals:
-        void activated();
+        void deactivated();
 
     private:
         Ui::SystemSlide* ui;

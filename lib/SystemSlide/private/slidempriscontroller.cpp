@@ -59,6 +59,7 @@ SlideMprisController::SlideMprisController(QWidget* parent) :
     d->mprisSelection = new QMenu(this);
     d->mprisSelection->addSection(tr("Select Media Player"));
     ui->mprisSelection->setMenu(d->mprisSelection);
+    ui->mprisSelection->setVisible(false);
 
     for (MprisPlayerPtr player : MprisEngine::players()) {
         d->addServer(player->service(), player);
@@ -118,6 +119,8 @@ void SlideMprisControllerPrivate::addServer(QString service, MprisPlayerPtr play
     QObject::connect(serverAction, &QAction::triggered, [ = ] {
         this->setServer(player);
     });
+
+    if (MprisEngine::players().count() > 1) ui->mprisSelection->setVisible(true);
 }
 
 void SlideMprisControllerPrivate::removeServer(QString service) {
@@ -134,6 +137,8 @@ void SlideMprisControllerPrivate::removeServer(QString service) {
             this->setServer(MprisEngine::players().first());
         }
     }
+
+    if (MprisEngine::players().count() <= 1) ui->mprisSelection->setVisible(false);
 }
 
 void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {

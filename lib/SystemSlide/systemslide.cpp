@@ -25,6 +25,7 @@
 #include <QPointer>
 #include <tpropertyanimation.h>
 #include <QTimer>
+#include <QMouseEvent>
 
 #include "private/slidehud.h"
 
@@ -40,10 +41,21 @@ struct SystemSlidePrivate {
     SystemSlide::BackgroundMode bgMode;
     DesktopUPower* upower;
 
+    bool active = true;
+
     static BackgroundController* bg;
     bool retrieving = false;
     bool retrieveAgain = false;
     BackgroundController::BackgroundData background;
+
+    QTimer* draggingTimer;
+    int dragging = -1;
+    int lastY = -1;
+    int currentY = -1;
+    int speed = 0;
+
+    int deactivateSpeedThreshold = 10;
+    bool deactivateOnClick = true;
 };
 
 BackgroundController* SystemSlidePrivate::bg = nullptr;
@@ -81,6 +93,21 @@ SystemSlide::SystemSlide(QWidget* parent) :
 
     connect(d->upower, &DesktopUPower::overallStateChanged, this, &SystemSlide::upowerStateChanged);
     upowerStateChanged();
+
+    d->draggingTimer = new QTimer(this);
+    d->draggingTimer->setInterval(50);
+    connect(d->draggingTimer, &QTimer::timeout, this, [ = ] {
+        d->speed = d->lastY - d->currentY;
+        d->lastY = d->currentY;
+    });
+
+    QPalette oldPalette = this->palette();
+    oldPalette.setColor(QPalette::WindowText, oldPalette.color(QPalette::WindowText));
+    d->hud->setPalette(oldPalette);
+    ui->mprisController->setPalette(oldPalette);
+    QPalette pal = this->palette();
+    pal.setColor(QPalette::WindowText, Qt::white);
+    this->setPalette(pal);
 }
 
 SystemSlide::~SystemSlide() {
@@ -120,7 +147,27 @@ void SystemSlide::setBackgroundMode(SystemSlide::BackgroundMode mode) {
 }
 
 void SystemSlide::activate() {
-    emit activated();
+    d->active = true;
+    this->setAttribute(Qt::WA_TransparentForMouseEvents, false);
+    this->show();
+    this->setFocus();
+
+    tVariantAnimation* anim = new tVariantAnimation();
+    anim->setStartValue(d->hud->y());
+    anim->setEndValue(this->height() - d->hud->height());
+    anim->setDuration(500);
+    anim->setEasingCurve(QEasingCurve::OutCubic);
+    anim->start();
+    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+        d->hud->move(0, value.toInt());
+    });
+    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
+}
+
+void SystemSlide::deactivate() {
+    d->active = false;
+    this->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    emit deactivated();
 
     tVariantAnimation* anim = new tVariantAnimation();
     anim->setStartValue(d->hud->y());
@@ -135,19 +182,28 @@ void SystemSlide::activate() {
     connect(anim, &tVariantAnimation::finished, this, &SystemSlide::hide);
 }
 
-void SystemSlide::deactivate() {
-    this->show();
+bool SystemSlide::isActive() {
+    return d->active;
+}
 
-    tVariantAnimation* anim = new tVariantAnimation();
-    anim->setStartValue(d->hud->y());
-    anim->setEndValue(this->height() - d->hud->height());
-    anim->setDuration(500);
-    anim->setEasingCurve(QEasingCurve::OutCubic);
-    anim->start();
-    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
-        d->hud->move(0, value.toInt());
-    });
-    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
+void SystemSlide::setDeactivateSpeedThreshold(int speedThreshold) {
+    d->deactivateSpeedThreshold = speedThreshold;
+}
+
+void SystemSlide::setDeactivateOnClick(bool deactivateOnClick) {
+    d->deactivateOnClick = deactivateOnClick;
+}
+
+void SystemSlide::mprisPlayPause() {
+    ui->mprisController->playPause();
+}
+
+void SystemSlide::mprisBack() {
+    ui->mprisController->back();
+}
+
+void SystemSlide::mprisNext() {
+    ui->mprisController->next();
 }
 
 void SystemSlide::upowerStateChanged() {
@@ -169,7 +225,6 @@ void SystemSlide::backgroundChanged() {
     }
 
     d->retrieving = true;
-//    ui->stackedWidget->setCurrentWidget(ui->loadingBackgroundPage);
 
     d->bg->getCurrentBackground(this->size())->then([ = ](BackgroundController::BackgroundData data) {
         d->background = data;
@@ -279,13 +334,28 @@ bool SystemSlide::eventFilter(QObject* watched, QEvent* event) {
 }
 
 void SystemSlide::mousePressEvent(QMouseEvent* event) {
-    this->activate();
+    d->dragging = event->y();
+    d->lastY = event->y();
+    d->currentY = event->y();
+    d->draggingTimer->start();
 }
 
 void SystemSlide::mouseMoveEvent(QMouseEvent* event) {
-
+    if (d->dragging != -1) {
+        d->currentY = event->y();
+        d->hud->move(0, this->height() - d->hud->height() - (d->dragging - event->y()));
+    }
 }
 
 void SystemSlide::mouseReleaseEvent(QMouseEvent* event) {
+    if (d->speed >= d->deactivateSpeedThreshold && d->hud->y() < this->height() - d->hud->height()) {
+        deactivate();
+    } else if (d->hud->y() == this->height() - d->hud->height() && d->deactivateOnClick) {
+        deactivate();
+    } else {
+        activate();
+    }
 
+    d->draggingTimer->stop();
 }
+
