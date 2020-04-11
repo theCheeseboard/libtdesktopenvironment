@@ -23,11 +23,17 @@
 #include <QObject>
 #include "desktopwmwindow.h"
 
+class QScreen;
 struct DesktopWmPrivate;
-class DesktopWm : public QObject
-{
+class DesktopWm : public QObject {
         Q_OBJECT
     public:
+        enum SystemWindowType {
+            SystemWindowTypeSkipTaskbarOnly,
+            SystemWindowTypeDesktop,
+            SystemWindowTypeTaskbar
+        };
+
         static DesktopWm* instance();
 
         static QList<DesktopWmWindowPtr> openWindows();
@@ -40,10 +46,15 @@ class DesktopWm : public QObject
         static void setShowDesktop(bool showDesktop);
 
         static void setSystemWindow(QWidget* widget);
+        static void setSystemWindow(QWidget* widget, SystemWindowType windowType);
+
+        static void setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width);
 
         static void setScreenOff(bool screenOff);
         static bool isScreenOff();
         static quint64 msecsIdle();
+
+        static QString userDisplayName();
 
     signals:
         void windowAdded(DesktopWmWindowPtr window);

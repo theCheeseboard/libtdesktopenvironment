@@ -45,6 +45,7 @@ class SystemSlide : public QWidget {
         void setAction(QString action, QString description);
         void setActionIcon(QIcon icon);
         void setDragResultWidget(QWidget* widget);
+        void setSideWidget(QWidget* sideWidget);
 
         void setBackgroundMode(BackgroundMode mode);
 
@@ -67,7 +68,13 @@ class SystemSlide : public QWidget {
         SystemSlidePrivate* d;
 
         void upowerStateChanged();
+        void quietModeStateChanged();
         void backgroundChanged();
+
+        void pulseAudioDataAvailable(const float* data, int length);
+
+        void showQuickSettings();
+        void hideQuickSettings();
 
         void resizeEvent(QResizeEvent* event);
         void paintEvent(QPaintEvent* event);

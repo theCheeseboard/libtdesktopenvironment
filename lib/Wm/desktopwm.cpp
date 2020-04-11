@@ -20,10 +20,12 @@
 #include "desktopwm.h"
 
 #include <QDebug>
+#include <unistd.h>
+#include <pwd.h>
 #include "private/wmbackend.h"
 
 #ifdef HAVE_X11
-#include "x11/x11backend.h"
+    #include "x11/x11backend.h"
 #endif
 
 struct DesktopWmPrivate {
@@ -33,70 +35,76 @@ struct DesktopWmPrivate {
 
 DesktopWmPrivate* DesktopWm::d = new DesktopWmPrivate();
 
-DesktopWm* DesktopWm::instance()
-{
+DesktopWm* DesktopWm::instance() {
     if (d->dwmInstance == nullptr) d->dwmInstance = new DesktopWm();
     return d->dwmInstance;
 }
 
-QList<DesktopWmWindowPtr> DesktopWm::openWindows()
-{
+QList<DesktopWmWindowPtr> DesktopWm::openWindows() {
     return d->instance->openWindows();
 }
 
-DesktopWmWindowPtr DesktopWm::activeWindow()
-{
+DesktopWmWindowPtr DesktopWm::activeWindow() {
     return d->instance->activeWindow();
 }
 
-QStringList DesktopWm::desktops()
-{
+QStringList DesktopWm::desktops() {
     return d->instance->desktops();
 }
 
-uint DesktopWm::currentDesktop()
-{
+uint DesktopWm::currentDesktop() {
     return d->instance->currentDesktop();
 }
 
-void DesktopWm::setCurrentDesktop(uint desktopNumber)
-{
+void DesktopWm::setCurrentDesktop(uint desktopNumber) {
     d->instance->setCurrentDesktop(desktopNumber);
 }
 
-void DesktopWm::setShowDesktop(bool showDesktop)
-{
+void DesktopWm::setShowDesktop(bool showDesktop) {
     d->instance->setShowDesktop(showDesktop);
 }
 
-void DesktopWm::setSystemWindow(QWidget*widget)
-{
+void DesktopWm::setSystemWindow(QWidget* widget) {
     d->instance->setSystemWindow(widget);
 }
 
-void DesktopWm::setScreenOff(bool screenOff)
-{
+void DesktopWm::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType windowType) {
+    d->instance->setSystemWindow(widget, windowType);
+}
+
+void DesktopWm::setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width) {
+    d->instance->setScreenMarginForWindow(widget, screen, edge, width);
+}
+
+void DesktopWm::setScreenOff(bool screenOff) {
     d->instance->setScreenOff(screenOff);
 }
 
-bool DesktopWm::isScreenOff()
-{
+bool DesktopWm::isScreenOff() {
     return d->instance->isScreenOff();
 }
 
-quint64 DesktopWm::msecsIdle()
-{
+quint64 DesktopWm::msecsIdle() {
     return d->instance->msecsIdle();
 }
 
-DesktopWm::DesktopWm() : QObject(nullptr)
+QString DesktopWm::userDisplayName()
 {
+    passwd* pwEntry = getpwuid(getuid());
+    QStringList gecosField = QString::fromLocal8Bit(pwEntry->pw_gecos).split(",");
+    if (!gecosField.at(0).isEmpty()) {
+        return gecosField.at(0);
+    }
+    return pwEntry->pw_name;
+}
+
+DesktopWm::DesktopWm() : QObject(nullptr) {
     //Figure out the best backend to use
-    #ifdef HAVE_X11
-        if (X11Backend::isSuitable()) {
-            d->instance = new X11Backend();
-        }
-    #endif
+#ifdef HAVE_X11
+    if (X11Backend::isSuitable()) {
+        d->instance = new X11Backend();
+    }
+#endif
 
     if (d->instance) {
         connect(d->instance, &WmBackend::windowAdded, this, &DesktopWm::windowAdded);

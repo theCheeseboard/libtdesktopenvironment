@@ -22,9 +22,9 @@
 
 #include <QObject>
 #include "../desktopwmwindow.h"
+#include "../desktopwm.h"
 
-class WmBackend : public QObject
-{
+class WmBackend : public QObject {
         Q_OBJECT
     public:
         explicit WmBackend();
@@ -37,6 +37,9 @@ class WmBackend : public QObject
         virtual void setShowDesktop(bool showDesktop) = 0;
 
         virtual void setSystemWindow(QWidget* widget) = 0;
+        virtual void setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType windowType) = 0;
+
+        virtual void setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width) = 0;
 
         virtual void setScreenOff(bool screenOff) = 0;
         virtual bool isScreenOff() = 0;

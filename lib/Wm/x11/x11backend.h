@@ -30,13 +30,12 @@
 #undef CursorShape
 
 struct X11BackendPrivate;
-class X11Backend : public WmBackend, public QAbstractNativeEventFilter
-{
+class X11Backend : public WmBackend, public QAbstractNativeEventFilter {
         Q_OBJECT
     public:
         explicit X11Backend();
 
-        bool nativeEventFilter(const QByteArray&eventType, void*message, long*result);
+        bool nativeEventFilter(const QByteArray& eventType, void* message, long* result);
 
         static bool isSuitable();
 
@@ -48,7 +47,10 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter
         void setCurrentDesktop(uint desktopNumber);
         void setShowDesktop(bool showDesktop);
 
-        void setSystemWindow(QWidget*widget);
+        void setSystemWindow(QWidget* widget);
+        void setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType type);
+
+        void setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width);
 
         void setScreenOff(bool screenOff);
         bool isScreenOff();

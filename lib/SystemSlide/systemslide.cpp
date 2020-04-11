@@ -28,25 +28,38 @@
 #include <QMouseEvent>
 
 #include "private/slidehud.h"
+#include "private/slidequicksettings.h"
+#include "private/slidepulseaudiomonitor.h"
 
 #include "../TimeDate/desktoptimedate.h"
 #include "../UPower/desktopupower.h"
 #include "../Background/backgroundcontroller.h"
+#include "../theShellIntegration/quietmodemanager.h"
+
+#include "fft-real/src/FFTRealFixLen.h"
 
 struct SystemSlidePrivate {
     SlideHud* hud;
+    SlideQuickSettings* quickSettings;
+    SlidePulseaudioMonitor* pulseMonitor;
     QWidget* coverWidget;
+    QWidget* sideWidget = nullptr;
     QPointer<QWidget> dragResult;
 
     SystemSlide::BackgroundMode bgMode;
     DesktopUPower* upower;
+    QuietModeManager* quietmode;
 
     bool active = true;
+    bool quickSettingsShown = false;
 
     static BackgroundController* bg;
     bool retrieving = false;
     bool retrieveAgain = false;
     BackgroundController::BackgroundData background;
+
+    float fftVisPoints[128];
+    ffft::FFTRealFixLen<10> fft;
 
     QTimer* draggingTimer;
     int dragging = -1;
@@ -69,16 +82,31 @@ SystemSlide::SystemSlide(QWidget* parent) :
 
     d->upower = new DesktopUPower(this);
 
+    d->quietmode = new QuietModeManager(this);
+    connect(d->quietmode, &QuietModeManager::quietModeChanged, this, &SystemSlide::quietModeStateChanged);
+    quietModeStateChanged();
+
     d->hud = new SlideHud(this);
     d->hud->setFixedHeight(d->hud->sizeHint().height());
     d->hud->show();
     this->setContentsMargins(0, 0, 0, d->hud->sizeHint().height());
+
+    d->quickSettings = new SlideQuickSettings(d->quietmode, this);
+    d->quickSettings->setFixedHeight(d->quickSettings->sizeHint().height());
+    d->quickSettings->move(0, -d->quickSettings->height());
+    d->quickSettings->show();
+    d->quickSettings->installEventFilter(this);
 
     d->coverWidget = new QWidget(this);
     d->coverWidget->setAutoFillBackground(true);
     d->coverWidget->move(0, this->height());
     d->coverWidget->show();
 
+    d->pulseMonitor = new SlidePulseaudioMonitor(this);
+    connect(d->pulseMonitor, &SlidePulseaudioMonitor::audioDataAvailable, this, &SystemSlide::pulseAudioDataAvailable);
+    std::fill(d->fftVisPoints, d->fftVisPoints + 128, 0);
+
+    this->setMouseTracking(true);
     this->resize(this->parentWidget()->size());
     this->show();
     this->raise();
@@ -127,6 +155,11 @@ void SystemSlide::setDragResultWidget(QWidget* widget) {
     d->dragResult = widget;
 }
 
+void SystemSlide::setSideWidget(QWidget* sideWidget) {
+    d->sideWidget = sideWidget;
+    ui->sideWidgetContainer->layout()->addWidget(sideWidget);
+}
+
 void SystemSlide::setBackgroundMode(SystemSlide::BackgroundMode mode) {
     d->bgMode = mode;
     ui->backgroundInformation->setVisible(false);
@@ -167,6 +200,7 @@ void SystemSlide::activate() {
 void SystemSlide::deactivate() {
     d->active = false;
     this->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+    hideQuickSettings();
     emit deactivated();
 
     tVariantAnimation* anim = new tVariantAnimation();
@@ -214,6 +248,39 @@ void SystemSlide::upowerStateChanged() {
     } else {
         ui->upowerPane->setVisible(false);
     }
+}
+
+void SystemSlide::quietModeStateChanged() {
+    d->quietmode->quietMode()->then([ = ](QuietModeManager::QuietMode quietMode) {
+        if (quietMode == QuietModeManager::None) {
+            ui->quietmodePane->setVisible(false);
+        } else {
+            QIcon icon;
+            QString description;
+            switch (quietMode) {
+                case QuietModeManager::Critical:
+                    icon = QIcon::fromTheme("quiet-mode-critical-only");
+                    description = tr("Critical Only");
+                    break;
+                case QuietModeManager::Notifications:
+                    icon = QIcon::fromTheme("quiet-mode");
+                    description = tr("No Notifications");
+                    break;
+                case QuietModeManager::Mute:
+                    icon = QIcon::fromTheme("audio-volume-muted");
+                    description = tr("Mute");
+                    break;
+                default:
+                    break;
+            }
+
+            ui->quietmodeIcon->setPixmap(icon.pixmap(SC_DPI_T(QSize(16, 16), QSize)));
+            ui->quietmodeLabel->setText(description);
+            ui->quietmodePane->setVisible(true);
+        }
+    })->error([ = ](QString error) {
+        ui->quietmodePane->setVisible(false);
+    });
 }
 
 void SystemSlide::backgroundChanged() {
@@ -279,9 +346,85 @@ void SystemSlide::backgroundChanged() {
     });
 }
 
+void SystemSlide::pulseAudioDataAvailable(const float* data, int length) {
+    float ftPoints[1024];
+    d->fft.do_fft(ftPoints, data);
+
+    //Rescale each point
+    float maxData = data[0];
+    float maxFt = ftPoints[0];
+    for (int i = 0; i < 1024; i++) {
+        ftPoints[i] = log10((pow(ftPoints[i], 2)));
+        maxData = qMax(maxData, data[i]);
+        maxFt = qMax(maxFt, ftPoints[i]);
+    }
+
+    float ratio = 1 / maxFt;
+    for (int i = 0; i < 1024; i++) {
+        ftPoints[i] *= ratio;
+        ftPoints[i] *= maxData;
+    }
+
+    //Put them into baskets
+    for (int i = 0; i < 32; i++) {
+        float newValue = ftPoints[i * 32];
+        d->fftVisPoints[i * 4] -= 0.02f;
+        if (d->fftVisPoints[i * 4] < newValue) d->fftVisPoints[i * 4] = newValue;
+    }
+
+    //Interpolate the other baskets
+    for (int i = 0; i < 128; i++) {
+        if (i % 4 == 0) continue;
+
+        int majorBasketBefore = (i / 4) * 4;
+        int majorBasketAfter = ((i / 4) + 1) * 4;
+
+        float beforePoint = d->fftVisPoints[majorBasketBefore];
+        float afterPoint = 0;
+        if (majorBasketAfter != 32) afterPoint = d->fftVisPoints[majorBasketAfter];
+
+        d->fftVisPoints[i] = (beforePoint + afterPoint) / 4 * (i - majorBasketBefore);
+    }
+
+    this->update();
+}
+
+void SystemSlide::showQuickSettings() {
+    if (d->quickSettingsShown) return;
+    d->quickSettingsShown = true;
+
+    tVariantAnimation* anim = new tVariantAnimation();
+    anim->setStartValue(d->quickSettings->y());
+    anim->setEndValue(0);
+    anim->setDuration(500);
+    anim->setEasingCurve(QEasingCurve::OutCubic);
+    anim->start();
+    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+        d->quickSettings->move(0, value.toInt());
+    });
+    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
+}
+
+void SystemSlide::hideQuickSettings() {
+    if (!d->quickSettingsShown) return;
+    d->quickSettingsShown = false;
+
+    tVariantAnimation* anim = new tVariantAnimation();
+    anim->setStartValue(d->quickSettings->y());
+    anim->setEndValue(-d->quickSettings->height());
+    anim->setDuration(500);
+    anim->setEasingCurve(QEasingCurve::OutCubic);
+    anim->start();
+    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+        d->quickSettings->move(0, value.toInt());
+    });
+    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
+}
+
 void SystemSlide::resizeEvent(QResizeEvent* event) {
     d->hud->move(0, this->height() - d->hud->height());
     d->hud->setFixedWidth(this->width());
+    d->quickSettings->setFixedWidth(this->width());
     this->backgroundChanged();
 }
 
@@ -305,12 +448,20 @@ void SystemSlide::paintEvent(QPaintEvent* event) {
         darkener.setFinalStop(0, 0);
         painter.setBrush(darkener);
         painter.drawRect(0, 0, this->width(), this->height());
-
-        painter.setPen(Qt::white);
     } else {
         painter.setPen(Qt::transparent);
         painter.setBrush(QColor(0, 0, 0, 127));
         painter.drawRect(0, 0, this->width(), this->height());
+    }
+
+    painter.setPen(Qt::transparent);
+    painter.setBrush(QColor(255, 255, 255, 100));
+
+    int maxHeight = this->height() * 0.75;
+    for (int i = 0; i < 128; i++) {
+        float point = d->fftVisPoints[i];
+        if (point < 0) continue;
+        painter.drawRect(this->width() / 128 * i, this->height() - (maxHeight * point) - d->hud->height(), this->width() / 128, maxHeight * point);
     }
 }
 
@@ -329,6 +480,10 @@ bool SystemSlide::eventFilter(QObject* watched, QEvent* event) {
             QPixmap px = d->dragResult->grab();
             painter.drawPixmap(QRect(QPoint(0, 0), px.size()), px);
         }
+    } else if (watched == d->quickSettings) {
+        if (event->type() == QEvent::Leave) {
+            hideQuickSettings();
+        }
     }
     return false;
 }
@@ -338,12 +493,20 @@ void SystemSlide::mousePressEvent(QMouseEvent* event) {
     d->lastY = event->y();
     d->currentY = event->y();
     d->draggingTimer->start();
+
+    hideQuickSettings();
 }
 
 void SystemSlide::mouseMoveEvent(QMouseEvent* event) {
     if (d->dragging != -1) {
         d->currentY = event->y();
         d->hud->move(0, this->height() - d->hud->height() - (d->dragging - event->y()));
+    } else {
+        if (event->y() <= 1) {
+            showQuickSettings();
+        } else {
+            hideQuickSettings();
+        }
     }
 }
 
@@ -357,5 +520,6 @@ void SystemSlide::mouseReleaseEvent(QMouseEvent* event) {
     }
 
     d->draggingTimer->stop();
+    d->dragging = -1;
 }
 

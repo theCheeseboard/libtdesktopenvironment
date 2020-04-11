@@ -9,8 +9,6 @@ SUBDIRS += \
     libproj \
     testproj
 
-HEADERS += \
-    ../theShell/theshell-lib/server/serverdaemon.h
+CONFIG += qt
 
-SOURCES += \
-    ../theShell/theshell-lib/server/serverdaemon.cpp
+QT += widgets

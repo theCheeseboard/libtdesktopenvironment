@@ -37,6 +37,34 @@ unix {
     } else {
         message("X11 not found on this system.");
     }
+
+
+    qtHaveModule(NetworkManagerQt) {
+        QT += NetworkManagerQt
+        DEFINES += HAVE_NETWORKMANAGERQT
+        message("Building with NetworkManagerQt support");
+    } else {
+        exists(/usr/lib/libKF5NetworkManagerQt.so) {
+            PKGCONFIG += libpulse libpulse-mainloop-glib
+            INCLUDEPATH += /usr/include/KF5/NetworkManagerQt/
+            LIBS += -lKF5NetworkManagerQt
+
+            DEFINES += HAVE_NETWORKMANAGERQT
+            message("Building with NetworkManagerQt support");
+        } else {
+            message("NetworkManagerQt not found on this system.");
+        }
+    }
+
+    exists(/usr/lib/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
+        LIBS += -lKF5PulseAudioQt
+        INCLUDEPATH += /usr/include/KF5/KF5PulseAudioQt/PulseAudioQt
+
+        DEFINES += HAVE_PULSE
+        message("Building with pulseaudio support");
+    } else {
+        message("PulseAudio or PulseAudioQt not found on this system.");
+    }
 }
 
 
@@ -55,6 +83,8 @@ SOURCES += \
     Background/backgroundselectionmodel.cpp \
     SystemSlide/private/slidehud.cpp \
     SystemSlide/private/slidempriscontroller.cpp \
+    SystemSlide/private/slidepulseaudiomonitor.cpp \
+    SystemSlide/private/slidequicksettings.cpp \
     SystemSlide/systemslide.cpp \
     TimeDate/desktoptimedate.cpp \
     UPower/desktopupower.cpp \
@@ -66,12 +96,15 @@ SOURCES += \
     Wm/x11/x11functions.cpp \
     Background/backgroundcontroller.cpp \
     mpris/mprisengine.cpp \
-    mpris/mprisplayer.cpp
+    mpris/mprisplayer.cpp \
+    theShellIntegration/quietmodemanager.cpp
 
 HEADERS += \
     Background/backgroundselectionmodel.h \
     SystemSlide/private/slidehud.h \
     SystemSlide/private/slidempriscontroller.h \
+    SystemSlide/private/slidepulseaudiomonitor.h \
+    SystemSlide/private/slidequicksettings.h \
     SystemSlide/systemslide.h \
     TimeDate/desktoptimedate.h \
     UPower/desktopupower.h \
@@ -83,7 +116,8 @@ HEADERS += \
     Background/backgroundcontroller.h \
     libtdesktopenvironment_global.h \
     mpris/mprisengine.h \
-    mpris/mprisplayer.h
+    mpris/mprisplayer.h \
+    theShellIntegration/quietmodemanager.h
 
 unix {
     upowerheader.files = UPower/*.h
@@ -114,4 +148,5 @@ RESOURCES += \
 FORMS += \
     SystemSlide/private/slidehud.ui \
     SystemSlide/private/slidempriscontroller.ui \
+    SystemSlide/private/slidequicksettings.ui \
     SystemSlide/systemslide.ui
