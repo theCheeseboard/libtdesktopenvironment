@@ -32,17 +32,21 @@ struct DesktopTimeDatePrivate {
 
 DesktopTimeDatePrivate* DesktopTimeDate::d = new DesktopTimeDatePrivate();
 
-QString DesktopTimeDate::timeString(QDateTime d, DesktopTimeDate::StringType type)
-{
+QString DesktopTimeDate::timeString(QDateTime d, DesktopTimeDate::StringType type) {
     QSettings settings("theSuite", "theShell");
     bool use24Hour = settings.value("time/use24hour", true).toBool();
 
     QLocale loc;
     QString amPm;
     if (!use24Hour) {
-        if (d.time().hour() >= 12) {
+        if (d.time().hour() > 12) {
             amPm = loc.pmText();
             d = d.addSecs(-43200);
+        } else if (d.time().hour() == 12) {
+            amPm = loc.pmText();
+        } else if (d.time().hour() == 0) {
+            amPm = loc.amText();
+            d = d.addSecs(43200);
         } else {
             amPm = loc.amText();
         }
@@ -56,11 +60,7 @@ QString DesktopTimeDate::timeString(QDateTime d, DesktopTimeDate::StringType typ
                 return (d.time().toString("hh:mm:ss") + amPm);
             }
         case Time:
-            if (use24Hour) {
-                return d.time().toString("HH:mm:ss");
-            } else {
-                return (d.time().toString("hh:mm:ss"));
-            }
+            return d.time().toString("HH:mm:ss");
         case AmPm:
             return amPm.toLower();
         case StandardDate:
@@ -68,17 +68,15 @@ QString DesktopTimeDate::timeString(QDateTime d, DesktopTimeDate::StringType typ
     }
 }
 
-QString DesktopTimeDate::timeString(DesktopTimeDate::StringType type)
-{
+QString DesktopTimeDate::timeString(DesktopTimeDate::StringType type) {
     return timeString(QDateTime::currentDateTime(), type);
 }
 
-void DesktopTimeDate::makeTimeLabel(QLabel*label, DesktopTimeDate::StringType type)
-{
+void DesktopTimeDate::makeTimeLabel(QLabel* label, DesktopTimeDate::StringType type) {
     if (!d->updateTimer) {
         d->updateTimer = new QTimer();
         d->updateTimer->setInterval(1000);
-        QObject::connect(d->updateTimer, &QTimer::timeout, [=] {
+        QObject::connect(d->updateTimer, &QTimer::timeout, [ = ] {
             for (auto i = d->updates.begin(); i != d->updates.end(); i++) {
                 i.key()->setText(timeString(i.value()));
             }
