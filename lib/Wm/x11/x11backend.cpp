@@ -38,11 +38,22 @@
 #endif
 
 struct X11BackendPrivate {
+    struct X11KeyGrab {
+        KeyCode keycode;
+        uint keymods;
+
+        bool operator==(const X11KeyGrab& other) const;
+    };
+
     QMap<Window, X11WindowPtr> windows;
     QMap<QString, std::function<void()>> propertyChangeEvents;
 
     bool haveScrnsaver = false;
     bool haveDpms = false;
+    bool heardSuper = false;
+
+    QHash<quint64, X11KeyGrab> grabs;
+    quint64 nextGrab = 1;
 };
 
 X11Backend::X11Backend() : WmBackend() {
@@ -141,6 +152,42 @@ bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, l
             X11WindowPtr window = d->windows.value(configureNotify->event);
             window->configureNotify();
         }
+    } else if (event->response_type == XCB_KEY_PRESS) { //Key Press Event
+        xcb_key_release_event_t* button = static_cast<xcb_key_release_event_t*>(message);
+        ulong keyState = 0;
+        if (button->state & XCB_MOD_MASK_1) keyState |= Mod1Mask;
+        if (button->state & XCB_MOD_MASK_CONTROL) keyState |= ControlMask;
+        if (button->state & XCB_MOD_MASK_4) {
+            keyState |= Mod4Mask;
+            d->heardSuper = true;
+        }
+        if (button->state & XCB_MOD_MASK_SHIFT) keyState |= ShiftMask;
+
+        for (KeySym keysym : {
+                XK_Control_L, XK_Control_R, XK_Alt_L, XK_Alt_R, XK_Shift_L, XK_Shift_R, XK_Super_L, XK_Super_R, XK_Meta_L, XK_Meta_R, XK_Hyper_L, XK_Hyper_R
+            }) {
+            if (button->detail == XKeysymToKeycode(QX11Info::display(), keysym)) return false; //Do nothing; this is a modifier key
+        }
+
+        //Go through all the keys and find the appropriate grab ID
+        for (auto i = d->grabs.begin(); i != d->grabs.end(); i++) {
+            if (i.value().keycode == button->detail && i.value().keymods == keyState) {
+                emit grabbedKeyPressed(i.key());
+            }
+        }
+    } else if (event->response_type == XCB_KEY_RELEASE) { //Key Release Event
+        xcb_key_release_event_t* button = static_cast<xcb_key_release_event_t*>(message);
+        if (button->detail == XKeysymToKeycode(QX11Info::display(), XK_Super_L)) {
+            if (d->heardSuper) {
+                d->heardSuper = false;
+            } else {
+                quint64 grabId = d->grabs.key({
+                    XKeysymToKeycode(QX11Info::display(), XK_Super_L),
+                    0
+                }, 0);
+                if (grabId != 0) emit grabbedKeyPressed(grabId);
+            }
+        }
     }
     return false;
 }
@@ -224,6 +271,17 @@ void X11Backend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType ty
                 XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 1);
             break;
         }
+        case DesktopWm::SystemWindowTypeNotification: {
+            //Change the window type to a _NET_WM_WINDOW_TYPE_NOTIFICATION
+            //And also a _KDE_NET_WM_WINDOW_TYPE_ON_SCREEN_DISPLAY specifically for KWin :)
+
+            Atom DesktopWindowTypeAtom[2];
+            DesktopWindowTypeAtom[0] = XInternAtom(QX11Info::display(), "_KDE_NET_WM_WINDOW_TYPE_ON_SCREEN_DISPLAY", False);
+            DesktopWindowTypeAtom[1] = XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE_NOTIFICATION", False);
+            XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
+                XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 2);
+
+        }
     }
 }
 
@@ -283,6 +341,27 @@ quint64 X11Backend::msecsIdle() {
     return 0;
 }
 
+quint64 X11Backend::grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) {
+    quint64 grabId = d->nextGrab;
+    d->nextGrab++;
+
+    uint keymods = TX11::toNativeModifiers(modifiers);
+    KeySym keysym = TX11::toKeySym(key);
+    KeyCode keycode = XKeysymToKeycode(QX11Info::display(), keysym);
+
+    XGrabKey(QX11Info::display(), keycode, keymods, QX11Info::appRootWindow(), true, GrabModeAsync, GrabModeAsync);
+
+    d->grabs.insert(grabId, {keycode, keymods});
+
+    return grabId;
+}
+
+void X11Backend::ungrabKey(quint64 grab) {
+    X11BackendPrivate::X11KeyGrab kg = d->grabs.value(grab);
+    XUngrabKey(QX11Info::display(), kg.keycode, kg.keymods, QX11Info::appRootWindow());
+    d->grabs.remove(grab);
+}
+
 
 void X11Backend::setScreenOff(bool screenOff) {
 #ifdef HAVE_XEXT
@@ -311,4 +390,8 @@ bool X11Backend::isScreenOff() {
     }
 #endif
     return false;
+}
+
+bool X11BackendPrivate::X11KeyGrab::operator==(const X11BackendPrivate::X11KeyGrab& other) const {
+    return other.keycode == this->keycode && other.keymods == this->keymods;
 }

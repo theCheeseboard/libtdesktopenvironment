@@ -26,6 +26,8 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
+#include "x11keyboardtables.h"
+
 namespace TX11 {
     QString atomName(Atom atom);
 
@@ -96,21 +98,21 @@ namespace TX11 {
         Atom typeReturn;
         int formatReturn;
         unsigned long nItems, nBytesRemain;
-        unsigned char *data;
+        unsigned char* data;
 
 
         XGetWindowProperty(QX11Info::display(),
-                           window,
-                           XInternAtom(QX11Info::display(), qPrintable(property), true),
-                           offset,
-                           length,
-                           false,
-                           type,
-                           &typeReturn,
-                           &formatReturn,
-                           &nItems,
-                           &nBytesRemain,
-                           &data);
+            window,
+            XInternAtom(QX11Info::display(), qPrintable(property), true),
+            offset,
+            length,
+            false,
+            type,
+            &typeReturn,
+            &formatReturn,
+            &nItems,
+            &nBytesRemain,
+            &data);
 
         prop->type = typeReturn;
         prop->format = formatReturn;
@@ -135,9 +137,9 @@ namespace TX11 {
     }
 
     struct XDeleter {
-            static inline void cleanup(void* pointer) {
-                XFree(pointer);
-            }
+        static inline void cleanup(void* pointer) {
+            XFree(pointer);
+        }
     };
 
     void sendMessageToRootWindow(QString message, Window window, long data0, long data1 = 0, long data2 = 0, long data3 = 0, long data4 = 0);

@@ -31,7 +31,8 @@ class DesktopWm : public QObject {
         enum SystemWindowType {
             SystemWindowTypeSkipTaskbarOnly,
             SystemWindowTypeDesktop,
-            SystemWindowTypeTaskbar
+            SystemWindowTypeTaskbar,
+            SystemWindowTypeNotification
         };
 
         static DesktopWm* instance();
@@ -54,6 +55,9 @@ class DesktopWm : public QObject {
         static bool isScreenOff();
         static quint64 msecsIdle();
 
+        static quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers);
+        static void ungrabKey(quint64 grab);
+
         static QString userDisplayName();
 
     signals:
@@ -62,6 +66,7 @@ class DesktopWm : public QObject {
         void desktopCountChanged();
         void currentDesktopChanged();
         void activeWindowChanged();
+        void grabbedKeyPressed(quint64 grab);
 
     public slots:
 

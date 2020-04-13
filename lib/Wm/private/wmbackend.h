@@ -45,12 +45,16 @@ class WmBackend : public QObject {
         virtual bool isScreenOff() = 0;
         virtual quint64 msecsIdle() = 0;
 
+        virtual quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) = 0;
+        virtual void ungrabKey(quint64 grab) = 0;
+
     signals:
         void windowAdded(DesktopWmWindowPtr window);
         void windowRemoved(DesktopWmWindowPtr window);
         void desktopCountChanged();
         void currentDesktopChanged();
         void activeWindowChanged();
+        void grabbedKeyPressed(quint64 grab);
 
     public slots:
 };

@@ -88,8 +88,15 @@ quint64 DesktopWm::msecsIdle() {
     return d->instance->msecsIdle();
 }
 
-QString DesktopWm::userDisplayName()
-{
+quint64 DesktopWm::grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) {
+    return d->instance->grabKey(key, modifiers);
+}
+
+void DesktopWm::ungrabKey(quint64 grab) {
+    d->instance->ungrabKey(grab);
+}
+
+QString DesktopWm::userDisplayName() {
     passwd* pwEntry = getpwuid(getuid());
     QStringList gecosField = QString::fromLocal8Bit(pwEntry->pw_gecos).split(",");
     if (!gecosField.at(0).isEmpty()) {
@@ -112,6 +119,7 @@ DesktopWm::DesktopWm() : QObject(nullptr) {
         connect(d->instance, &WmBackend::activeWindowChanged, this, &DesktopWm::activeWindowChanged);
         connect(d->instance, &WmBackend::currentDesktopChanged, this, &DesktopWm::currentDesktopChanged);
         connect(d->instance, &WmBackend::desktopCountChanged, this, &DesktopWm::desktopCountChanged);
+        connect(d->instance, &WmBackend::grabbedKeyPressed, this, &DesktopWm::grabbedKeyPressed);
     } else {
         //No suitable backend is available
         qWarning() << "No suitable backend for DesktopWm";

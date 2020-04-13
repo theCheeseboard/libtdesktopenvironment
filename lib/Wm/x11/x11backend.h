@@ -56,6 +56,9 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter {
         bool isScreenOff();
         quint64 msecsIdle();
 
+        quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers);
+        void ungrabKey(quint64 grab);
+
     signals:
 
     public slots:

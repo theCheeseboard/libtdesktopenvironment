@@ -29,11 +29,23 @@ unix {
             message("xext not found on this system.");
         }
 
+        packagesExist(xrandr) {
+            PKGCONFIG += xrandr
+            DEFINES += HAVE_XRANDR
+        } else {
+            message("xrandr not found on this system.");
+        }
+
         SOURCES += Wm/x11/x11backend.cpp \
-                   Wm/x11/x11window.cpp
+                   Wm/x11/x11window.cpp \
+                   Wm/x11/x11functions.cpp \
+                   Wm/x11/x11keyboardtables.cpp \
+                   Screens/x11/x11screenbackend.cpp
         HEADERS += Wm/x11/x11backend.h \
                    Wm/x11/x11window.h \
-                   Wm/x11/x11functions.h
+                   Wm/x11/x11functions.h \
+                   Wm/x11/x11keyboardtables.h \
+                   Screens/x11/x11screenbackend.h
     } else {
         message("X11 not found on this system.");
     }
@@ -81,6 +93,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     Background/backgroundselectionmodel.cpp \
+    Screens/private/screenbackend.cpp \
+    Screens/screendaemon.cpp \
+    Screens/systemscreen.cpp \
+    Screens/x11/x11screen.cpp \
     SystemSlide/private/slidehud.cpp \
     SystemSlide/private/slidempriscontroller.cpp \
     SystemSlide/private/slidepulseaudiomonitor.cpp \
@@ -93,7 +109,6 @@ SOURCES += \
     Wm/desktopwm.cpp \
     Wm/desktopwmwindow.cpp \
     Wm/private/wmbackend.cpp \
-    Wm/x11/x11functions.cpp \
     Background/backgroundcontroller.cpp \
     mpris/mprisengine.cpp \
     mpris/mprisplayer.cpp \
@@ -101,6 +116,10 @@ SOURCES += \
 
 HEADERS += \
     Background/backgroundselectionmodel.h \
+    Screens/private/screenbackend.h \
+    Screens/screendaemon.h \
+    Screens/systemscreen.h \
+    Screens/x11/x11screen.h \
     SystemSlide/private/slidehud.h \
     SystemSlide/private/slidempriscontroller.h \
     SystemSlide/private/slidepulseaudiomonitor.h \
@@ -128,6 +147,12 @@ unix {
     timedateheaders.path = /usr/include/libtdesktopenvironment/TimeDate
     backgroundheaders.files = Background/*.h
     backgroundheaders.path = /usr/include/libtdesktopenvironment/Background
+    slideheaders.files = SystemSlide/*.h
+    slideheaders.path = /usr/include/libtdesktopenvironment/SystemSlide
+    tsiheaders.files = theShellIntegration/*.h
+    tsiheaders.path = /usr/include/libtdesktopenvironment/theShellIntegration
+    screenheaders.files = Screens/*.h
+    screenheaders.path = /usr/include/libtdesktopenvironment/Screens
     header.files = *.h
     header.path = /usr/include/libtdesktopenvironment
 
@@ -136,7 +161,7 @@ unix {
     target.path = /usr/lib
     module.path = $$[QMAKE_MKSPECS]/modules
 
-    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders header module
+    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders header module
 }
 
 DISTFILES += \
