@@ -253,16 +253,22 @@ void X11Backend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType ty
         XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&desktop), 1);
 
     switch (type) {
-        case DesktopWm::SystemWindowTypeSkipTaskbarOnly:
-            //Do nothing
+        case DesktopWm::SystemWindowTypeSkipTaskbarOnly: {
+            //Change the window type to a _NET_WM_WINDOW_TYPE_NORMAL
+            Atom DesktopWindowTypeAtom;
+            DesktopWindowTypeAtom = XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE_NORMAL", False);
+            XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
+                XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 1);
             break;
-        case DesktopWm::SystemWindowTypeDesktop:
+        }
+        case DesktopWm::SystemWindowTypeDesktop: {
             //Change the window type to a _NET_WM_WINDOW_TYPE_DESKTOP
             Atom DesktopWindowTypeAtom;
             DesktopWindowTypeAtom = XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE_DESKTOP", False);
             XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
                 XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 1);
             break;
+        }
         case DesktopWm::SystemWindowTypeTaskbar: {
             //Change the window type to a _NET_WM_WINDOW_TYPE_DOCK
             Atom DesktopWindowTypeAtom;

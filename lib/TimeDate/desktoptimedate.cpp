@@ -24,6 +24,7 @@
 #include <QSettings>
 #include <QTimer>
 #include <QLabel>
+#include <tlocale.h>
 
 struct DesktopTimeDatePrivate {
     QMap<QLabel*, DesktopTimeDate::StringType> updates;
@@ -33,38 +34,41 @@ struct DesktopTimeDatePrivate {
 DesktopTimeDatePrivate* DesktopTimeDate::d = new DesktopTimeDatePrivate();
 
 QString DesktopTimeDate::timeString(QDateTime d, DesktopTimeDate::StringType type) {
-    QSettings settings("theSuite", "theShell");
-    bool use24Hour = settings.value("time/use24hour", true).toBool();
+//    QSettings settings("theSuite", "theShell");
+//    bool use24Hour = settings.value("time/use24hour", true).toBool();
 
-    QLocale loc;
+    QLocale loc = tLocale::timeLocale();
+
     QString amPm;
-    if (!use24Hour) {
-        if (d.time().hour() > 12) {
-            amPm = loc.pmText();
-            d = d.addSecs(-43200);
-        } else if (d.time().hour() == 12) {
-            amPm = loc.pmText();
-        } else if (d.time().hour() == 0) {
-            amPm = loc.amText();
-            d = d.addSecs(43200);
-        } else {
-            amPm = loc.amText();
-        }
-    }
+//    if (!use24Hour) {
+//        if (d.time().hour() > 12) {
+//            amPm = loc.pmText();
+//            d = d.addSecs(-43200);
+//        } else if (d.time().hour() == 12) {
+//            amPm = loc.pmText();
+//        } else if (d.time().hour() == 0) {
+//            amPm = loc.amText();
+//            d = d.addSecs(43200);
+//        } else {
+//            amPm = loc.amText();
+//        }
+//    }
 
     switch (type) {
         case FullTime:
-            if (use24Hour) {
-                return d.time().toString("HH:mm:ss");
-            } else {
-                return (d.time().toString("hh:mm:ss") + amPm);
-            }
+//            if (use24Hour) {
+//                return d.time().toString("HH:mm:ss");
+//            } else {
+//                return (d.time().toString("hh:mm:ss") + amPm);
+//            }
+            return loc.toString(d.time(), QLocale::ShortFormat);
         case Time:
             return d.time().toString("HH:mm:ss");
         case AmPm:
             return amPm.toLower();
         case StandardDate:
-            return loc.toString(d, tr("ddd dd MMM yyyy"));
+//            return loc.toString(d, tr("ddd dd MMM yyyy"));
+            return loc.toString(d.date(), QLocale::LongFormat);
     }
 }
 
@@ -91,5 +95,8 @@ void DesktopTimeDate::makeTimeLabel(QLabel* label, DesktopTimeDate::StringType t
     }
     label->setFont(fnt);
 
+    QObject::connect(label, &QLabel::destroyed, [ = ] {
+        d->updates.remove(label);
+    });
     d->updates.insert(label, type);
 }

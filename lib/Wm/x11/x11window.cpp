@@ -64,8 +64,7 @@ X11WindowPrivate::State& operator|=(X11WindowPrivate::State& a, X11WindowPrivate
     return a;
 }
 
-X11Window::X11Window(Window wid) : DesktopWmWindow()
-{
+X11Window::X11Window(Window wid) : DesktopWmWindow() {
     d = new X11WindowPrivate();
     d->wid = wid;
 
@@ -73,47 +72,42 @@ X11Window::X11Window(Window wid) : DesktopWmWindow()
     XGetWindowAttributes(QX11Info::display(), d->wid, &attrs);
     XSelectInput(QX11Info::display(), d->wid, attrs.your_event_mask | PropertyChangeMask | StructureNotifyMask | SubstructureNotifyMask);
 
-    d->propertyChangeEvents.insert("_NET_WM_NAME", [=] {
+    d->propertyChangeEvents.insert("_NET_WM_NAME", [ = ] {
         emit titleChanged();
     });
-    d->propertyChangeEvents.insert("_NET_WM_ICON", [=] {
+    d->propertyChangeEvents.insert("_NET_WM_ICON", [ = ] {
         d->iconNeedsUpdate = true;
         emit iconChanged();
     });
-    d->propertyChangeEvents.insert("_NET_WM_STATE", [=] {
+    d->propertyChangeEvents.insert("_NET_WM_STATE", [ = ] {
         this->updateState();
         emit windowStateChanged();
     });
-    d->propertyChangeEvents.insert("_NET_WM_WINDOW_TYPE", [=] {
+    d->propertyChangeEvents.insert("_NET_WM_WINDOW_TYPE", [ = ] {
         emit windowStateChanged();
     });
 
     this->updateState();
 }
 
-X11Window::~X11Window()
-{
+X11Window::~X11Window() {
     delete d;
 }
 
-void X11Window::x11PropertyChanged(QString property)
-{
+void X11Window::x11PropertyChanged(QString property) {
     if (d->propertyChangeEvents.contains(property)) d->propertyChangeEvents.value(property)();
 }
 
-void X11Window::configureNotify()
-{
+void X11Window::configureNotify() {
     emit geometryChanged();
 }
 
-QString X11Window::title()
-{
+QString X11Window::title() {
     TX11::WindowPropertyPtr<char> title = TX11::getWindowProperty<char>("_NET_WM_NAME", d->wid, "UTF8_STRING");
     return QString::fromUtf8(title->data, static_cast<int>(title->nItems));
 }
 
-QRect X11Window::geometry()
-{
+QRect X11Window::geometry() {
     XWindowAttributes attrs;
     XGetWindowAttributes(QX11Info::display(), d->wid, &attrs);
 
@@ -125,13 +119,11 @@ QRect X11Window::geometry()
 }
 
 
-bool X11Window::isMinimized()
-{
+bool X11Window::isMinimized() {
     return d->windowState & X11WindowPrivate::Hidden;
 }
 
-QIcon X11Window::icon()
-{
+QIcon X11Window::icon() {
     if (d->iconNeedsUpdate) {
         d->windowIcon = QIcon();
 
@@ -141,6 +133,11 @@ QIcon X11Window::icon()
         while (offset < static_cast<long>(icons->nItems)) {
             long width = icons->at(offset++);
             long height = icons->at(offset++);
+
+            if (width == 0 || height == 0) {
+                //Bail
+                return d->windowIcon;
+            }
 
             QImage image(static_cast<int>(width), static_cast<int>(height), QImage::Format_ARGB32);
             for (long y = 0; y < height; y++) {
@@ -160,8 +157,7 @@ QIcon X11Window::icon()
 }
 
 
-void X11Window::activate()
-{
+void X11Window::activate() {
     TX11::WindowPropertyPtr<long> userTime = TX11::getWindowProperty<long>("_NET_WM_USER_TIME", d->wid, XA_CARDINAL);
 
     long userTimeValue;
@@ -173,19 +169,16 @@ void X11Window::activate()
     TX11::sendMessageToRootWindow("_NET_ACTIVE_WINDOW", d->wid, 2, userTimeValue, static_cast<long>(static_cast<X11Window*>(DesktopWm::activeWindow().data())->d->wid));
 }
 
-quint64 X11Window::pid()
-{
+quint64 X11Window::pid() {
     TX11::WindowPropertyPtr<long> pid = TX11::getWindowProperty<long>("_NET_WM_PID", d->wid, XA_CARDINAL);
     return static_cast<quint64>(pid->first());
 }
 
-void X11Window::close()
-{
+void X11Window::close() {
     TX11::sendMessageToRootWindow("_NET_CLOSE_WINDOW", d->wid, CurrentTime, 2);
 }
 
-void X11Window::updateState()
-{
+void X11Window::updateState() {
     const QMap<QString, X11WindowPrivate::State> windowState = {
         {"_NET_WM_STATE_MODAL", X11WindowPrivate::Modal},
         {"_NET_WM_STATE_STICKY", X11WindowPrivate::Sticky},
@@ -212,17 +205,16 @@ void X11Window::updateState()
     d->windowState = newState;
 }
 
-bool X11Window::shouldShowInTaskbar()
-{
+bool X11Window::shouldShowInTaskbar() {
     if (d->windowState & X11WindowPrivate::SkipTaskbar) return false;
 
     TX11::WindowPropertyPtr<Atom> windowType = TX11::getWindowProperty<Atom>("_NET_WM_WINDOW_TYPE", d->wid, XA_ATOM);
     if (windowType->nItems != 0) {
         QString atomName = TX11::atomName(windowType->first());
         if (QStringList({
-                        "_NET_WM_WINDOW_TYPE_DESKTOP",
-                        "_NET_WM_WINDOW_TYPE_DOCK"
-        }).contains(atomName)) {
+        "_NET_WM_WINDOW_TYPE_DESKTOP",
+        "_NET_WM_WINDOW_TYPE_DOCK"
+    }).contains(atomName)) {
             return false;
         }
     }
@@ -235,15 +227,13 @@ bool X11Window::shouldShowInTaskbar()
     return true;
 }
 
-uint X11Window::desktop()
-{
+uint X11Window::desktop() {
     TX11::WindowPropertyPtr<uint> desktop = TX11::getWindowProperty<uint>("_NET_WM_DESKTOP", d->wid, XA_CARDINAL);
     if (desktop->nItems == 0) return 0;
     return desktop->first();
 }
 
-bool X11Window::isOnCurrentDesktop()
-{
+bool X11Window::isOnCurrentDesktop() {
     uint desktop = this->desktop();
     if (desktop == UINT_MAX) return true;
     return DesktopWm::currentDesktop() == desktop;
