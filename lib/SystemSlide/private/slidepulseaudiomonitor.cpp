@@ -19,8 +19,10 @@
  * *************************************/
 #include "slidepulseaudiomonitor.h"
 
-#include <context.h>
-#include <pulse/glib-mainloop.h>
+#ifdef HAVE_PULSE
+    #include <context.h>
+    #include <pulse/glib-mainloop.h>
+#endif
 #include <tpromise.h>
 
 struct SlidePulseaudioMonitorPrivate {
