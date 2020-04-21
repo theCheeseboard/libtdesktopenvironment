@@ -27,8 +27,11 @@
 
 struct SlidePulseaudioMonitorPrivate {
     pa_context* ctx;
-    PulseAudioQt::Sink* defaultSink;
     QString defaultSinkName;
+
+#ifdef HAVE_PULSE
+    PulseAudioQt::Sink* defaultSink;
+#endif
 
     pa_stream* monitoringStream = nullptr;
     QByteArray dataBuf;
