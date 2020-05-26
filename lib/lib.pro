@@ -57,7 +57,6 @@ unix {
         message("Building with NetworkManagerQt support");
     } else {
         exists(/usr/lib/libKF5NetworkManagerQt.so) {
-            PKGCONFIG += libpulse libpulse-mainloop-glib
             INCLUDEPATH += /usr/include/KF5/NetworkManagerQt/
             LIBS += -lKF5NetworkManagerQt
 
@@ -69,6 +68,7 @@ unix {
     }
 
     exists(/usr/lib/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
+        PKGCONFIG += libpulse libpulse-mainloop-glib
         LIBS += -lKF5PulseAudioQt
         INCLUDEPATH += /usr/include/KF5/KF5PulseAudioQt/PulseAudioQt
 
