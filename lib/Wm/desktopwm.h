@@ -58,6 +58,7 @@ class DesktopWm : public QObject {
         static quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers);
         static void ungrabKey(quint64 grab);
 
+        static QString displayName(int uid);
         static QString userDisplayName();
 
     signals:

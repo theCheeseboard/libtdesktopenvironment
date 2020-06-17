@@ -24,6 +24,7 @@
 #include <QString>
 
 class QLabel;
+class QTimer;
 struct DesktopTimeDatePrivate;
 class DesktopTimeDate
 {
@@ -40,6 +41,7 @@ class DesktopTimeDate
         static QString timeString(QDateTime d, StringType type);
         static QString timeString(StringType type);
         static void makeTimeLabel(QLabel* label, StringType type);
+        static QTimer* timeUpdateTimer();
 
     private:
         static DesktopTimeDatePrivate* d;

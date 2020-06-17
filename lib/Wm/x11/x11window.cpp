@@ -144,7 +144,9 @@ QIcon X11Window::icon() {
                 QRgb* scanLine = reinterpret_cast<QRgb*>(image.scanLine(y));
                 if (scanLine) {
                     for (long x = 0; x < height; x++) {
-                        scanLine[x] = static_cast<QRgb>(icons->at(offset++));
+                        if (offset < static_cast<long>(icons->nItems)) {
+                            scanLine[x] = static_cast<QRgb>(icons->at(offset++));
+                        }
                     }
                 }
             }

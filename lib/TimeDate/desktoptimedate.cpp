@@ -100,3 +100,8 @@ void DesktopTimeDate::makeTimeLabel(QLabel* label, DesktopTimeDate::StringType t
     });
     d->updates.insert(label, type);
 }
+
+QTimer*DesktopTimeDate::timeUpdateTimer()
+{
+    return d->updateTimer;
+}

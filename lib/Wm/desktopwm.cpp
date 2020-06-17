@@ -96,13 +96,17 @@ void DesktopWm::ungrabKey(quint64 grab) {
     d->instance->ungrabKey(grab);
 }
 
-QString DesktopWm::userDisplayName() {
-    passwd* pwEntry = getpwuid(getuid());
+QString DesktopWm::displayName(int uid) {
+    passwd* pwEntry = getpwuid(uid);
     QStringList gecosField = QString::fromLocal8Bit(pwEntry->pw_gecos).split(",");
     if (!gecosField.at(0).isEmpty()) {
         return gecosField.at(0);
     }
     return pwEntry->pw_name;
+}
+
+QString DesktopWm::userDisplayName() {
+    return displayName(getuid());
 }
 
 DesktopWm::DesktopWm() : QObject(nullptr) {
