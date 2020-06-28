@@ -26,8 +26,7 @@
 class QLabel;
 class QTimer;
 struct DesktopTimeDatePrivate;
-class DesktopTimeDate
-{
+class DesktopTimeDate {
         Q_DECLARE_TR_FUNCTIONS(DesktopTimeDate)
 
     public:
@@ -45,6 +44,8 @@ class DesktopTimeDate
 
     private:
         static DesktopTimeDatePrivate* d;
+
+        static void updateClocks();
 };
 
 #endif // DESKTOPTIMEDATE_H

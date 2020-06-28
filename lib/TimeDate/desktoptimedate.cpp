@@ -81,9 +81,7 @@ void DesktopTimeDate::makeTimeLabel(QLabel* label, DesktopTimeDate::StringType t
         d->updateTimer = new QTimer();
         d->updateTimer->setInterval(1000);
         QObject::connect(d->updateTimer, &QTimer::timeout, [ = ] {
-            for (auto i = d->updates.begin(); i != d->updates.end(); i++) {
-                i.key()->setText(timeString(i.value()));
-            }
+            updateClocks();
         });
         d->updateTimer->start();
     }
@@ -99,9 +97,16 @@ void DesktopTimeDate::makeTimeLabel(QLabel* label, DesktopTimeDate::StringType t
         d->updates.remove(label);
     });
     d->updates.insert(label, type);
+
+    updateClocks();
 }
 
-QTimer*DesktopTimeDate::timeUpdateTimer()
-{
+QTimer* DesktopTimeDate::timeUpdateTimer() {
     return d->updateTimer;
+}
+
+void DesktopTimeDate::updateClocks() {
+    for (auto i = d->updates.begin(); i != d->updates.end(); i++) {
+        i.key()->setText(timeString(i.value()));
+    }
 }

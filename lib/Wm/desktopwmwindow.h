@@ -22,9 +22,9 @@
 
 #include <QObject>
 #include <QPointer>
+#include "Applications/application.h"
 
-class DesktopWmWindow : public QObject
-{
+class DesktopWmWindow : public QObject {
         Q_OBJECT
     public:
         virtual QString title() = 0;
@@ -39,11 +39,14 @@ class DesktopWmWindow : public QObject
 
         bool isActive();
 
+        virtual ApplicationPointer application() = 0;
+
     signals:
         void titleChanged();
         void iconChanged();
         void windowStateChanged();
         void geometryChanged();
+        void applicationChanged();
 
     public slots:
         virtual void activate() = 0;

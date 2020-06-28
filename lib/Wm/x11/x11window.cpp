@@ -27,6 +27,7 @@
 #include <QTimer>
 #include "../desktopwm.h"
 #include "x11functions.h"
+#include <X11/Xutil.h>
 
 #undef Above
 #undef Below
@@ -37,6 +38,8 @@ struct X11WindowPrivate {
 
     QIcon windowIcon;
     bool iconNeedsUpdate = true;
+
+    ApplicationPointer application;
 
     enum State : uint {
         NoState          = 0,
@@ -207,6 +210,36 @@ void X11Window::updateState() {
     d->windowState = newState;
 }
 
+ApplicationPointer X11Window::calculateApplication() {
+    //First, see if we can figure out the application using the GTK application ID
+    TX11::WindowPropertyPtr<char> gtkAppId = TX11::getWindowProperty<char>("_GTK_APPLICATION_ID", d->wid, "UTF8_STRING");
+    if (gtkAppId->type == XInternAtom(QX11Info::display(), "UTF8_STRING", false)) {
+        ApplicationPointer app(new Application(QString::fromUtf8(gtkAppId->data, gtkAppId->nItems)));
+        if (app->isValid()) return app;
+    }
+
+    //See if we can figure out the application using the class hint
+    XClassHint classHint;
+    if (XGetClassHint(QX11Info::display(), d->wid, &classHint) == 0) return nullptr;
+
+    QStringList classHints = {
+        classHint.res_name,
+        classHint.res_class
+    };
+
+    QStringList applications = Application::allApplications();
+    for (QString desktopEntry : applications) {
+        ApplicationPointer app(new Application(desktopEntry));
+        for (QString classHint : classHints) {
+            if (classHint == app->getProperty("StartupWMClass").toString()) return app;
+            if (classHint == desktopEntry) return app;
+            if (classHint.toLower() == desktopEntry.toLower()) return app;
+        }
+    }
+
+    return nullptr;
+}
+
 bool X11Window::shouldShowInTaskbar() {
     if (d->windowState & X11WindowPrivate::SkipTaskbar) return false;
 
@@ -239,4 +272,11 @@ bool X11Window::isOnCurrentDesktop() {
     uint desktop = this->desktop();
     if (desktop == UINT_MAX) return true;
     return DesktopWm::currentDesktop() == desktop;
+}
+
+ApplicationPointer X11Window::application() {
+    if (d->application) return d->application;
+
+    d->application = calculateApplication();
+    return d->application;
 }

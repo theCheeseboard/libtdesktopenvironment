@@ -56,7 +56,7 @@ unix {
         DEFINES += HAVE_NETWORKMANAGERQT
         message("Building with NetworkManagerQt support");
     } else {
-        exists(/usr/lib/libKF5NetworkManagerQt.so) {
+        exists($$[QT_INSTALL_LIBS]/libKF5NetworkManagerQt.so) {
             INCLUDEPATH += /usr/include/KF5/NetworkManagerQt/
             LIBS += -lKF5NetworkManagerQt
 
@@ -67,7 +67,7 @@ unix {
         }
     }
 
-    exists(/usr/lib/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
+    exists($$[QT_INSTALL_LIBS]/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
         PKGCONFIG += libpulse libpulse-mainloop-glib
         LIBS += -lKF5PulseAudioQt
         INCLUDEPATH += /usr/include/KF5/KF5PulseAudioQt/PulseAudioQt
@@ -92,6 +92,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Applications/application.cpp \
+    Applications/qsettingsformats.cpp \
     Background/backgroundselectionmodel.cpp \
     Screens/private/screenbackend.cpp \
     Screens/screendaemon.cpp \
@@ -115,6 +117,8 @@ SOURCES += \
     theShellIntegration/quietmodemanager.cpp
 
 HEADERS += \
+    Applications/application.h \
+    Applications/qsettingsformats.h \
     Background/backgroundselectionmodel.h \
     Screens/private/screenbackend.h \
     Screens/screendaemon.h \
@@ -158,7 +162,7 @@ unix {
 
     module.files = qt_tdesktopenvironment.pri
 
-    target.path = /usr/lib
+    target.path = $$[QT_INSTALL_LIBS]
     module.path = $$[QMAKE_MKSPECS]/modules
 
     INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders header module

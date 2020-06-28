@@ -17,46 +17,21 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * *************************************/
-#ifndef X11WINDOW_H
-#define X11WINDOW_H
+#ifndef QSETTINGSFORMATS_H
+#define QSETTINGSFORMATS_H
 
-#include <QPointer>
-#include <QObject>
-#include "../desktopwmwindow.h"
+#include <QSettings>
 
-#include <X11/X.h>
-
-struct X11WindowPrivate;
-class X11Window : public DesktopWmWindow {
-        Q_OBJECT
+struct QSettingsFormatsPrivate;
+class QSettingsFormats
+{
     public:
-        explicit X11Window(Window wid);
-        ~X11Window();
-
-        void x11PropertyChanged(QString property);
-        void configureNotify();
-
-        QString title();
-        QRect geometry();
-        bool isMinimized();
-        QIcon icon();
-        quint64 pid();
-        bool shouldShowInTaskbar();
-        uint desktop();
-        bool isOnCurrentDesktop();
-
-        ApplicationPointer application();
-
-    public slots:
-        void activate();
-        void close();
+        static QSettings::Format desktopFormat();
 
     private:
-        X11WindowPrivate* d;
+        QSettingsFormats();
 
-        void updateState();
-        ApplicationPointer calculateApplication();
+        static QSettingsFormatsPrivate* d;
 };
-typedef QPointer<X11Window> X11WindowPtr;
 
-#endif // X11WINDOW_H
+#endif // QSETTINGSFORMATS_H
