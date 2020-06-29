@@ -72,6 +72,10 @@ void DesktopWm::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType win
     d->instance->setSystemWindow(widget, windowType);
 }
 
+void DesktopWm::blurWindow(QWidget* widget) {
+    d->instance->blurWindow(widget);
+}
+
 void DesktopWm::setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width) {
     d->instance->setScreenMarginForWindow(widget, screen, edge, width);
 }

@@ -38,6 +38,7 @@ class WmBackend : public QObject {
 
         virtual void setSystemWindow(QWidget* widget) = 0;
         virtual void setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType windowType) = 0;
+        virtual void blurWindow(QWidget* widget) = 0;
 
         virtual void setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width) = 0;
 

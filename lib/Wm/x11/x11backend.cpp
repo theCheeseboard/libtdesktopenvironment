@@ -291,6 +291,12 @@ void X11Backend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType ty
     }
 }
 
+void X11Backend::blurWindow(QWidget* widget) {
+    unsigned char value = 0;
+    XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_KDE_NET_WM_BLUR_BEHIND_REGION", False),
+        XA_CARDINAL, 32, PropModeReplace, &value, 1);
+}
+
 void X11Backend::setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width) {
     QRect rootGeometry;
     for (QScreen* screen : qApp->screens()) {

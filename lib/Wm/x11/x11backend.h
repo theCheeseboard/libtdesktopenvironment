@@ -49,6 +49,7 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter {
 
         void setSystemWindow(QWidget* widget);
         void setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType type);
+        void blurWindow(QWidget* widget);
 
         void setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width);
 

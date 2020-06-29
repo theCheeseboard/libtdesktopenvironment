@@ -48,6 +48,7 @@ class DesktopWm : public QObject {
 
         static void setSystemWindow(QWidget* widget);
         static void setSystemWindow(QWidget* widget, SystemWindowType windowType);
+        static void blurWindow(QWidget* widget);
 
         static void setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width);
 
