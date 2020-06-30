@@ -126,6 +126,10 @@ bool X11Window::isMinimized() {
     return d->windowState & X11WindowPrivate::Hidden;
 }
 
+bool X11Window::isMaximised() {
+    return d->windowState & (X11WindowPrivate::MaximizedHorz | X11WindowPrivate::MaximizedVert);
+}
+
 QIcon X11Window::icon() {
     if (d->iconNeedsUpdate) {
         d->windowIcon = QIcon();

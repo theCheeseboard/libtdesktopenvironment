@@ -32,6 +32,7 @@ class DesktopWmWindow : public QObject {
         virtual QIcon icon() = 0;
 
         virtual bool isMinimized() = 0;
+        virtual bool isMaximised() = 0;
         virtual bool shouldShowInTaskbar() = 0;
         virtual quint64 pid() = 0;
         virtual uint desktop() = 0;

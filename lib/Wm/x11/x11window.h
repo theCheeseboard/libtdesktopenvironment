@@ -39,6 +39,7 @@ class X11Window : public DesktopWmWindow {
         QString title();
         QRect geometry();
         bool isMinimized();
+        bool isMaximised();
         QIcon icon();
         quint64 pid();
         bool shouldShowInTaskbar();
