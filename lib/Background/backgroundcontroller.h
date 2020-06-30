@@ -26,8 +26,7 @@
 class QNetworkReply;
 
 struct BackgroundControllerPrivate;
-class BackgroundController : public QObject
-{
+class BackgroundController : public QObject {
         Q_OBJECT
     public:
         enum BackgroundType {
@@ -52,7 +51,7 @@ class BackgroundController : public QObject
             QString author;
         };
 
-        explicit BackgroundController(BackgroundType type, QObject *parent = nullptr);
+        explicit BackgroundController(BackgroundType type, QObject* parent = nullptr);
         ~BackgroundController();
 
         tPromise<BackgroundData>* getCurrentBackground(QSize screenSize);
@@ -74,6 +73,7 @@ class BackgroundController : public QObject
         void shouldShowCommunityLabelsChanged(bool shouldShowCommunityLabels);
         void newCommunityBackgroundsAvailable();
         void currentCommuntyBackgroundAvailable(QPixmap background);
+        void availableWallpapersChanged(int newWallpapers);
 
     private:
         BackgroundControllerPrivate* d;

@@ -40,8 +40,7 @@ struct BackgroundControllerPrivate {
     QStringList additionalWallpapers;
 };
 
-BackgroundController::BackgroundController(BackgroundType type, QObject *parent) : QObject(parent)
-{
+BackgroundController::BackgroundController(BackgroundType type, QObject* parent) : QObject(parent) {
     Q_INIT_RESOURCE(libtdesktopenvironment_resources);
 
     d = new BackgroundControllerPrivate();
@@ -50,33 +49,31 @@ BackgroundController::BackgroundController(BackgroundType type, QObject *parent)
 
     d->timerId = this->startTimer(60000, Qt::VeryCoarseTimer);
 
-
     //Find backgrounds from /usr/share/wallpapers and /usr/share/backgrounds
-    searchWallpapers("/usr/share/wallpapers")->then([=](QStringList wallpapers) {
+    searchWallpapers("/usr/share/wallpapers")->then([ = ](QStringList wallpapers) {
         d->additionalWallpapers.append(wallpapers);
+        emit availableWallpapersChanged(wallpapers.count());
     });
-    searchWallpapers("/usr/share/backgrounds")->then([=](QStringList wallpapers) {
+    searchWallpapers("/usr/share/backgrounds")->then([ = ](QStringList wallpapers) {
         d->additionalWallpapers.append(wallpapers);
+        emit availableWallpapersChanged(wallpapers.count());
     });
 }
 
-BackgroundController::~BackgroundController()
-{
+BackgroundController::~BackgroundController() {
     delete d;
 }
 
-tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrentBackground(QSize screenSize)
-{
+tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrentBackground(QSize screenSize) {
     return this->getBackground(currentBackgroundName(d->type), screenSize);
 }
 
-tPromise<BackgroundController::BackgroundData>*BackgroundController::getBackground(QString backgroundName, QSize screenSize)
-{
-    return tPromise<BackgroundData>::runOnSameThread([=](tPromiseFunctions<BackgroundData>::SuccessFunction res, tPromiseFunctions<BackgroundData>::FailureFunction rej) {
+tPromise<BackgroundController::BackgroundData>* BackgroundController::getBackground(QString backgroundName, QSize screenSize) {
+    return tPromise<BackgroundData>::runOnSameThread([ = ](tPromiseFunctions<BackgroundData>::SuccessFunction res, tPromiseFunctions<BackgroundData>::FailureFunction rej) {
         BackgroundData data;
         data.px = QPixmap(screenSize);
 
-        auto drawBackground = [=](QPixmap pixmap) {
+        auto drawBackground = [ = ](QPixmap pixmap) {
             QPixmap newPixmap(screenSize);
 
             QPainter painter(&newPixmap);
@@ -134,11 +131,11 @@ tPromise<BackgroundController::BackgroundData>*BackgroundController::getBackgrou
             bool metadataExists = QFile(QDir::homePath() + "/.theshell/backgrounds.conf").exists();
             bool expired = d->settings->value("desktop/fetched").toDateTime().secsTo(QDateTime::currentDateTimeUtc()) > 604800 /* 1 week */;
 
-            auto chooseBackground = [=] {
-                this->getCurrentCommunityBackground()->then([=](BackgroundData data) {
+            auto chooseBackground = [ = ] {
+                this->getCurrentCommunityBackground()->then([ = ](BackgroundData data) {
                     data.px = drawBackground(data.px);
                     res(data);
-                })->error([=](QString error) {
+                })->error([ = ](QString error) {
                     rej(error);
                 });
             };
@@ -148,9 +145,9 @@ tPromise<BackgroundController::BackgroundData>*BackgroundController::getBackgrou
                 chooseBackground();
             } else {
                 //Get a new community background, choose a random one and show it
-                this->getNewCommunityBackground()->then([=] {
+                this->getNewCommunityBackground()->then([ = ] {
                     chooseBackground();
-                })->error([=](QString error) {
+                })->error([ = ](QString error) {
                     rej(error);
                 });
             }
@@ -167,8 +164,7 @@ tPromise<BackgroundController::BackgroundData>*BackgroundController::getBackgrou
     });
 }
 
-QStringList BackgroundController::availableBackgrounds()
-{
+QStringList BackgroundController::availableBackgrounds() {
 
     QStringList backgrounds = {
         "community",
@@ -194,8 +190,7 @@ QStringList BackgroundController::availableBackgrounds()
     return backgrounds;
 }
 
-void BackgroundController::setBackground(QString backgroundName, BackgroundController::BackgroundType type)
-{
+void BackgroundController::setBackground(QString backgroundName, BackgroundController::BackgroundType type) {
     QString key;
     if (type == Desktop) {
         key = "desktop/background";
@@ -206,8 +201,7 @@ void BackgroundController::setBackground(QString backgroundName, BackgroundContr
     emit currentBackgroundChanged(type);
 }
 
-QString BackgroundController::currentBackgroundName(BackgroundType type)
-{
+QString BackgroundController::currentBackgroundName(BackgroundType type) {
     QString key;
     if (type == Desktop) {
         key = "desktop/background";
@@ -217,30 +211,25 @@ QString BackgroundController::currentBackgroundName(BackgroundType type)
     return d->settings->value(key, "inbuilt:triangles").toString();
 }
 
-void BackgroundController::setStretchType(BackgroundController::StretchType type)
-{
+void BackgroundController::setStretchType(BackgroundController::StretchType type) {
     d->settings->setValue("desktop/stretchStyle", static_cast<int>(type));
     emit stretchTypeChanged(type);
 }
 
-BackgroundController::StretchType BackgroundController::stretchType()
-{
+BackgroundController::StretchType BackgroundController::stretchType() {
     return static_cast<StretchType>(d->settings->value("desktop/stretchStyle", StretchFit).toInt());
 }
 
-void BackgroundController::setShouldShowCommunityLabels(bool shouldShowCommunityLabels)
-{
+void BackgroundController::setShouldShowCommunityLabels(bool shouldShowCommunityLabels) {
     d->settings->setValue("desktop/showLabels", shouldShowCommunityLabels);
     emit shouldShowCommunityLabelsChanged(shouldShowCommunityLabels);
 }
 
-bool BackgroundController::shouldShowCommunityLabels()
-{
+bool BackgroundController::shouldShowCommunityLabels() {
     return d->settings->value("desktop/showLabels", true).toBool();
 }
 
-void BackgroundController::timerEvent(QTimerEvent*event)
-{
+void BackgroundController::timerEvent(QTimerEvent* event) {
     //Check to see if the community background has changed
     if (event->timerId() == d->timerId) {
         uint currentPeriod = this->communityBackgroundPeriod();
@@ -252,9 +241,8 @@ void BackgroundController::timerEvent(QTimerEvent*event)
     }
 }
 
-tPromise<QNetworkReply*>*BackgroundController::get(QString path)
-{
-    return tPromise<QNetworkReply*>::runOnSameThread([=](tPromiseFunctions<QNetworkReply*>::SuccessFunction res, tPromiseFunctions<QNetworkReply*>::FailureFunction rej) {
+tPromise<QNetworkReply*>* BackgroundController::get(QString path) {
+    return tPromise<QNetworkReply*>::runOnSameThread([ = ](tPromiseFunctions<QNetworkReply*>::SuccessFunction res, tPromiseFunctions<QNetworkReply*>::FailureFunction rej) {
         QUrl url;
         url.setScheme("https");
         url.setHost("vicr123.com");
@@ -265,17 +253,17 @@ tPromise<QNetworkReply*>*BackgroundController::get(QString path)
         req.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
         QNetworkReply* reply = d->mgr.get(req);
 
-        connect(reply, &QNetworkReply::finished, this, [=] {
+        connect(reply, &QNetworkReply::finished, this, [ = ] {
             res(reply);
         });
     });
 }
 
 tPromise<void>* BackgroundController::getNewCommunityBackground() {
-    return tPromise<void>::runOnSameThread([=](tPromiseFunctions<void>::SuccessFunction res, tPromiseFunctions<void>::FailureFunction rej) {
+    return tPromise<void>::runOnSameThread([ = ](tPromiseFunctions<void>::SuccessFunction res, tPromiseFunctions<void>::FailureFunction rej) {
         if (d->retrievingImages) {
             QMetaObject::Connection* c = new QMetaObject::Connection();
-            *c = connect(this, &BackgroundController::newCommunityBackgroundsAvailable, this, [=] {
+            *c = connect(this, &BackgroundController::newCommunityBackgroundsAvailable, this, [ = ] {
                 disconnect(*c);
                 delete c;
 
@@ -284,7 +272,7 @@ tPromise<void>* BackgroundController::getNewCommunityBackground() {
             return;
         }
 
-        get("/theshell/backgrounds/backgrounds.json")->then([=](QNetworkReply* reply) {
+        get("/theshell/backgrounds/backgrounds.json")->then([ = ](QNetworkReply * reply) {
             QByteArray data = reply->readAll();
             QJsonDocument doc = QJsonDocument::fromJson(data);
 
@@ -317,7 +305,7 @@ tPromise<void>* BackgroundController::getNewCommunityBackground() {
 
                 d->downloadCount = 0;
                 for (QString url : downloadImages) {
-                    get(url)->then([=](QNetworkReply* reply) {
+                    get(url)->then([ = ](QNetworkReply * reply) {
                         QByteArray data = reply->readAll();
                         QJsonDocument doc = QJsonDocument::fromJson(data);
                         if (doc.isObject()) {
@@ -356,9 +344,8 @@ tPromise<void>* BackgroundController::getNewCommunityBackground() {
 
 }
 
-tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrentCommunityBackground()
-{
-    return tPromise<BackgroundData>::runOnSameThread([=](tPromiseFunctions<BackgroundData>::SuccessFunction res, tPromiseFunctions<BackgroundData>::FailureFunction rej) {
+tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrentCommunityBackground() {
+    return tPromise<BackgroundData>::runOnSameThread([ = ](tPromiseFunctions<BackgroundData>::SuccessFunction res, tPromiseFunctions<BackgroundData>::FailureFunction rej) {
         QFile backgroundListConf(QDir::homePath() + "/.theshell/backgrounds.conf");
         backgroundListConf.open(QFile::ReadOnly);
         QStringList allBackgrounds = QString(backgroundListConf.readAll()).split("\n");
@@ -381,7 +368,7 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
             return;
         }
 
-        auto readBackground = [=] {
+        auto readBackground = [ = ] {
             QFile imageFile(QDir::homePath() + "/.theshell/backgrounds/" + background + "/" + background + ".jpeg");
             QJsonObject metadata = doc.object();
 
@@ -402,7 +389,7 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
             QString fileName = doc.object().value("filename").toString();
             QString dirName = fileName.left(fileName.indexOf("."));
 
-            get(QStringLiteral("/theshell/backgrounds/%1/%2").arg(dirName, fileName))->then([=](QNetworkReply* reply) {
+            get(QStringLiteral("/theshell/backgrounds/%1/%2").arg(dirName, fileName))->then([ = ](QNetworkReply * reply) {
                 if (reply->error() == QNetworkReply::NoError) {
                     QByteArray data = reply->readAll();
                     QFile imageFile(QDir::homePath() + "/.theshell/backgrounds/" + background + "/" + background + ".jpeg");
@@ -417,21 +404,19 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
                     //Error retrieving image
                     rej("Background Not Available");
                 }
-            })->error([=](QString error) {
+            })->error([ = ](QString error) {
                 rej(error);
             });
         }
     });
 }
 
-uint BackgroundController::communityBackgroundPeriod()
-{
+uint BackgroundController::communityBackgroundPeriod() {
     return static_cast<uint>(QDateTime::currentSecsSinceEpoch() / (30 * 60));
 }
 
-tPromise<QStringList>*BackgroundController::searchWallpapers(QString searchPath)
-{
-    return tPromise<QStringList>::runOnNewThread([=](tPromiseFunctions<QStringList>::SuccessFunction res, tPromiseFunctions<QStringList>::FailureFunction rej) {
+tPromise<QStringList>* BackgroundController::searchWallpapers(QString searchPath) {
+    return tPromise<QStringList>::runOnNewThread([ = ](tPromiseFunctions<QStringList>::SuccessFunction res, tPromiseFunctions<QStringList>::FailureFunction rej) {
         QStringList wallpapers;
         struct WallpaperInformation {
             int w, h;
@@ -447,7 +432,7 @@ tPromise<QStringList>*BackgroundController::searchWallpapers(QString searchPath)
         while (iterator.hasNext()) {
             iterator.next();
             QFileInfo fi = iterator.fileInfo();
-            if (QStringList({"png","jpg","jpeg"}).contains(fi.suffix())) {
+            if (QStringList({"png", "jpg", "jpeg"}).contains(fi.suffix())) {
                 if (fi.filePath().contains("contents") && QRegularExpression("^(\\d+x\\d+)|(screenshot)$").match(fi.baseName()).hasMatch()) {
                     if (fi.baseName() == "screenshot") continue; //Ignore
 

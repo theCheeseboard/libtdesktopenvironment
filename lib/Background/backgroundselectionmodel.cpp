@@ -31,21 +31,22 @@ struct BackgroundSelectionModelPrivate {
     int oldRowCount = 0;
 };
 
-BackgroundSelectionModel::BackgroundSelectionModel(QObject *parent)
-    : QAbstractListModel(parent)
-{
+BackgroundSelectionModel::BackgroundSelectionModel(QObject* parent)
+    : QAbstractListModel(parent) {
     d = new BackgroundSelectionModelPrivate();
     d->bg = new BackgroundController(BackgroundController::Desktop);
     connect(d->bg, &BackgroundController::currentBackgroundChanged, this, &BackgroundSelectionModel::emitDataChanged);
+    connect(d->bg, &BackgroundController::availableWallpapersChanged, this, [ = ](int newWallpapers) {
+        beginInsertRows(QModelIndex(), d->oldRowCount, d->oldRowCount + newWallpapers);
+        endInsertRows();
+    });
 }
 
-BackgroundSelectionModel::~BackgroundSelectionModel()
-{
+BackgroundSelectionModel::~BackgroundSelectionModel() {
     delete d;
 }
 
-int BackgroundSelectionModel::rowCount(const QModelIndex &parent) const
-{
+int BackgroundSelectionModel::rowCount(const QModelIndex& parent) const {
     if (parent.isValid()) return 0;
 
     int c = d->bg->availableBackgrounds().count();
@@ -57,8 +58,7 @@ int BackgroundSelectionModel::rowCount(const QModelIndex &parent) const
     return c;
 }
 
-QVariant BackgroundSelectionModel::data(const QModelIndex &index, int role) const
-{
+QVariant BackgroundSelectionModel::data(const QModelIndex& index, int role) const {
     if (!index.isValid()) return QVariant();
 
     QString bgName = d->bg->availableBackgrounds().at(index.row());
@@ -87,7 +87,7 @@ QVariant BackgroundSelectionModel::data(const QModelIndex &index, int role) cons
                 d->px.insert(index.row(), communityPx);
                 return communityPx;
             } else {
-                d->bg->getBackground(bgName, SC_DPI_T(QSize(213, 120), QSize))->then([=](BackgroundController::BackgroundData data) {
+                d->bg->getBackground(bgName, SC_DPI_T(QSize(213, 120), QSize))->then([ = ](BackgroundController::BackgroundData data) {
                     d->px.insert(index.row(), data.px);
                     QTimer::singleShot(0, this, &BackgroundSelectionModel::emitDataChanged);
                 });
@@ -108,14 +108,11 @@ void BackgroundSelectionModel::emitDataChanged() {
     emit dataChanged(index(0), index(rowCount()));
 }
 
-
-BackgroundSelectionDelegate::BackgroundSelectionDelegate() : QStyledItemDelegate(nullptr)
-{
+BackgroundSelectionDelegate::BackgroundSelectionDelegate() : QStyledItemDelegate(nullptr) {
 
 }
 
-void BackgroundSelectionDelegate::paint(QPainter*painter, const QStyleOptionViewItem&option, const QModelIndex&index) const
-{
+void BackgroundSelectionDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     painter->drawPixmap(option.rect, index.data(Qt::DecorationRole).value<QPixmap>());
 
     bool isDesktop = index.data(Qt::UserRole + 1).toBool();
@@ -147,7 +144,6 @@ void BackgroundSelectionDelegate::paint(QPainter*painter, const QStyleOptionView
     }
 }
 
-QSize BackgroundSelectionDelegate::sizeHint(const QStyleOptionViewItem&option, const QModelIndex&index) const
-{
+QSize BackgroundSelectionDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     return SC_DPI_T(QSize(213, 120), QSize);
 }
