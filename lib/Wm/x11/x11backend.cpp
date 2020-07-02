@@ -361,7 +361,9 @@ quint64 X11Backend::grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) {
     KeySym keysym = TX11::toKeySym(key);
     KeyCode keycode = XKeysymToKeycode(QX11Info::display(), keysym);
 
-    XGrabKey(QX11Info::display(), keycode, keymods, QX11Info::appRootWindow(), true, GrabModeAsync, GrabModeAsync);
+    if (XGrabKey(QX11Info::display(), keycode, keymods, QX11Info::appRootWindow(), true, GrabModeAsync, GrabModeAsync) == 0) {
+        qDebug() << "Failed grabbing key" << key << modifiers;
+    }
 
     d->grabs.insert(grabId, {keycode, keymods});
 
