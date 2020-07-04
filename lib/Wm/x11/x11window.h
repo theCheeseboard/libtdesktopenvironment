@@ -40,6 +40,7 @@ class X11Window : public DesktopWmWindow {
         QRect geometry();
         bool isMinimized();
         bool isMaximised();
+        bool isFullScreen();
         QIcon icon();
         quint64 pid();
         bool shouldShowInTaskbar();

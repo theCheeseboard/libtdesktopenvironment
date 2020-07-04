@@ -57,7 +57,7 @@ unix {
         message("Building with NetworkManagerQt support");
     } else {
         exists($$[QT_INSTALL_LIBS]/libKF5NetworkManagerQt.so) {
-            INCLUDEPATH += /usr/include/KF5/NetworkManagerQt/
+            INCLUDEPATH += $$[QT_INSTALL_HEADERS]/KF5/NetworkManagerQt/
             LIBS += -lKF5NetworkManagerQt
 
             DEFINES += HAVE_NETWORKMANAGERQT
@@ -70,7 +70,7 @@ unix {
     exists($$[QT_INSTALL_LIBS]/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
         PKGCONFIG += libpulse libpulse-mainloop-glib
         LIBS += -lKF5PulseAudioQt
-        INCLUDEPATH += /usr/include/KF5/KF5PulseAudioQt/PulseAudioQt
+        INCLUDEPATH += $$[QT_INSTALL_HEADERS]/KF5/KF5PulseAudioQt/PulseAudioQt
 
         DEFINES += HAVE_PULSE
         message("Building with pulseaudio support");
@@ -144,21 +144,21 @@ HEADERS += \
 
 unix {
     upowerheader.files = UPower/*.h
-    upowerheader.path = /usr/include/libtdesktopenvironment/UPower
+    upowerheader.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/UPower
     wmheader.files = Wm/*.h
-    wmheader.path = /usr/include/libtdesktopenvironment/Wm
+    wmheader.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Wm
     timedateheaders.files = TimeDate/*.h
-    timedateheaders.path = /usr/include/libtdesktopenvironment/TimeDate
+    timedateheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/TimeDate
     backgroundheaders.files = Background/*.h
-    backgroundheaders.path = /usr/include/libtdesktopenvironment/Background
+    backgroundheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Background
     slideheaders.files = SystemSlide/*.h
-    slideheaders.path = /usr/include/libtdesktopenvironment/SystemSlide
+    slideheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/SystemSlide
     tsiheaders.files = theShellIntegration/*.h
-    tsiheaders.path = /usr/include/libtdesktopenvironment/theShellIntegration
+    tsiheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/theShellIntegration
     screenheaders.files = Screens/*.h
-    screenheaders.path = /usr/include/libtdesktopenvironment/Screens
+    screenheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Screens
     header.files = *.h
-    header.path = /usr/include/libtdesktopenvironment
+    header.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment
 
     module.files = qt_tdesktopenvironment.pri
 

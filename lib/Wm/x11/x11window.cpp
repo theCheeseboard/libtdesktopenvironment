@@ -130,6 +130,10 @@ bool X11Window::isMaximised() {
     return d->windowState & (X11WindowPrivate::MaximizedHorz | X11WindowPrivate::MaximizedVert);
 }
 
+bool X11Window::isFullScreen() {
+    return d->windowState & (X11WindowPrivate::Fullscreen);
+}
+
 QIcon X11Window::icon() {
     if (d->iconNeedsUpdate) {
         d->windowIcon = QIcon();
