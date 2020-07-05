@@ -40,6 +40,10 @@ DesktopWm* DesktopWm::instance() {
     return d->dwmInstance;
 }
 
+DesktopAccessibility* DesktopWm::accessibility() {
+    return d->instance->accessibility();
+}
+
 QList<DesktopWmWindowPtr> DesktopWm::openWindows() {
     return d->instance->openWindows();
 }

@@ -39,6 +39,8 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter {
 
         static bool isSuitable();
 
+        DesktopAccessibility* accessibility();
+
         QList<DesktopWmWindowPtr> openWindows();
         DesktopWmWindowPtr activeWindow();
 

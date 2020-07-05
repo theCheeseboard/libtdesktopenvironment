@@ -40,12 +40,16 @@ unix {
                    Wm/x11/x11window.cpp \
                    Wm/x11/x11functions.cpp \
                    Wm/x11/x11keyboardtables.cpp \
-                   Screens/x11/x11screenbackend.cpp
+                   Screens/x11/x11screenbackend.cpp \
+                   Wm/x11/x11accessibility.cpp \
+                   Screens/x11/x11screen.cpp
         HEADERS += Wm/x11/x11backend.h \
                    Wm/x11/x11window.h \
                    Wm/x11/x11functions.h \
                    Wm/x11/x11keyboardtables.h \
-                   Screens/x11/x11screenbackend.h
+                   Screens/x11/x11screenbackend.h \
+                   Wm/x11/x11accessibility.h \
+                   Screens/x11/x11screen.h
     } else {
         message("X11 not found on this system.");
     }
@@ -98,7 +102,6 @@ SOURCES += \
     Screens/private/screenbackend.cpp \
     Screens/screendaemon.cpp \
     Screens/systemscreen.cpp \
-    Screens/x11/x11screen.cpp \
     SystemSlide/private/slidehud.cpp \
     SystemSlide/private/slidempriscontroller.cpp \
     SystemSlide/private/slidepulseaudiomonitor.cpp \
@@ -108,6 +111,7 @@ SOURCES += \
     UPower/desktopupower.cpp \
     UPower/desktopupowerdevice.cpp \
     UPower/desktopupowerdevicesmodel.cpp \
+    Wm/desktopaccessibility.cpp \
     Wm/desktopwm.cpp \
     Wm/desktopwmwindow.cpp \
     Wm/private/wmbackend.cpp \
@@ -123,7 +127,6 @@ HEADERS += \
     Screens/private/screenbackend.h \
     Screens/screendaemon.h \
     Screens/systemscreen.h \
-    Screens/x11/x11screen.h \
     SystemSlide/private/slidehud.h \
     SystemSlide/private/slidempriscontroller.h \
     SystemSlide/private/slidepulseaudiomonitor.h \
@@ -133,6 +136,7 @@ HEADERS += \
     UPower/desktopupower.h \
     UPower/desktopupowerdevice.h \
     UPower/desktopupowerdevicesmodel.h \
+    Wm/desktopaccessibility.h \
     Wm/desktopwm.h \
     Wm/desktopwmwindow.h \
     Wm/private/wmbackend.h \

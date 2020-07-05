@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include "desktopwmwindow.h"
+#include "desktopaccessibility.h"
 
 class QScreen;
 struct DesktopWmPrivate;
@@ -36,6 +37,7 @@ class DesktopWm : public QObject {
         };
 
         static DesktopWm* instance();
+        static DesktopAccessibility* accessibility();
 
         static QList<DesktopWmWindowPtr> openWindows();
         static DesktopWmWindowPtr activeWindow();

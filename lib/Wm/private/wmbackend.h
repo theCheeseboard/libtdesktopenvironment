@@ -23,12 +23,14 @@
 #include <QObject>
 #include "../desktopwmwindow.h"
 #include "../desktopwm.h"
+#include "../desktopaccessibility.h"
 
 class WmBackend : public QObject {
         Q_OBJECT
     public:
         explicit WmBackend();
 
+        virtual DesktopAccessibility* accessibility() = 0;
         virtual QList<DesktopWmWindowPtr> openWindows() = 0;
         virtual DesktopWmWindowPtr activeWindow() = 0;
         virtual QStringList desktops() = 0;

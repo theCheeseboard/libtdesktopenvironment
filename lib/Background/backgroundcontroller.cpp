@@ -169,6 +169,7 @@ QStringList BackgroundController::availableBackgrounds() {
     QStringList backgrounds = {
         "community",
         "inbuilt:triangles",
+        "inbuilt:straps",
         "inbuilt:ribbon"
     };
 

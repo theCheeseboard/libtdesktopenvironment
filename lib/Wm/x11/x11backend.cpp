@@ -28,6 +28,9 @@
 #include "x11backend.h"
 #include "x11window.h"
 #include "x11functions.h"
+#include "x11accessibility.h"
+
+#include <X11/XKBlib.h>
 
 #ifdef HAVE_XSCRNSAVER
     #include <X11/extensions/scrnsaver.h>
@@ -54,6 +57,8 @@ struct X11BackendPrivate {
 
     QHash<quint64, X11KeyGrab> grabs;
     quint64 nextGrab = 1;
+
+    X11Accessibility* accessibility;
 };
 
 X11Backend::X11Backend() : WmBackend() {
@@ -61,6 +66,8 @@ X11Backend::X11Backend() : WmBackend() {
 
     QApplication::instance()->installNativeEventFilter(this);
     XSelectInput(QX11Info::display(), QX11Info::appRootWindow(), PropertyChangeMask);
+
+    d->accessibility = new X11Accessibility(this);
 
     TX11::WindowPropertyPtr<Window> windowList = TX11::getRootWindowProperty<Window>("_NET_CLIENT_LIST", AnyPropertyType, 0, ~0L);
     for (Window window : *windowList) {
@@ -115,6 +122,10 @@ X11Backend::X11Backend() : WmBackend() {
 
 bool X11Backend::isSuitable() {
     return QX11Info::isPlatformX11();
+}
+
+DesktopAccessibility* X11Backend::accessibility() {
+    return d->accessibility;
 }
 
 QList<DesktopWmWindowPtr> X11Backend::openWindows() {
@@ -188,6 +199,8 @@ bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, l
                 if (grabId != 0) emit grabbedKeyPressed(grabId);
             }
         }
+    } else {
+        d->accessibility->postEvent(event);
     }
     return false;
 }
