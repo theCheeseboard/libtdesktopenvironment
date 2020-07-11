@@ -74,7 +74,7 @@ unix {
     exists($$[QT_INSTALL_LIBS]/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
         PKGCONFIG += libpulse libpulse-mainloop-glib
         LIBS += -lKF5PulseAudioQt
-        INCLUDEPATH += $$[QT_INSTALL_HEADERS]/KF5/KF5PulseAudioQt/PulseAudioQt
+        INCLUDEPATH += $$[QT_INSTALL_HEADERS]/../KF5/KF5PulseAudioQt/PulseAudioQt
 
         SOURCES += \
             SystemSlide/private/slidempriscontroller.cpp \

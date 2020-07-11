@@ -20,10 +20,13 @@
 #include "slidepulseaudiomonitor.h"
 
 #ifdef HAVE_PULSE
-    #include <context.h>
+    #include <pulse/context.h>
     #include <pulse/glib-mainloop.h>
+
+    #include <sink.h>
 #endif
 #include <tpromise.h>
+
 
 struct SlidePulseaudioMonitorPrivate {
     pa_context* ctx;
