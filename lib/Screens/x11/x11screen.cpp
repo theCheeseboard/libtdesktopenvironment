@@ -19,10 +19,11 @@
  * *************************************/
 #include "x11screen.h"
 
-#include <QDebug>
+#include <QMap>
 #include <QX11Info>
 #include <X11/extensions/Xrandr.h>
 #include "Wm/x11/x11functions.h"
+#include "../screendaemon.h"
 
 #include <math.h>
 
@@ -33,6 +34,13 @@ struct X11ScreenPrivate {
 
     static bool backlightAtomSet;
     static Atom backlightAtom;
+
+    bool powered = false;
+    bool isPrimary = false;
+    QRect geometry;
+    QList<SystemScreen::Mode> modes;
+    int currentMode = 0;
+    QString name;
 
     QMap<QString, SystemScreen::GammaRamps> gammaRamps;
 };
@@ -118,6 +126,58 @@ X11Screen::~X11Screen() {
 
 void X11Screen::updateScreen() {
     updateBrightness();
+
+    //Update available modes
+    XRRScreenResources* resources = XRRGetScreenResources(QX11Info::display(), QX11Info::appRootWindow());
+    XRROutputInfo* info = XRRGetOutputInfo(QX11Info::display(), resources, d->output);
+    QMap<RRMode, XRRModeInfo> modes;
+    for (int i = 0; i < resources->nmode; i++) {
+        modes.insert(resources->modes[i].id, resources->modes[i]);
+    }
+    QList<Mode> availableModes;
+    for (int i = 0; i < info->nmode; i++) {
+        Mode mode;
+        XRRModeInfo modeInfo = modes.value(info->modes[i]);
+
+        mode.width = modeInfo.width;
+        mode.height = modeInfo.height;
+
+        int vTotal = modeInfo.vTotal;
+        if (modeInfo.modeFlags & RR_DoubleScan) vTotal *= 2;
+        if (modeInfo.modeFlags & RR_Interlace) vTotal /= 2;
+        mode.framerate = static_cast<double>(modeInfo.dotClock) / (modeInfo.hTotal * vTotal);
+
+        mode.isInterlaced = modeInfo.modeFlags & RR_Interlace;
+        mode.id = modeInfo.id;
+
+        availableModes.append(mode);
+    }
+    d->modes = availableModes;
+    d->name = QString::fromLocal8Bit(info->name);
+
+    emit availableModesChanged(availableModes);
+
+    //Update geometry and power status
+    if (info->crtc) {
+        XRRCrtcInfo* crtc = XRRGetCrtcInfo(QX11Info::display(), resources, info->crtc);
+        d->geometry = QRect(crtc->x, crtc->y, crtc->width, crtc->height);
+        d->currentMode = crtc->mode;
+        XRRFreeCrtcInfo(crtc);
+
+        d->powered = true;
+    } else {
+        d->powered = false;
+    }
+
+    emit poweredChanged(d->powered);
+    emit geometryChanged(d->geometry);
+    emit currentModeChanged(d->currentMode);
+
+    d->isPrimary = XRRGetOutputPrimary(QX11Info::display(), QX11Info::appRootWindow()) == d->output;
+    emit isPrimaryChanged(d->isPrimary);
+
+    XRRFreeOutputInfo(info);
+    XRRFreeScreenResources(resources);
 }
 
 void X11Screen::updateBrightness() {
@@ -177,6 +237,67 @@ void X11Screen::updateGammaRamps() {
     XRRFreeScreenResources(resources);
 }
 
+void X11Screen::set() {
+    XRRScreenResources* resources = XRRGetScreenResources(QX11Info::display(), QX11Info::appRootWindow());
+    XRROutputInfo* info = XRRGetOutputInfo(QX11Info::display(), resources, d->output);
+
+    if (d->isPrimary && XRRGetOutputPrimary(QX11Info::display(), QX11Info::appRootWindow()) != d->output) {
+        XRRSetOutputPrimary(QX11Info::display(), QX11Info::appRootWindow(), d->output);
+    }
+
+    if (info->crtc == 0) {
+        if (d->powered) {
+            //Find a suitable CRTC for this output
+            RRCrtc crtc = None;
+            for (int i = 0; i < info->ncrtc; i++) {
+                struct XRRCrtcInfoDeleter {
+                    static inline void cleanup(XRRCrtcInfo* pointer) {
+                        XRRFreeCrtcInfo(pointer);
+                    }
+                };
+
+                QScopedPointer<XRRCrtcInfo, XRRCrtcInfoDeleter> crtcInfo(XRRGetCrtcInfo(QX11Info::display(), resources, info->crtcs[i]));
+                if (crtcInfo->noutput > 0) {
+                    //This CRTC is already being used, but let's check if we can clone the displays
+                    if (crtcInfo->mode != static_cast<RRMode>(d->currentMode)) continue;
+                    if (crtcInfo->x != d->geometry.left()) continue;
+                    if (crtcInfo->y != d->geometry.top()) continue;
+                    if (crtcInfo->rotation != RR_Rotate_0) continue;
+
+                    //We can use this CRTC
+                    crtc = info->crtcs[i];
+                    break;
+                } else {
+                    //This CRTC is unused, so we can use this CRTC
+                    crtc = info->crtcs[i];
+                    break;
+                }
+            }
+
+            if (crtc != None) {
+                //Configure the output on this CRTC
+                XRRSetCrtcConfig(QX11Info::display(), resources, crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, RR_Rotate_0, &d->output, 1);
+            }
+        } else {
+            //Do nothing; the screen isn't powered and doesn't need to be powered
+            return;
+        }
+    } else {
+        if (d->powered) {
+            //Adjust this CRTC
+            XRRSetCrtcConfig(QX11Info::display(), resources, info->crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, RR_Rotate_0, &d->output, 1);
+        } else {
+            //Turn off this CRTC
+            XRRSetCrtcConfig(QX11Info::display(), resources, info->crtc, CurrentTime, 0, 0, None, RR_Rotate_0, nullptr, 0);
+        }
+    }
+
+    XRRFreeOutputInfo(info);
+    XRRFreeScreenResources(resources);
+
+    //Set the screen size properly
+    ScreenDaemon::instance()->setDpi(ScreenDaemon::instance()->dpi());
+}
 
 bool X11Screen::isScreenBrightnessAvailable() {
     return d->brightness >= 0;
@@ -209,6 +330,40 @@ int X11Screen::gammaRampSize() {
     XRRFreeScreenResources(resources);
 
     return size;
+}
+
+bool X11Screen::powered() const {
+    return d->powered;
+}
+
+bool X11Screen::isPrimary() const {
+    return d->isPrimary;
+}
+
+QRect X11Screen::geometry() const {
+    return d->geometry;
+}
+
+QList<SystemScreen::Mode> X11Screen::availableModes() const {
+    return d->modes;
+}
+
+int X11Screen::currentMode() const {
+    return d->currentMode;
+}
+
+void X11Screen::setCurrentMode(int mode) {
+    d->currentMode = mode;
+    for (Mode modeSpec : d->modes) {
+        if (mode == modeSpec.id) {
+            d->geometry.setSize(QSize(modeSpec.width, modeSpec.height));
+            break;
+        }
+    }
+}
+
+QString X11Screen::displayName() const {
+    return d->name;
 }
 
 void X11Screen::adjustGammaRamps(QString adjustmentName, SystemScreen::GammaRamps ramps) {

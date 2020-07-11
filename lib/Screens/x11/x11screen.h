@@ -43,7 +43,19 @@ class X11Screen : public SystemScreen {
         void removeGammaRamps(QString adjustmentName);
         int gammaRampSize();
 
+        bool powered() const;
+        bool isPrimary() const;
+        QRect geometry() const;
+
+        QList<Mode> availableModes() const;
+        int currentMode() const;
+        void setCurrentMode(int mode);
+
+        QString displayName() const;
+
         void updateScreen();
+
+        void set();
 
     signals:
 

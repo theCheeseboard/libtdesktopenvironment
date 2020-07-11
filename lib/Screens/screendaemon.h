@@ -32,6 +32,9 @@ class ScreenDaemon : public QObject {
         QList<SystemScreen*> screens();
         SystemScreen* primayScreen();
 
+        int dpi() const;
+        void setDpi(int dpi);
+
     signals:
 
     private:

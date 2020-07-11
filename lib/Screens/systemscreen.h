@@ -21,6 +21,7 @@
 #define SYSTEMSCREEN_H
 
 #include <QObject>
+#include <QRect>
 
 class SystemScreen : public QObject {
         Q_OBJECT
@@ -33,6 +34,14 @@ class SystemScreen : public QObject {
             double blue;
         };
 
+        struct Mode {
+            int id;
+            uint width;
+            uint height;
+            double framerate;
+            bool isInterlaced;
+        };
+
         virtual bool isScreenBrightnessAvailable() = 0;
         virtual double screenBrightness() = 0;
         virtual void setScreenBrightness(double screenBrightness) = 0;
@@ -40,8 +49,25 @@ class SystemScreen : public QObject {
         virtual void adjustGammaRamps(QString adjustmentName, GammaRamps ramps) = 0;
         virtual void removeGammaRamps(QString adjustmentName) = 0;
 
+        virtual bool powered() const = 0;
+        virtual bool isPrimary() const = 0;
+        virtual QRect geometry() const = 0;
+
+        virtual QList<Mode> availableModes() const = 0;
+        virtual int currentMode() const = 0;
+        virtual void setCurrentMode(int mode) = 0;
+
+        virtual QString displayName() const = 0;
+
+        virtual void set() = 0;
+
     signals:
         void screenBrightnessChanged(double brightness);
+        void geometryChanged(QRect geometry);
+        void poweredChanged(bool powered);
+        void availableModesChanged(QList<Mode> modes);
+        void currentModeChanged(int currentMode);
+        void isPrimaryChanged(bool isPrimary);
 };
 
 #endif // SYSTEMSCREEN_H

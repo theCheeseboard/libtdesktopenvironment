@@ -35,6 +35,9 @@ class X11ScreenBackend : public ScreenBackend, public QAbstractNativeEventFilter
         QList<SystemScreen*> screens();
         SystemScreen* primaryScreen();
 
+        int dpi() const;
+        void setDpi(int dpi);
+
     signals:
 
     private:

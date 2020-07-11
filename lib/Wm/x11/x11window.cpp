@@ -179,7 +179,12 @@ void X11Window::activate() {
     } else {
         userTimeValue = CurrentTime;
     }
-    TX11::sendMessageToRootWindow("_NET_ACTIVE_WINDOW", d->wid, 2, userTimeValue, static_cast<long>(static_cast<X11Window*>(DesktopWm::activeWindow().data())->d->wid));
+
+    long activeWindow = 0;
+    if (DesktopWm::activeWindow()) {
+        activeWindow = static_cast<long>(static_cast<X11Window*>(DesktopWm::activeWindow().data())->d->wid);
+    }
+    TX11::sendMessageToRootWindow("_NET_ACTIVE_WINDOW", d->wid, 2, userTimeValue, activeWindow);
 }
 
 quint64 X11Window::pid() {

@@ -28,6 +28,8 @@
 struct X11ScreenBackendPrivate {
     QMap<RROutput, SystemScreen*> screens;
     int randrEventBase, randrErrorBase;
+
+    int dpi = 96; //TODO: find a sensible default DPI for the primary monitor
 };
 
 X11ScreenBackend::X11ScreenBackend() : ScreenBackend() {
@@ -55,6 +57,20 @@ QList<SystemScreen*> X11ScreenBackend::screens() {
 
 SystemScreen* X11ScreenBackend::primaryScreen() {
     return d->screens.value(XRRGetOutputPrimary(QX11Info::display(), QX11Info::appRootWindow()));
+}
+
+int X11ScreenBackend::dpi() const {
+    return d->dpi;
+}
+
+void X11ScreenBackend::setDpi(int dpi) {
+    d->dpi = dpi;
+
+    QRect rect;
+    for (SystemScreen* screen : this->screens()) {
+        rect = rect.united(screen->geometry());
+    }
+    XRRSetScreenSize(QX11Info::display(), QX11Info::appRootWindow(), rect.width(), rect.height(), qRound((25.4 * rect.width()) / dpi), qRound(25.4 * rect.height()) / dpi);
 }
 
 void X11ScreenBackend::updateDisplays() {

@@ -31,5 +31,8 @@ class ScreenBackend : public QObject {
         virtual QList<SystemScreen*> screens() = 0;
         virtual SystemScreen* primaryScreen() = 0;
 
+        virtual int dpi() const = 0;
+        virtual void setDpi(int dpi) = 0;
+
 };
 #endif // SCREENBACKEND_H

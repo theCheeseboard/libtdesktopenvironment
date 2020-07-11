@@ -46,6 +46,14 @@ SystemScreen* ScreenDaemon::primayScreen() {
     return d->backend->primaryScreen();
 }
 
+int ScreenDaemon::dpi() const {
+    return d->backend->dpi();
+}
+
+void ScreenDaemon::setDpi(int dpi) {
+    d->backend->setDpi(dpi);
+}
+
 ScreenDaemon::ScreenDaemon() : QObject(nullptr) {
     //Figure out the best backend to use
 #ifdef HAVE_X11

@@ -49,12 +49,10 @@ X11Accessibility::~X11Accessibility() {
 
 void X11Accessibility::postEvent(xcb_generic_event_t* event) {
     if (event->response_type == d->xkbEventBase) {
-        qDebug() << "XKB event of some sort";
 
         //pad0 contains the event subtype
         if (event->pad0 == XkbStateNotify) {
             xcb_xkb_state_notify_event_t* notifyEvent = reinterpret_cast<xcb_xkb_state_notify_event_t*>(event);
-            qDebug() << "State Notify";
 
             Qt::KeyboardModifiers latched, locked;
             if (notifyEvent->latchedMods & ControlMask) latched |= Qt::ControlModifier;
@@ -69,14 +67,12 @@ void X11Accessibility::postEvent(xcb_generic_event_t* event) {
             emit stickyKeysStateChanged(latched, locked);
         } else if (event->pad0 == XkbBellNotify) {
             xcb_xkb_bell_notify_event_t* notifyEvent = reinterpret_cast<xcb_xkb_bell_notify_event_t*>(event);
-            qDebug() << "Bell Notify";
             if (notifyEvent->name != None) {
                 char* atomName = XGetAtomName(QX11Info::display(), notifyEvent->name);
                 qDebug() << atomName;
             }
         } else if (event->pad0 == XkbControlsNotify) {
             xcb_xkb_controls_notify_event_t* notifyEvent = reinterpret_cast<xcb_xkb_controls_notify_event_t*>(event);
-            qDebug() << "Controls Notify";
 
             if (notifyEvent->enabledControlChanges & XkbStickyKeysMask) {
                 d->stickyKeysEnabled = notifyEvent->enabledControls & XkbStickyKeysMask;
