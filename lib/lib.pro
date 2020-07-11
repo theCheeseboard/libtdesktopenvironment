@@ -76,6 +76,14 @@ unix {
         LIBS += -lKF5PulseAudioQt
         INCLUDEPATH += $$[QT_INSTALL_HEADERS]/KF5/KF5PulseAudioQt/PulseAudioQt
 
+        SOURCES += \
+            SystemSlide/private/slidempriscontroller.cpp \
+            SystemSlide/private/slidepulseaudiomonitor.cpp
+
+        HEADERS += \
+            SystemSlide/private/slidempriscontroller.h \
+            SystemSlide/private/slidepulseaudiomonitor.h
+
         DEFINES += HAVE_PULSE
         message("Building with pulseaudio support");
     } else {
@@ -103,8 +111,6 @@ SOURCES += \
     Screens/screendaemon.cpp \
     Screens/systemscreen.cpp \
     SystemSlide/private/slidehud.cpp \
-    SystemSlide/private/slidempriscontroller.cpp \
-    SystemSlide/private/slidepulseaudiomonitor.cpp \
     SystemSlide/private/slidequicksettings.cpp \
     SystemSlide/systemslide.cpp \
     TimeDate/desktoptimedate.cpp \
@@ -128,8 +134,6 @@ HEADERS += \
     Screens/screendaemon.h \
     Screens/systemscreen.h \
     SystemSlide/private/slidehud.h \
-    SystemSlide/private/slidempriscontroller.h \
-    SystemSlide/private/slidepulseaudiomonitor.h \
     SystemSlide/private/slidequicksettings.h \
     SystemSlide/systemslide.h \
     TimeDate/desktoptimedate.h \
