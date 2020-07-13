@@ -56,10 +56,12 @@ class SystemScreen : public QObject {
         virtual QList<Mode> availableModes() const = 0;
         virtual int currentMode() const = 0;
         virtual void setCurrentMode(int mode) = 0;
+        virtual void setAsPrimary() = 0;
 
         virtual QString displayName() const = 0;
 
         virtual void set() = 0;
+        virtual void reset() = 0;
 
     signals:
         void screenBrightnessChanged(double brightness);

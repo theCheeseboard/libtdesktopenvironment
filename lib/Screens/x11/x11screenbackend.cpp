@@ -56,7 +56,10 @@ QList<SystemScreen*> X11ScreenBackend::screens() {
 }
 
 SystemScreen* X11ScreenBackend::primaryScreen() {
-    return d->screens.value(XRRGetOutputPrimary(QX11Info::display(), QX11Info::appRootWindow()));
+    for (SystemScreen* screen : d->screens.values()) {
+        if (screen->isPrimary()) return screen;
+    }
+    return nullptr;
 }
 
 int X11ScreenBackend::dpi() const {

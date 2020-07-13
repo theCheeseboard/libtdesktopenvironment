@@ -299,6 +299,10 @@ void X11Screen::set() {
     ScreenDaemon::instance()->setDpi(ScreenDaemon::instance()->dpi());
 }
 
+void X11Screen::reset() {
+    this->updateScreen();
+}
+
 bool X11Screen::isScreenBrightnessAvailable() {
     return d->brightness >= 0;
 }
@@ -360,6 +364,19 @@ void X11Screen::setCurrentMode(int mode) {
             break;
         }
     }
+}
+
+void X11Screen::setAsPrimary() {
+    SystemScreen* screen = ScreenDaemon::instance()->primayScreen();
+    if (screen == this) return;
+    if (screen) {
+        X11Screen* x11Screen = static_cast<X11Screen*>(screen);
+        x11Screen->d->isPrimary = false;
+        emit x11Screen->isPrimaryChanged(false);
+    }
+
+    d->isPrimary = true;
+    emit this->isPrimaryChanged(true);
 }
 
 QString X11Screen::displayName() const {

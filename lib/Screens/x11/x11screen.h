@@ -50,12 +50,14 @@ class X11Screen : public SystemScreen {
         QList<Mode> availableModes() const;
         int currentMode() const;
         void setCurrentMode(int mode);
+        void setAsPrimary();
 
         QString displayName() const;
 
         void updateScreen();
 
         void set();
+        void reset();
 
     signals:
 
