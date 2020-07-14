@@ -168,8 +168,8 @@ QStringList BackgroundController::availableBackgrounds() {
 
     QStringList backgrounds = {
         "community",
+        "inbuilt:cactus",
         "inbuilt:triangles",
-        "inbuilt:straps",
         "inbuilt:ribbon"
     };
 
@@ -209,7 +209,7 @@ QString BackgroundController::currentBackgroundName(BackgroundType type) {
     } else if (type == LockScreen) {
         key = "lockScreen/background";
     }
-    return d->settings->value(key, "inbuilt:triangles").toString();
+    return d->settings->value(key, "inbuilt:cactus").toString();
 }
 
 void BackgroundController::setStretchType(BackgroundController::StretchType type) {
