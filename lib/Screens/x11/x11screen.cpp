@@ -21,6 +21,9 @@
 
 #include <QMap>
 #include <QX11Info>
+#include <QScreen>
+#include <QApplication>
+#include <QCryptographicHash>
 #include <X11/extensions/Xrandr.h>
 #include "Wm/x11/x11functions.h"
 #include "../screendaemon.h"
@@ -380,7 +383,28 @@ void X11Screen::setAsPrimary() {
 }
 
 QString X11Screen::displayName() const {
-    return d->name;
+    QScreen* scr = this->qtScreen();
+    if (scr) {
+        return scr->manufacturer() + " " + scr->model();
+    } else {
+        return d->name;
+    }
+}
+
+QString X11Screen::physicalMonitorId() const {
+    QScreen* scr = this->qtScreen();
+    if (scr) {
+        return QCryptographicHash::hash(scr->manufacturer().append(scr->model()).append(scr->serialNumber()).toUtf8(), QCryptographicHash::Sha256).toHex();
+    } else {
+        return d->name;
+    }
+}
+
+QScreen* X11Screen::qtScreen() const {
+    for (QScreen* screen : QApplication::screens()) {
+        if (screen->name() == d->name) return screen;
+    }
+    return nullptr;
 }
 
 void X11Screen::adjustGammaRamps(QString adjustmentName, SystemScreen::GammaRamps ramps) {

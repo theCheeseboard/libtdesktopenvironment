@@ -35,13 +35,13 @@ struct MprisPlayerPrivate {
 //    MprisPlayer::PlayingStatus status;
 };
 
-MprisPlayer::MprisPlayer(QString service, QObject *parent) : QObject(parent)
+MprisPlayerInterface::MprisPlayerInterface(QString service, QObject *parent) : QObject(parent)
 {
     d = new MprisPlayerPrivate();
     d->interface = new QDBusInterface(service, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2");
     d->player = new QDBusInterface(service, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player");
 
-    connect(QDBusConnection::sessionBus().interface(), &QDBusConnectionInterface::serviceOwnerChanged, this, &MprisPlayer::serviceOwnerChanged);
+    connect(QDBusConnection::sessionBus().interface(), &QDBusConnectionInterface::serviceOwnerChanged, this, &MprisPlayerInterface::serviceOwnerChanged);
     QDBusConnection::sessionBus().connect(service, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged", this, SLOT(dbusPropertyChanged(QString,QMap<QString, QVariant>,QStringList)));
     QDBusConnection::sessionBus().connect(service, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", "Seeked", this, SIGNAL(seeked(qint64)));
 
@@ -68,13 +68,13 @@ MprisPlayer::MprisPlayer(QString service, QObject *parent) : QObject(parent)
     registerDbusProperty(d->player, "canSeek", "CanSeek");
 }
 
-MprisPlayer::~MprisPlayer() {
+MprisPlayerInterface::~MprisPlayerInterface() {
     d->player->deleteLater();
     d->interface->deleteLater();
     delete d;
 }
 
-void MprisPlayer::registerDbusProperty(QDBusInterface* interface, QString localProperty, QString remoteProperty) {
+void MprisPlayerInterface::registerDbusProperty(QDBusInterface* interface, QString localProperty, QString remoteProperty) {
     QDBusMessage message = QDBusMessage::createMethodCall(interface->service(), interface->path(), "org.freedesktop.DBus.Properties", "Get");
     message.setArguments({
                              interface->interface(),
@@ -87,7 +87,7 @@ void MprisPlayer::registerDbusProperty(QDBusInterface* interface, QString localP
     d->propertyMappings.insert(interface->interface() + "." + remoteProperty, localProperty);
 }
 
-void MprisPlayer::dbusPropertyChanged(QString interfaceName, QMap<QString, QVariant> changedProperties, QStringList invalidatedProperties) {
+void MprisPlayerInterface::dbusPropertyChanged(QString interfaceName, QMap<QString, QVariant> changedProperties, QStringList invalidatedProperties) {
     Q_UNUSED(invalidatedProperties)
     for (QString property : changedProperties.keys()) {
         if (!d->propertyMappings.contains(interfaceName + "." + property)) {
@@ -101,7 +101,7 @@ void MprisPlayer::dbusPropertyChanged(QString interfaceName, QMap<QString, QVari
     }
 }
 
-void MprisPlayer::serviceOwnerChanged(QString serviceName, QString oldOwner, QString newOwner)
+void MprisPlayerInterface::serviceOwnerChanged(QString serviceName, QString oldOwner, QString newOwner)
 {
     if (serviceName != d->interface->service()) return; //Not interested in this service
     if (oldOwner != "") {
@@ -110,100 +110,100 @@ void MprisPlayer::serviceOwnerChanged(QString serviceName, QString oldOwner, QSt
     }
 }
 
-QString MprisPlayer::service() {
+QString MprisPlayerInterface::service() {
     return d->interface->service();
 }
 
-void MprisPlayer::raise() {
+void MprisPlayerInterface::raise() {
     d->interface->asyncCall("Raise");
 }
 
-void MprisPlayer::quit() {
+void MprisPlayerInterface::quit() {
     d->interface->asyncCall("Quit");
 }
 
-void MprisPlayer::next()
+void MprisPlayerInterface::next()
 {
     d->player->asyncCall("Next");
 }
 
-void MprisPlayer::previous()
+void MprisPlayerInterface::previous()
 {
     d->player->asyncCall("Previous");
 }
 
-void MprisPlayer::pause()
+void MprisPlayerInterface::pause()
 {
     d->player->asyncCall("Pause");
 }
 
-void MprisPlayer::playPause()
+void MprisPlayerInterface::playPause()
 {
     d->player->asyncCall("PlayPause");
 }
 
-void MprisPlayer::stop()
+void MprisPlayerInterface::stop()
 {
     d->player->asyncCall("Stop");
 }
 
-void MprisPlayer::play()
+void MprisPlayerInterface::play()
 {
     d->player->asyncCall("Play");
 }
 
-void MprisPlayer::seek(qint64 offset)
+void MprisPlayerInterface::seek(qint64 offset)
 {
     d->player->asyncCall("Seek", offset);
 }
 
-void MprisPlayer::setPosition(qint64 position)
+void MprisPlayerInterface::setPosition(qint64 position)
 {
     d->player->asyncCall("SetPosition", metadata().value("mpris:trackid"), position);
 }
 
-void MprisPlayer::openUri(QString uri)
+void MprisPlayerInterface::openUri(QString uri)
 {
     d->player->asyncCall(uri);
 }
 
-QVariant MprisPlayer::privateProperty(QString name) {
+QVariant MprisPlayerInterface::privateProperty(QString name) {
     return d->properties.value(name);
 }
 
-QString MprisPlayer::identity() {
+QString MprisPlayerInterface::identity() {
     return privateProperty("identity").toString();
 }
 
-bool MprisPlayer::canQuit() {
+bool MprisPlayerInterface::canQuit() {
     return privateProperty("canQuit").toBool();
 }
 
-bool MprisPlayer::isFullscreen() {
+bool MprisPlayerInterface::isFullscreen() {
     return privateProperty("isFullscreen").toBool();
 }
 
-bool MprisPlayer::canFullscreen() {
+bool MprisPlayerInterface::canFullscreen() {
     return privateProperty("canFullscreen").toBool();
 }
 
-bool MprisPlayer::canRaise() {
+bool MprisPlayerInterface::canRaise() {
     return privateProperty("canRaise").toBool();
 }
 
-bool MprisPlayer::hasTrackList() {
+bool MprisPlayerInterface::hasTrackList() {
     return privateProperty("hasTrackList").toBool();
 }
 
-void MprisPlayer::setIsFullscreen(bool fullscreen) {
+void MprisPlayerInterface::setIsFullscreen(bool fullscreen) {
     d->interface->setProperty("Fullscreen", fullscreen);
 }
 
-QString MprisPlayer::desktopEntry() {
+QString MprisPlayerInterface::desktopEntry() {
     return privateProperty("desktopEntry").toString();
 }
 
-MprisPlayer::PlayingStatus MprisPlayer::playbackStatus() {
+MprisPlayerInterface::PlayingStatus MprisPlayerInterface::playbackStatus() {
     QString status = privateProperty("playbackStatus").toString();
     if (status == "Playing") {
         return Playing;
@@ -214,7 +214,7 @@ MprisPlayer::PlayingStatus MprisPlayer::playbackStatus() {
     }
 }
 
-MprisPlayer::RepeatStatus MprisPlayer::repeating() {
+MprisPlayerInterface::RepeatStatus MprisPlayerInterface::repeating() {
     QString repeating = privateProperty("repeating").toString();
     if (repeating == "Track") {
         return RepeatOne;
@@ -225,7 +225,7 @@ MprisPlayer::RepeatStatus MprisPlayer::repeating() {
     }
 }
 
-void MprisPlayer::setRepeating(RepeatStatus repeating) {
+void MprisPlayerInterface::setRepeating(RepeatStatus repeating) {
     switch (repeating) {
         case RepeatOne:
             d->player->setProperty("LoopStatus", "Track");
@@ -238,23 +238,23 @@ void MprisPlayer::setRepeating(RepeatStatus repeating) {
     }
 }
 
-double MprisPlayer::rate() {
+double MprisPlayerInterface::rate() {
     return privateProperty("rate").toDouble();
 }
 
-void MprisPlayer::setRate(double rate) {
+void MprisPlayerInterface::setRate(double rate) {
     d->player->setProperty("Rate", rate);
 }
 
-bool MprisPlayer::shuffle() {
+bool MprisPlayerInterface::shuffle() {
     return privateProperty("shuffle").toBool();
 }
 
-void MprisPlayer::setShuffle(bool shuffle) {
+void MprisPlayerInterface::setShuffle(bool shuffle) {
     d->player->setProperty("Shuffle", shuffle);
 }
 
-MetadataMap MprisPlayer::metadata() {
+MetadataMap MprisPlayerInterface::metadata() {
     QVariant v = privateProperty("metadata");
     if (v.canConvert<MetadataMap>()) {
         return v.value<MetadataMap>();
@@ -267,54 +267,54 @@ MetadataMap MprisPlayer::metadata() {
     }
 }
 
-double MprisPlayer::volume() {
+double MprisPlayerInterface::volume() {
     return privateProperty("volume").toDouble();
 }
 
-void MprisPlayer::setVolume(double volume) {
+void MprisPlayerInterface::setVolume(double volume) {
     d->player->setProperty("Volume", volume);
 }
 
-qint64 MprisPlayer::position() {
+qint64 MprisPlayerInterface::position() {
     return d->player->property("Position").toInt();
 }
 
-double MprisPlayer::minRate()
+double MprisPlayerInterface::minRate()
 {
     return privateProperty("minRate").toDouble();
 }
 
-double MprisPlayer::maxRate()
+double MprisPlayerInterface::maxRate()
 {
     return privateProperty("maxRate").toDouble();
 }
 
-bool MprisPlayer::canGoNext()
+bool MprisPlayerInterface::canGoNext()
 {
     return privateProperty("canGoNext").toBool();
 }
 
-bool MprisPlayer::canGoPrevious()
+bool MprisPlayerInterface::canGoPrevious()
 {
     return privateProperty("canGoPrevious").toBool();
 }
 
-bool MprisPlayer::canPlay()
+bool MprisPlayerInterface::canPlay()
 {
     return privateProperty("canPlay").toBool();
 }
 
-bool MprisPlayer::canPause()
+bool MprisPlayerInterface::canPause()
 {
     return privateProperty("canPause").toBool();
 }
 
-bool MprisPlayer::canSeek()
+bool MprisPlayerInterface::canSeek()
 {
     return privateProperty("canSeek").toBool();
 }
 
-bool MprisPlayer::canControl()
+bool MprisPlayerInterface::canControl()
 {
     return d->player->property("CanControl").toBool();
 }

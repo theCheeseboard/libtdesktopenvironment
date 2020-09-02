@@ -53,6 +53,9 @@ class X11Screen : public SystemScreen {
         void setAsPrimary();
 
         QString displayName() const;
+        QString physicalMonitorId() const;
+
+        QScreen* qtScreen() const;
 
         void updateScreen();
 

@@ -29,8 +29,7 @@ struct MprisEnginePrivate {
 
 MprisEnginePrivate* MprisEngine::d = new MprisEnginePrivate;
 
-MprisEngine::MprisEngine(QObject *parent) : QObject(parent)
-{
+MprisEngine::MprisEngine(QObject* parent) : QObject(parent) {
     connect(QDBusConnection::sessionBus().interface(), &QDBusConnectionInterface::serviceOwnerChanged, this, &MprisEngine::serviceOwnerChanged);
     for (QString service : QDBusConnection::sessionBus().interface()->registeredServiceNames().value()) {
         if (service.startsWith("org.mpris.MediaPlayer2.")) registerPlayer(service);
@@ -46,7 +45,7 @@ void MprisEngine::serviceOwnerChanged(QString serviceName, QString oldOwner, QSt
     if (!serviceName.startsWith("org.mpris.MediaPlayer2.")) return; //Not interested in this service
     if (newOwner != "") {
         //Add this player
-        QTimer::singleShot(0, [=] {
+        QTimer::singleShot(0, [ = ] {
             registerPlayer(serviceName);
         });
     }
@@ -64,9 +63,9 @@ MprisPlayerPtr MprisEngine::playerForInterface(QString interface) {
 }
 
 void MprisEngine::registerPlayer(QString service) {
-    MprisPlayerPtr player(new MprisPlayer(service));
+    MprisPlayerPtr player(new MprisPlayerInterface(service));
     d->players.insert(service, player);
-    connect(player.get(), &MprisPlayer::gone, this, [=] {
+    connect(player.get(), &MprisPlayerInterface::gone, this, [ = ] {
         d->players.remove(service);
         emit playerGone(service);
     });

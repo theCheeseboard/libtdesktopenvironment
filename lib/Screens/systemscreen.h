@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QRect>
 
+class QScreen;
 class SystemScreen : public QObject {
         Q_OBJECT
     public:
@@ -59,6 +60,9 @@ class SystemScreen : public QObject {
         virtual void setAsPrimary() = 0;
 
         virtual QString displayName() const = 0;
+        virtual QString physicalMonitorId() const = 0;
+
+        virtual QScreen* qtScreen() const = 0;
 
         virtual void set() = 0;
         virtual void reset() = 0;

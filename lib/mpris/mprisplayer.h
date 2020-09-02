@@ -29,11 +29,11 @@ typedef QMap<QString, QVariant> MetadataMap;
 
 class QDBusInterface;
 struct MprisPlayerPrivate;
-class MprisPlayer : public QObject {
+class MprisPlayerInterface : public QObject {
         Q_OBJECT
     public:
-        explicit MprisPlayer(QString service, QObject* parent = nullptr);
-        ~MprisPlayer();
+        explicit MprisPlayerInterface(QString service, QObject* parent = nullptr);
+        ~MprisPlayerInterface();
 
         enum PlayingStatus {
             Playing,
@@ -151,6 +151,6 @@ class MprisPlayer : public QObject {
         void registerDbusProperty(QDBusInterface* interface, QString localProperty, QString remoteProperty);
         QVariant privateProperty(QString name);
 };
-typedef QSharedPointer<MprisPlayer> MprisPlayerPtr;
+typedef QSharedPointer<MprisPlayerInterface> MprisPlayerPtr;
 
 #endif // MPRISPLAYER_H

@@ -113,7 +113,7 @@ void SlideMprisControllerPrivate::addServer(QString service, MprisPlayerPtr play
     menuActions.insert(service, serverAction);
     menuActionsGroup->addAction(serverAction);
 
-    QObject::connect(player.data(), &MprisPlayer::identityChanged, serverAction, [ = ] {
+    QObject::connect(player.data(), &MprisPlayerInterface::identityChanged, serverAction, [ = ] {
         serverAction->setText(player->identity());
     });
     QObject::connect(serverAction, &QAction::triggered, [ = ] {
@@ -239,14 +239,14 @@ void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {
         };
         setMetadataFunction();
 
-        if (player->playbackStatus() == MprisPlayer::Playing) {
+        if (player->playbackStatus() == MprisPlayerInterface::Playing) {
             ui->mprisPlay->setIcon(QIcon::fromTheme("media-playback-pause"));
         } else {
             ui->mprisPlay->setIcon(QIcon::fromTheme("media-playback-start"));
         }
-        QObject::connect(player.data(), &MprisPlayer::metadataChanged, mprisContextObject, setMetadataFunction);
-        QObject::connect(player.data(), &MprisPlayer::playbackStatusChanged, mprisContextObject, [ = ] {
-            if (player->playbackStatus() == MprisPlayer::Playing) {
+        QObject::connect(player.data(), &MprisPlayerInterface::metadataChanged, mprisContextObject, setMetadataFunction);
+        QObject::connect(player.data(), &MprisPlayerInterface::playbackStatusChanged, mprisContextObject, [ = ] {
+            if (player->playbackStatus() == MprisPlayerInterface::Playing) {
                 ui->mprisPlay->setIcon(QIcon::fromTheme("media-playback-pause"));
             } else {
                 ui->mprisPlay->setIcon(QIcon::fromTheme("media-playback-start"));
