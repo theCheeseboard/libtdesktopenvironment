@@ -163,6 +163,8 @@ unix {
     screenheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Screens
     applicationsheaders.files = Applications/*.h
     applicationsheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Applications
+    mprisheaders.files = mpris/*.h
+    mprisheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/mpris
     header.files = *.h
     header.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment
 
@@ -171,7 +173,7 @@ unix {
     target.path = $$[QT_INSTALL_LIBS]
     module.path = $$[QMAKE_MKSPECS]/modules
 
-    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module
+    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders mprisheaders header module
 }
 
 DISTFILES += \
