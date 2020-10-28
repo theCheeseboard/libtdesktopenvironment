@@ -28,7 +28,7 @@
 typedef QMap<QString, QVariant> MetadataMap;
 
 class QDBusInterface;
-struct MprisPlayerPrivate;
+struct MprisPlayerInterfacePrivate;
 class MprisPlayerInterface : public QObject {
         Q_OBJECT
     public:
@@ -146,7 +146,7 @@ class MprisPlayerInterface : public QObject {
         void serviceOwnerChanged(QString serviceName, QString oldOwner, QString newOwner);
 
     private:
-        MprisPlayerPrivate* d;
+        MprisPlayerInterfacePrivate* d;
 
         void registerDbusProperty(QDBusInterface* interface, QString localProperty, QString remoteProperty);
         QVariant privateProperty(QString name);

@@ -24,8 +24,8 @@
 #include <QDBusPendingCall>
 #include <QDBusConnectionInterface>
 
-struct MprisPlayerPrivate {
-    QDBusInterface *interface, *player;
+struct MprisPlayerInterfacePrivate {
+    QDBusInterface* interface, *player;
 
     QMap<QString, QVariant> properties;
     QMap<QString, QString> propertyMappings;
@@ -35,14 +35,13 @@ struct MprisPlayerPrivate {
 //    MprisPlayer::PlayingStatus status;
 };
 
-MprisPlayerInterface::MprisPlayerInterface(QString service, QObject *parent) : QObject(parent)
-{
-    d = new MprisPlayerPrivate();
+MprisPlayerInterface::MprisPlayerInterface(QString service, QObject* parent) : QObject(parent) {
+    d = new MprisPlayerInterfacePrivate();
     d->interface = new QDBusInterface(service, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2");
     d->player = new QDBusInterface(service, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player");
 
     connect(QDBusConnection::sessionBus().interface(), &QDBusConnectionInterface::serviceOwnerChanged, this, &MprisPlayerInterface::serviceOwnerChanged);
-    QDBusConnection::sessionBus().connect(service, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged", this, SLOT(dbusPropertyChanged(QString,QMap<QString, QVariant>,QStringList)));
+    QDBusConnection::sessionBus().connect(service, "/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged", this, SLOT(dbusPropertyChanged(QString, QMap<QString, QVariant>, QStringList)));
     QDBusConnection::sessionBus().connect(service, "/org/mpris/MediaPlayer2", "org.mpris.MediaPlayer2.Player", "Seeked", this, SIGNAL(seeked(qint64)));
 
     registerDbusProperty(d->interface, "canQuit", "CanQuit");
@@ -77,9 +76,9 @@ MprisPlayerInterface::~MprisPlayerInterface() {
 void MprisPlayerInterface::registerDbusProperty(QDBusInterface* interface, QString localProperty, QString remoteProperty) {
     QDBusMessage message = QDBusMessage::createMethodCall(interface->service(), interface->path(), "org.freedesktop.DBus.Properties", "Get");
     message.setArguments({
-                             interface->interface(),
-                             remoteProperty
-                         });
+        interface->interface(),
+            remoteProperty
+        });
     QDBusMessage reply = interface->connection().call(message);
 //    QVariant propertyValue = interface->property(qPrintable(remoteProperty));
     QVariant propertyValue = reply.arguments().first().value<QDBusVariant>().variant();
@@ -101,8 +100,7 @@ void MprisPlayerInterface::dbusPropertyChanged(QString interfaceName, QMap<QStri
     }
 }
 
-void MprisPlayerInterface::serviceOwnerChanged(QString serviceName, QString oldOwner, QString newOwner)
-{
+void MprisPlayerInterface::serviceOwnerChanged(QString serviceName, QString oldOwner, QString newOwner) {
     if (serviceName != d->interface->service()) return; //Not interested in this service
     if (oldOwner != "") {
         //We're gone!
@@ -122,48 +120,39 @@ void MprisPlayerInterface::quit() {
     d->interface->asyncCall("Quit");
 }
 
-void MprisPlayerInterface::next()
-{
+void MprisPlayerInterface::next() {
     d->player->asyncCall("Next");
 }
 
-void MprisPlayerInterface::previous()
-{
+void MprisPlayerInterface::previous() {
     d->player->asyncCall("Previous");
 }
 
-void MprisPlayerInterface::pause()
-{
+void MprisPlayerInterface::pause() {
     d->player->asyncCall("Pause");
 }
 
-void MprisPlayerInterface::playPause()
-{
+void MprisPlayerInterface::playPause() {
     d->player->asyncCall("PlayPause");
 }
 
-void MprisPlayerInterface::stop()
-{
+void MprisPlayerInterface::stop() {
     d->player->asyncCall("Stop");
 }
 
-void MprisPlayerInterface::play()
-{
+void MprisPlayerInterface::play() {
     d->player->asyncCall("Play");
 }
 
-void MprisPlayerInterface::seek(qint64 offset)
-{
+void MprisPlayerInterface::seek(qint64 offset) {
     d->player->asyncCall("Seek", offset);
 }
 
-void MprisPlayerInterface::setPosition(qint64 position)
-{
+void MprisPlayerInterface::setPosition(qint64 position) {
     d->player->asyncCall("SetPosition", metadata().value("mpris:trackid"), position);
 }
 
-void MprisPlayerInterface::openUri(QString uri)
-{
+void MprisPlayerInterface::openUri(QString uri) {
     d->player->asyncCall(uri);
 }
 
@@ -279,42 +268,34 @@ qint64 MprisPlayerInterface::position() {
     return d->player->property("Position").toInt();
 }
 
-double MprisPlayerInterface::minRate()
-{
+double MprisPlayerInterface::minRate() {
     return privateProperty("minRate").toDouble();
 }
 
-double MprisPlayerInterface::maxRate()
-{
+double MprisPlayerInterface::maxRate() {
     return privateProperty("maxRate").toDouble();
 }
 
-bool MprisPlayerInterface::canGoNext()
-{
+bool MprisPlayerInterface::canGoNext() {
     return privateProperty("canGoNext").toBool();
 }
 
-bool MprisPlayerInterface::canGoPrevious()
-{
+bool MprisPlayerInterface::canGoPrevious() {
     return privateProperty("canGoPrevious").toBool();
 }
 
-bool MprisPlayerInterface::canPlay()
-{
+bool MprisPlayerInterface::canPlay() {
     return privateProperty("canPlay").toBool();
 }
 
-bool MprisPlayerInterface::canPause()
-{
+bool MprisPlayerInterface::canPause() {
     return privateProperty("canPause").toBool();
 }
 
-bool MprisPlayerInterface::canSeek()
-{
+bool MprisPlayerInterface::canSeek() {
     return privateProperty("canSeek").toBool();
 }
 
-bool MprisPlayerInterface::canControl()
-{
+bool MprisPlayerInterface::canControl() {
     return d->player->property("CanControl").toBool();
 }
