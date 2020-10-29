@@ -173,7 +173,7 @@ unix {
     target.path = $$[QT_INSTALL_LIBS]
     module.path = $$[QMAKE_MKSPECS]/modules
 
-    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module
+    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders
 }
 
 DISTFILES += \
