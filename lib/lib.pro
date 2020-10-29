@@ -163,6 +163,8 @@ unix {
     screenheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Screens
     applicationsheaders.files = Applications/*.h
     applicationsheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Applications
+    mprisheaders.files = mpris/*.h
+    mprisheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/mpris
     header.files = *.h
     header.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment
 

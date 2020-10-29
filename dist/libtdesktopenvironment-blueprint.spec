@@ -6,13 +6,15 @@ Summary:        Common libraries for desktop integration for the- apps
 License:        GPLv3+
 URL:            https://github.com/vicr123/libtdesktopenvironment
 Source0:        https://github.com/vicr123/libtdesktopenvironment/archive/%{version}.tar.gz
+Conflicts:      libtdesktopenvironment
+Provides:       libtdesktopenvironment
 
 %if 0%{?fedora} == 32
 BuildRequires:  make qt5-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-blueprint-devel xcb-util-keysyms-devel
 Requires:       qt5 qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs-blueprint
 %endif
 
-%if 0%{?fedora} == 33
+%if 0%{?fedora} >= 33
 BuildRequires:  make qt5-qtbase-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-blueprint-devel xcb-util-keysyms-devel
 Requires:       qt5-qtbase qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs-blueprint
 %endif
@@ -26,6 +28,8 @@ Common libraries for desktop integration for the- apps
 %package        devel
 Summary:        Development files for %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
+Conflicts:      libtdesktopenvironment-devel
+Provides:       libtdesktopenvironment-devel
 
 %description    devel
 The %{name}-devel package contains libraries and header files for

@@ -12,7 +12,7 @@ BuildRequires:  make qt5-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-deve
 Requires:       qt5 qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs
 %endif
 
-%if 0%{?fedora} == 33
+%if 0%{?fedora} >= 33
 BuildRequires:  make qt5-qtbase-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-devel xcb-util-keysyms-devel
 Requires:       qt5-qtbase qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs
 %endif
