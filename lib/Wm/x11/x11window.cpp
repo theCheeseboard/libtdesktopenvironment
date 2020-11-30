@@ -145,7 +145,7 @@ QIcon X11Window::icon() {
             long width = icons->at(offset++);
             long height = icons->at(offset++);
 
-            if (width == 0 || height == 0) {
+            if (width <= 0 || height <= 0) {
                 //Bail
                 return d->windowIcon;
             }
