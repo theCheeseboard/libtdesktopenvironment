@@ -40,6 +40,7 @@ class Application {
 
         QString desktopEntry() const;
         void launch();
+        void launch(QMap<QString, QString> replacements);
 
         static QStringList allApplications(QStringList searchPaths = QStringList());
 

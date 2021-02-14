@@ -26,6 +26,7 @@
 #include <QSet>
 #include <QFileSystemWatcher>
 #include <QProcess>
+#include <QRegularExpression>
 
 struct ApplicationPrivate {
     QSettings* appSettings = nullptr;
@@ -182,35 +183,46 @@ QString Application::desktopEntry() const {
 }
 
 void Application::launch() {
-    QString command = this->getProperty("Exec").toString().remove("%u");
-    command.remove("env ");
+    launch({});
+}
+
+void Application::launch(QMap<QString, QString> replacements) {
+    QString command = this->getProperty("Exec").toString();
+
     QProcess* process = new QProcess();
     QStringList environment = process->environment();
-    QStringList commandSpace = command.split(" ");
-    for (QString part : commandSpace) {
-        if (part.contains("=")) {
-            environment.append(part);
-            commandSpace.removeOne(part);
-        }
-    }
-    commandSpace.removeAll("");
-
-    commandSpace.removeAll("%f");
-    commandSpace.removeAll("%F");
-    commandSpace.removeAll("%u");
-    commandSpace.removeAll("%U");
-    if (commandSpace.contains("%i")) {
-        if (this->hasProperty("Icon")) {
-            commandSpace.replaceInStrings("%i", "--icon " + this->getProperty("Icon").toString());
-        } else {
-            commandSpace.removeAll("%i");
-        }
-    }
-    commandSpace.replaceInStrings("%c", this->getProperty("Name").toString());
-    commandSpace.replaceInStrings("%%", "%");
-
+    QStringList commandSpace = command.split(" ", Qt::SkipEmptyParts);
     QString finalCommand = commandSpace.takeFirst();
-    process->start(finalCommand, commandSpace);
+
+    if (!commandSpace.contains("%f") && !commandSpace.contains("%F") && !commandSpace.contains("%u") && !commandSpace.contains("%U")) {
+        //Add a %f to the end as a last ditch effort to open a file with this app
+        //It will be removed anyway if there's no file to be opened
+        commandSpace.append("%f");
+    }
+
+    if (hasProperty("Icon") && commandSpace.contains("%i")) {
+        int index = commandSpace.indexOf("%i");
+        commandSpace.removeAt(index);
+        commandSpace.insert(index, getProperty("Icon").toString());
+        commandSpace.insert(index, "--icon");
+    }
+
+    replacements.insert("%c", getProperty("Name").toString());
+    for (const QString& key : replacements.keys()) {
+        if (commandSpace.contains(key)) commandSpace.replaceInStrings(key, replacements.value(key));
+    }
+
+    QStringList toRemove;
+    for (const QString& part : qAsConst(commandSpace)) {
+        if (QRegularExpression(QRegularExpression::anchoredPattern("%.")).match(part).hasMatch()) toRemove += part;
+    }
+    for (const QString& remove : qAsConst(toRemove)) commandSpace.removeAll(remove);
+
+    if (replacements.contains("detached")) {
+        process->startDetached(finalCommand, commandSpace);
+    } else {
+        process->start(finalCommand, commandSpace);
+    }
     QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [ = ](int exitCode, QProcess::ExitStatus exitStatus) {
         process->deleteLater();
     });

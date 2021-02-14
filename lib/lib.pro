@@ -99,6 +99,7 @@ SOURCES += \
     Applications/application.cpp \
     Applications/qsettingsformats.cpp \
     Background/backgroundselectionmodel.cpp \
+    MimeAssociations/mimeassociationmanager.cpp \
     Screens/private/screenbackend.cpp \
     Screens/screendaemon.cpp \
     Screens/systemscreen.cpp \
@@ -124,6 +125,7 @@ HEADERS += \
     Applications/application.h \
     Applications/qsettingsformats.h \
     Background/backgroundselectionmodel.h \
+    MimeAssociations/mimeassociationmanager.h \
     Screens/private/screenbackend.h \
     Screens/screendaemon.h \
     Screens/systemscreen.h \
@@ -165,6 +167,8 @@ unix {
     applicationsheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Applications
     mprisheaders.files = mpris/*.h
     mprisheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/mpris
+    mimemanagerheaders.files = MimeAssociations/*.h
+    mimemanagerheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/MimeAssociations
     header.files = *.h
     header.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment
 
@@ -173,7 +177,7 @@ unix {
     target.path = $$[QT_INSTALL_LIBS]
     module.path = $$[QMAKE_MKSPECS]/modules
 
-    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders
+    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders mimemanagerheaders
 }
 
 DISTFILES += \
