@@ -25,7 +25,7 @@ MimeAssociationManager::MimeAssociationManager(QObject* parent) : QObject(parent
 
 ApplicationPointer MimeAssociationManager::defaultApplicationForMimeType(QString mimeType) {
     QSettings defaults("/etc/thesuite/theDesk/associations.conf", QSettings::IniFormat);
-    QSettings settings;
+    QSettings settings("theSuite", "thedesk-open");
 
     defaults.beginGroup("mimetypes");
     settings.beginGroup("mimetypes");
@@ -50,13 +50,13 @@ ApplicationPointer MimeAssociationManager::defaultApplicationForMimeType(QString
 }
 
 void MimeAssociationManager::setDefaultApplicationForMimeType(QString application, QString mimeType) {
-    QSettings settings;
+    QSettings settings("theSuite", "thedesk-open");
     settings.beginGroup("mimetypes");
     settings.setValue(mimeType, application);
 }
 
 void MimeAssociationManager::clearDefaultApplicationForMimeType(QString mimeType) {
-    QSettings settings;
+    QSettings settings("theSuite", "thedesk-open");
     settings.beginGroup("mimetypes");
     settings.setValue(mimeType, "[unset]");
 }
