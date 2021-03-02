@@ -53,6 +53,7 @@ class DesktopWmWindow : public QObject {
     public slots:
         virtual void activate() = 0;
         virtual void close() = 0;
+        virtual void kill() = 0;
 
     protected:
         explicit DesktopWmWindow();

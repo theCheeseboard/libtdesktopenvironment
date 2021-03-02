@@ -52,6 +52,7 @@ class X11Window : public DesktopWmWindow {
     public slots:
         void activate();
         void close();
+        void kill();
 
     private:
         X11WindowPrivate* d;

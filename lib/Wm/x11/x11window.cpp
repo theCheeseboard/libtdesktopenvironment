@@ -28,6 +28,7 @@
 #include "../desktopwm.h"
 #include "x11functions.h"
 #include <X11/Xutil.h>
+#include <signal.h>
 
 #undef Above
 #undef Below
@@ -196,6 +197,16 @@ void X11Window::close() {
     TX11::sendMessageToRootWindow("_NET_CLOSE_WINDOW", d->wid, CurrentTime, 2);
 }
 
+void X11Window::kill() {
+    TX11::WindowPropertyPtr<unsigned long> pid = TX11::getWindowProperty<unsigned long>("_NET_WM_PID", d->wid, XA_CARDINAL);
+    if (pid->nItems == 0) {
+        XKillClient(QX11Info::display(), d->wid);
+    } else {
+        //Kill this process by its PID
+        ::kill(pid->first(), SIGKILL);
+    }
+}
+
 void X11Window::updateState() {
     const QMap<QString, X11WindowPrivate::State> windowState = {
         {"_NET_WM_STATE_MODAL", X11WindowPrivate::Modal},
@@ -241,9 +252,9 @@ ApplicationPointer X11Window::calculateApplication() {
     };
 
     QStringList applications = Application::allApplications();
-    for (QString desktopEntry : applications) {
+    for (const QString& desktopEntry : qAsConst(applications)) {
         ApplicationPointer app(new Application(desktopEntry));
-        for (QString classHint : classHints) {
+        for (const QString& classHint : classHints) {
             if (classHint == app->getProperty("StartupWMClass").toString()) return app;
             if (classHint == desktopEntry) return app;
             if (classHint.toLower() == desktopEntry.toLower()) return app;
