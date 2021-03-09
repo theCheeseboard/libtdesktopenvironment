@@ -27,6 +27,8 @@
 #include <QFileSystemWatcher>
 #include <QProcess>
 #include <QRegularExpression>
+#include <QPixmap>
+#include <QIcon>
 
 struct ApplicationPrivate {
     QSettings* appSettings = nullptr;
@@ -36,14 +38,34 @@ struct ApplicationPrivate {
     bool isValid = false;
     QString desktopEntry;
 
+    struct ApplicationIconDescriptor {
+        QString desktopEntry;
+        QSize size;
+
+        bool operator<(const ApplicationIconDescriptor& other) const {
+            if (this->desktopEntry == other.desktopEntry) {
+                if (this->size.width() == other.size.width()) {
+                    return this->size.height() < other.size.height();
+                }
+                return this->size.width() < other.size.width();
+            }
+            return this->desktopEntry < other.desktopEntry;
+        };
+        bool operator==(const ApplicationIconDescriptor& other) const {
+            return this->desktopEntry == other.desktopEntry && this->size == other.size;
+        }
+    };
+    static QMap<ApplicationIconDescriptor, QPixmap> iconCache;
+
     static const QStringList searchPaths;
 };
+
+QMap<ApplicationPrivate::ApplicationIconDescriptor, QPixmap> ApplicationPrivate::iconCache = QMap<ApplicationPrivate::ApplicationIconDescriptor, QPixmap>();
 
 const QStringList ApplicationPrivate::searchPaths = {
     QDir::homePath() + "/.local/share/applications",
     "/usr/share/applications"
 };
-ApplicationDaemon* ApplicationDaemon::d = nullptr;
 
 Application::Application() {
     d = new ApplicationPrivate();
@@ -187,7 +209,22 @@ void Application::launch() {
 }
 
 void Application::launch(QMap<QString, QString> replacements) {
-    QString command = this->getProperty("Exec").toString();
+    launchAction("", replacements);
+}
+
+void Application::launchAction(QString action) {
+    launchAction(action, {});
+}
+
+void Application::launchAction(QString action, QMap<QString, QString> replacements) {
+    //TODO: D-Bus Activation
+
+    QString command;
+    if (action.isEmpty()) {
+        command  = this->getProperty("Exec").toString();
+    } else {
+        command = this->getActionProperty(action, "Exec").toString();
+    }
 
     QProcess* process = new QProcess();
     QStringList environment = process->environment();
@@ -234,14 +271,39 @@ void Application::launch(QMap<QString, QString> replacements) {
     });
 }
 
+QPixmap Application::icon(QSize size, bool cache) {
+    return this->icon(size, QIcon::fromTheme("generic-app").pixmap(size), cache);
+}
+
+QPixmap Application::icon(QSize size, QPixmap fallback, bool cache) {
+    //Make sure there is an instance of ApplicationDaemon
+    ApplicationDaemon::instance();
+
+    ApplicationPrivate::ApplicationIconDescriptor descriptor = {
+        d->desktopEntry,
+        size
+    };
+
+    if (d->iconCache.contains(descriptor)) return d->iconCache.value(descriptor);
+    QString iconName = this->getProperty("Icon").toString();
+    if (iconName.isEmpty() || !QIcon::hasThemeIcon(iconName)) return fallback;
+
+    QPixmap pixmap = QIcon::fromTheme(iconName).pixmap(size);
+    if (cache) d->iconCache.insert(descriptor, pixmap);
+    return pixmap;
+}
+
 ApplicationDaemon::ApplicationDaemon() : QObject(nullptr) {
     QFileSystemWatcher* watcher = new QFileSystemWatcher();
     watcher->addPaths(ApplicationPrivate::searchPaths);
     connect(watcher, &QFileSystemWatcher::directoryChanged, this, &ApplicationDaemon::appsUpdateRequired);
     connect(watcher, &QFileSystemWatcher::fileChanged, this, &ApplicationDaemon::appsUpdateRequired);
+    connect(watcher, &QFileSystemWatcher::fileChanged, this, [ = ] {
+        ApplicationPrivate::iconCache.clear();
+    });
 }
 
 ApplicationDaemon* ApplicationDaemon::instance() {
-    if (d == nullptr) d = new ApplicationDaemon();
-    return d;
+    static ApplicationDaemon* instance = new ApplicationDaemon();
+    return instance;
 }

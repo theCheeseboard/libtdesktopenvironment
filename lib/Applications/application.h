@@ -41,6 +41,11 @@ class Application {
         QString desktopEntry() const;
         void launch();
         void launch(QMap<QString, QString> replacements);
+        void launchAction(QString action);
+        void launchAction(QString action, QMap<QString, QString> replacements);
+
+        QPixmap icon(QSize size, bool cache = true);
+        QPixmap icon(QSize size, QPixmap fallback, bool cache = true);
 
         static QStringList allApplications(QStringList searchPaths = QStringList());
 
@@ -60,7 +65,6 @@ class ApplicationDaemon : public QObject {
 
     private:
         ApplicationDaemon();
-        static ApplicationDaemon* d;
 };
 
 #endif // APPLICATION_H

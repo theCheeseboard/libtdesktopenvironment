@@ -261,7 +261,7 @@ tPromise<QNetworkReply*>* BackgroundController::get(QString path) {
 }
 
 tPromise<void>* BackgroundController::getNewCommunityBackground() {
-    return tPromise<void>::runOnSameThread([ = ](tPromiseFunctions<void>::SuccessFunction res, tPromiseFunctions<void>::FailureFunction rej) {
+    return TPROMISE_CREATE_SAME_THREAD(void, {
         if (d->retrievingImages) {
             QMetaObject::Connection* c = new QMetaObject::Connection();
             *c = connect(this, &BackgroundController::newCommunityBackgroundsAvailable, this, [ = ] {
@@ -273,6 +273,7 @@ tPromise<void>* BackgroundController::getNewCommunityBackground() {
             return;
         }
 
+        d->retrievingImages = true;
         get("/theshell/backgrounds/backgrounds.json")->then([ = ](QNetworkReply * reply) {
             QByteArray data = reply->readAll();
             QJsonDocument doc = QJsonDocument::fromJson(data);
@@ -339,6 +340,9 @@ tPromise<void>* BackgroundController::getNewCommunityBackground() {
 
                 reply->deleteLater();
             }
+            d->retrievingImages = false;
+        })->error([ = ](QString error) {
+            d->retrievingImages = true;
         });
     });
 
@@ -346,7 +350,7 @@ tPromise<void>* BackgroundController::getNewCommunityBackground() {
 }
 
 tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrentCommunityBackground() {
-    return tPromise<BackgroundData>::runOnSameThread([ = ](tPromiseFunctions<BackgroundData>::SuccessFunction res, tPromiseFunctions<BackgroundData>::FailureFunction rej) {
+    return TPROMISE_CREATE_SAME_THREAD(BackgroundData, {
         QFile backgroundListConf(QDir::homePath() + "/.theshell/backgrounds.conf");
         backgroundListConf.open(QFile::ReadOnly);
         QStringList allBackgrounds = QString(backgroundListConf.readAll()).split("\n");
