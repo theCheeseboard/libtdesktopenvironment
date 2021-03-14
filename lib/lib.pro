@@ -3,11 +3,18 @@ QT += widgets dbus thelib network svg
 TEMPLATE = lib
 DEFINES += LIBTDESKTOPENVIRONMENT_LIBRARY
 TARGET = tdesktopenvironment
+SHARE_APP_NAME=libtdesktopenvironment
 
 CONFIG += c++11
 
 unix {
     CONFIG += link_pkgconfig
+
+    # Include the-libs build tools
+    equals(THELIBS_BUILDTOOLS_PATH, "") {
+        THELIBS_BUILDTOOLS_PATH = $$[QT_INSTALL_PREFIX]/share/the-libs/pri
+    }
+    include($$THELIBS_BUILDTOOLS_PATH/buildmaster.pri)
 
     packagesExist(x11) {
         message("Building with X11 support");
@@ -60,7 +67,7 @@ unix {
         DEFINES += HAVE_NETWORKMANAGERQT
         message("Building with NetworkManagerQt support");
     } else {
-        exists($$[QT_INSTALL_LIBS]/libKF5NetworkManagerQt.so) {
+        exists($$THELIBS_INSTALL_LIB/libKF5NetworkManagerQt.so) {
             INCLUDEPATH += $$[QT_INSTALL_HEADERS]/KF5/NetworkManagerQt/
             LIBS += -lKF5NetworkManagerQt
 
@@ -71,7 +78,7 @@ unix {
         }
     }
 
-    exists($$[QT_INSTALL_LIBS]/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
+    exists($$THELIBS_INSTALL_LIB/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
         PKGCONFIG += libpulse libpulse-mainloop-glib
         LIBS += -lKF5PulseAudioQt
         INCLUDEPATH += $$[QT_INSTALL_HEADERS]/../KF5/KF5PulseAudioQt/PulseAudioQt
@@ -174,7 +181,7 @@ unix {
 
     module.files = qt_tdesktopenvironment.pri
 
-    target.path = $$[QT_INSTALL_LIBS]
+    target.path = $$THELIBS_INSTALL_LIB
     module.path = $$[QMAKE_MKSPECS]/modules
 
     INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders mimemanagerheaders

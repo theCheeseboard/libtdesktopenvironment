@@ -57,15 +57,16 @@ struct ApplicationPrivate {
     };
     static QMap<ApplicationIconDescriptor, QPixmap> iconCache;
 
-    static const QStringList searchPaths;
+    static const QStringList searchPaths();
 };
 
 QMap<ApplicationPrivate::ApplicationIconDescriptor, QPixmap> ApplicationPrivate::iconCache = QMap<ApplicationPrivate::ApplicationIconDescriptor, QPixmap>();
 
-const QStringList ApplicationPrivate::searchPaths = {
-    QDir::homePath() + "/.local/share/applications",
-    "/usr/share/applications"
-};
+//const QStringList ApplicationPrivate::searchPaths = {
+//    QDir::homePath() + "/.local/share/applications",
+//    "/usr/share/applications",
+//    "/var/lib/flatpak/exports/share/applications"
+//};
 
 Application::Application() {
     d = new ApplicationPrivate();
@@ -74,7 +75,7 @@ Application::Application() {
 Application::Application(QString desktopEntry, QStringList searchPaths) {
     d = new ApplicationPrivate();
 
-    if (searchPaths.isEmpty()) searchPaths = ApplicationPrivate::searchPaths;
+    if (searchPaths.isEmpty()) searchPaths = ApplicationPrivate::searchPaths();
 
     for (QString searchPath : searchPaths) {
         QDirIterator iterator(searchPath, QDirIterator::Subdirectories);
@@ -185,7 +186,7 @@ QStringList Application::getStringList(QString propertyName, QStringList default
 }
 
 QStringList Application::allApplications(QStringList searchPaths) {
-    if (searchPaths.isEmpty()) searchPaths = ApplicationPrivate::searchPaths;
+    if (searchPaths.isEmpty()) searchPaths = ApplicationPrivate::searchPaths();
 
     QSet<QString> stringSet;
     for (QString searchPath : searchPaths) {
@@ -295,7 +296,7 @@ QPixmap Application::icon(QSize size, QPixmap fallback, bool cache) {
 
 ApplicationDaemon::ApplicationDaemon() : QObject(nullptr) {
     QFileSystemWatcher* watcher = new QFileSystemWatcher();
-    watcher->addPaths(ApplicationPrivate::searchPaths);
+    watcher->addPaths(ApplicationPrivate::searchPaths());
     connect(watcher, &QFileSystemWatcher::directoryChanged, this, &ApplicationDaemon::appsUpdateRequired);
     connect(watcher, &QFileSystemWatcher::fileChanged, this, &ApplicationDaemon::appsUpdateRequired);
     connect(watcher, &QFileSystemWatcher::fileChanged, this, [ = ] {
@@ -306,4 +307,15 @@ ApplicationDaemon::ApplicationDaemon() : QObject(nullptr) {
 ApplicationDaemon* ApplicationDaemon::instance() {
     static ApplicationDaemon* instance = new ApplicationDaemon();
     return instance;
+}
+
+const QStringList ApplicationPrivate::searchPaths() {
+    QStringList paths;
+    paths.append(QDir::homePath() + "/.local/share/applications");
+
+    for (const QString& dir : qEnvironmentVariable("XDG_DATA_DIRS", "/usr/local/share:/usr/share").split(":")) {
+        paths.append(QDir(dir).absoluteFilePath("applications"));
+    }
+
+    return paths;
 }
