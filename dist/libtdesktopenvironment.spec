@@ -1,6 +1,6 @@
 Name:           libtdesktopenvironment
 Version:        beta3
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Common libraries for desktop integration for the- apps
 
 License:        GPLv3+
