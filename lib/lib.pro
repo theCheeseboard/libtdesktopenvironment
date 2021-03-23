@@ -6,6 +6,7 @@ TARGET = tdesktopenvironment
 SHARE_APP_NAME=libtdesktopenvironment
 
 CONFIG += c++11
+LIBS += -lXrandr
 
 unix {
     CONFIG += link_pkgconfig
@@ -106,6 +107,10 @@ SOURCES += \
     Applications/application.cpp \
     Applications/qsettingsformats.cpp \
     Background/backgroundselectionmodel.cpp \
+    Gestures/gesturedaemon.cpp \
+    Gestures/gestureinteraction.cpp \
+    Gestures/private/gesturebackend.cpp \
+    Gestures/x11/x11gesturedaemon.cpp \
     MimeAssociations/mimeassociationmanager.cpp \
     Screens/private/screenbackend.cpp \
     Screens/screendaemon.cpp \
@@ -132,6 +137,11 @@ HEADERS += \
     Applications/application.h \
     Applications/qsettingsformats.h \
     Background/backgroundselectionmodel.h \
+    Gestures/gesturedaemon.h \
+    Gestures/gestureinteraction.h \
+    Gestures/gesturetypes.h \
+    Gestures/private/gesturebackend.h \
+    Gestures/x11/x11gesturedaemon.h \
     MimeAssociations/mimeassociationmanager.h \
     Screens/private/screenbackend.h \
     Screens/screendaemon.h \
@@ -176,6 +186,8 @@ unix {
     mprisheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/mpris
     mimemanagerheaders.files = MimeAssociations/*.h
     mimemanagerheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/MimeAssociations
+    gestureheaders.files = Gestures/*.h
+    gestureheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Gestures
     header.files = *.h
     header.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment
 
@@ -184,7 +196,7 @@ unix {
     target.path = $$THELIBS_INSTALL_LIB
     module.path = $$[QMAKE_MKSPECS]/modules
 
-    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders mimemanagerheaders
+    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders mimemanagerheaders gestureheaders
 }
 
 DISTFILES += \
