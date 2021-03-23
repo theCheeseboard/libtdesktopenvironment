@@ -208,6 +208,8 @@ bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, l
 
 DesktopWmWindowPtr X11Backend::activeWindow() {
     TX11::WindowPropertyPtr<Window> activeWindow = TX11::getRootWindowProperty<Window>("_NET_ACTIVE_WINDOW", "WINDOW");
+    if (activeWindow->nItems == 0) return nullptr;
+
     return d->windows.value(activeWindow->first(), nullptr).data();
 }
 

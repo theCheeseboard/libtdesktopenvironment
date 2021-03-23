@@ -73,7 +73,7 @@ void X11ScreenBackend::setDpi(int dpi) {
     for (SystemScreen* screen : this->screens()) {
         rect = rect.united(screen->geometry());
     }
-    XRRSetScreenSize(QX11Info::display(), QX11Info::appRootWindow(), rect.width(), rect.height(), qRound((25.4 * rect.width()) / dpi), qRound(25.4 * rect.height()) / dpi);
+    XRRSetScreenSize(QX11Info::display(), QX11Info::appRootWindow(), rect.width(), rect.height(), qRound((25.4 * rect.width()) / dpi), qRound((25.4 * rect.height()) / dpi));
 }
 
 void X11ScreenBackend::updateDisplays() {
