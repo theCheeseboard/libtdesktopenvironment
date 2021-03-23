@@ -11,6 +11,8 @@ struct GestureInteractionInstant {
 
 struct GestureInteractionPrivate {
     QList<GestureInteractionInstant> instants;
+
+    bool active = true;
 };
 
 GestureInteraction::GestureInteraction(QObject* parent) : QObject(parent) {
@@ -41,6 +43,10 @@ GestureTypes::DeviceType GestureInteraction::deviceType() {
     return d->instants.last().deviceType;
 }
 
+bool GestureInteraction::isActive() {
+    return d->active;
+}
+
 bool GestureInteraction::isValidInteraction(GestureTypes::GestureType type, GestureTypes::GestureDirection direction, int fingers) {
     return gestureType() == type && gestureDirection() == direction && this->fingers() == fingers;
 }
@@ -59,5 +65,6 @@ void GestureInteraction::gestureUpdate(GestureTypes::GestureType type, GestureTy
 }
 
 void GestureInteraction::gestureEnd() {
+    d->active = false;
     emit interactionEnded();
 }

@@ -19,6 +19,8 @@ class GestureInteraction : public QObject {
         int fingers();
         GestureTypes::DeviceType deviceType();
 
+        bool isActive();
+
         bool isValidInteraction(GestureTypes::GestureType type, GestureTypes::GestureDirection direction, int fingers);
 
     signals:
