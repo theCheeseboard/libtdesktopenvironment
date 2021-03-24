@@ -40,105 +40,105 @@
 <context>
     <name>DesktopUPowerDevice</name>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="87"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="86"/>
         <source>About 5% remaining</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="92"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="91"/>
         <source>About 10% remaining</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="96"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="95"/>
         <source>About 25% remaining</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="117"/>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="139"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="113"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="133"/>
         <source>Unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="118"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="114"/>
         <source>AC Power</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="119"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="115"/>
         <source>Battery</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="120"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="116"/>
         <source>Uninterruptable Power Supply</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="121"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="117"/>
         <source>Display</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="122"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="118"/>
         <source>Mouse</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="123"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="119"/>
         <source>Keyboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="124"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="120"/>
         <source>PDA</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="125"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="121"/>
         <source>Phone</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="140"/>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="152"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="134"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="146"/>
         <source>Charging</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="141"/>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="159"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="135"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="153"/>
         <source>Discharging</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="142"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="136"/>
         <source>Empty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="143"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="137"/>
         <source>Fully Charged</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="144"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="138"/>
         <source>Pending Charge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="145"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="139"/>
         <source>Pending Discharge</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="154"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="148"/>
         <source>Charging · %1 until full</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../UPower/desktopupowerdevice.cpp" line="161"/>
+        <location filename="../UPower/desktopupowerdevice.cpp" line="155"/>
         <source>Discharging · %1 until empty</source>
         <translation type="unfinished"></translation>
     </message>

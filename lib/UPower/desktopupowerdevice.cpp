@@ -33,14 +33,13 @@ struct DesktopUPowerDevicePrivate {
     DesktopUPowerDevice::DeviceState oldState = DesktopUPowerDevice::UnknownState;
 };
 
-DesktopUPowerDevice::DesktopUPowerDevice(QDBusObjectPath path, QObject *parent) : QObject(parent)
-{
+DesktopUPowerDevice::DesktopUPowerDevice(QDBusObjectPath path, QObject* parent) : QObject(parent) {
     d = new DesktopUPowerDevicePrivate();
 
     d->interface = new QDBusInterface("org.freedesktop.UPower", path.path(), "org.freedesktop.UPower.Device", QDBusConnection::systemBus());
     QDBusConnection::systemBus().connect("org.freedesktop.UPower", path.path(), "org.freedesktop.DBus.Properties", "PropertiesChanged", this, SIGNAL(propertiesUpdated()));
 
-    connect(this, &DesktopUPowerDevice::propertiesUpdated, this, [=] {
+    connect(this, &DesktopUPowerDevice::propertiesUpdated, this, [ = ] {
         if (this->type() == Battery) {
             DeviceState state = this->state();
             if (d->oldState != Charging && state == Charging) {
@@ -90,7 +89,7 @@ DesktopUPowerDevice::DesktopUPowerDevice(QDBusObjectPath path, QObject *parent) 
             d->notification10 = true;
 
             if (!d->settingUp) emit lowBatteryNotification(tr("About 10% remaining"));
-        } else if (percentage < 25 && !d->notification10) {
+        } else if (percentage < 25 && !d->notification25) {
             d->notification25 = true;
 
             if (!d->settingUp) emit lowBatteryNotification(tr("About 25% remaining"));
@@ -100,19 +99,16 @@ DesktopUPowerDevice::DesktopUPowerDevice(QDBusObjectPath path, QObject *parent) 
     });
 }
 
-DesktopUPowerDevice::~DesktopUPowerDevice()
-{
+DesktopUPowerDevice::~DesktopUPowerDevice() {
     d->interface->deleteLater();
     delete d;
 }
 
-DesktopUPowerDevice::DeviceType DesktopUPowerDevice::type()
-{
+DesktopUPowerDevice::DeviceType DesktopUPowerDevice::type() {
     return static_cast<DeviceType>(d->interface->property("Type").toUInt());
 }
 
-QString DesktopUPowerDevice::typeString()
-{
+QString DesktopUPowerDevice::typeString() {
     const char* types[] = {
         QT_TR_NOOP("Unknown"),
         QT_TR_NOOP("AC Power"),
@@ -128,13 +124,11 @@ QString DesktopUPowerDevice::typeString()
     return tr(types[this->type()]);
 }
 
-DesktopUPowerDevice::DeviceState DesktopUPowerDevice::state()
-{
+DesktopUPowerDevice::DeviceState DesktopUPowerDevice::state() {
     return static_cast<DeviceState>(d->interface->property("State").toUInt());
 }
 
-QString DesktopUPowerDevice::stateString()
-{
+QString DesktopUPowerDevice::stateString() {
     const char* states[] = {
         QT_TR_NOOP("Unknown"),
         QT_TR_NOOP("Charging"),
@@ -165,18 +159,15 @@ QString DesktopUPowerDevice::stateString()
     }
 }
 
-int DesktopUPowerDevice::percentage()
-{
+int DesktopUPowerDevice::percentage() {
     return static_cast<int>(d->interface->property("Percentage").toDouble());
 }
 
-bool DesktopUPowerDevice::online()
-{
+bool DesktopUPowerDevice::online() {
     return d->interface->property("Online").toBool();
 }
 
-QString DesktopUPowerDevice::iconName()
-{
+QString DesktopUPowerDevice::iconName() {
     switch (this->type()) {
         case DesktopUPowerDevice::UnknownType:
             break;
@@ -228,12 +219,10 @@ QString DesktopUPowerDevice::iconName()
     return "";
 }
 
-qint64 DesktopUPowerDevice::timeToEmpty()
-{
+qint64 DesktopUPowerDevice::timeToEmpty() {
     return d->interface->property("TimeToEmpty").toLongLong();
 }
 
-qint64 DesktopUPowerDevice::timeToFull()
-{
+qint64 DesktopUPowerDevice::timeToFull() {
     return d->interface->property("TimeToFull").toLongLong();
 }
