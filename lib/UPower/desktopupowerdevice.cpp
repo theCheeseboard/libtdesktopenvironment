@@ -78,21 +78,21 @@ DesktopUPowerDevice::DesktopUPowerDevice(QDBusObjectPath path, QObject* parent) 
         }
 
         int percentage = this->percentage();
-        if (percentage < 5 && !d->notification5) {
+        if (percentage <= 5 && !d->notification5) {
             d->notification25 = true;
             d->notification10 = true;
             d->notification5 = true;
 
-            if (!d->settingUp) emit lowBatteryNotification(tr("About 5% remaining"));
-        } else if (percentage < 10 && !d->notification10) {
+            if (!d->settingUp) emit lowBatteryNotification(tr("About %1% remaining").arg(percentage));
+        } else if (percentage <= 10 && !d->notification10) {
             d->notification25 = true;
             d->notification10 = true;
 
-            if (!d->settingUp) emit lowBatteryNotification(tr("About 10% remaining"));
-        } else if (percentage < 25 && !d->notification25) {
+            if (!d->settingUp) emit lowBatteryNotification(tr("About %1% remaining").arg(percentage));
+        } else if (percentage <= 25 && !d->notification25) {
             d->notification25 = true;
 
-            if (!d->settingUp) emit lowBatteryNotification(tr("About 25% remaining"));
+            if (!d->settingUp) emit lowBatteryNotification(tr("About %1% remaining").arg(percentage));
         }
 
         d->settingUp = false;

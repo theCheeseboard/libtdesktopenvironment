@@ -41,17 +41,9 @@
     <name>DesktopUPowerDevice</name>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="86"/>
-        <source>About 5% remaining</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="91"/>
-        <source>About 10% remaining</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="95"/>
-        <source>About 25% remaining</source>
+        <source>About %1% remaining</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
