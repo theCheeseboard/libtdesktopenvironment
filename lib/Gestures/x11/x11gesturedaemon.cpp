@@ -53,5 +53,6 @@ void X11GestureDaemon::gestureUpdate(quint32 type, quint32 direction, double per
 }
 
 void X11GestureDaemon::gestureEnd(quint32 type, quint32 direction, double percentage, qint32 fingers, quint32 deviceType, quint64 time) {
+    gestureUpdate(type, direction, percentage, fingers, deviceType, time);
     endGesture(d->currentInteraction);
 }

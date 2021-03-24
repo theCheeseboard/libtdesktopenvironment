@@ -15,9 +15,19 @@ class GestureInteraction : public QObject {
 
         GestureTypes::GestureType gestureType();
         GestureTypes::GestureDirection gestureDirection();
-        double percentage();
         int fingers();
+
+        double percentage();
+        double percentage(quint64 time);
+        double extrapolatePercentage(quint64 after);
+
         GestureTypes::DeviceType deviceType();
+        double velocity();
+
+        QList<quint64> dataTimes();
+
+        quint64 currentTime();
+        quint64 lastDataTime();
 
         bool isActive();
 
