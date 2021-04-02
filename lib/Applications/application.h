@@ -44,6 +44,7 @@ class Application {
         void launchAction(QString action);
         void launchAction(QString action, QMap<QString, QString> replacements);
 
+        QIcon icon();
         QPixmap icon(QSize size, bool cache = true);
         QPixmap icon(QSize size, QPixmap fallback, bool cache = true);
 
@@ -55,6 +56,7 @@ class Application {
 typedef QSharedPointer<Application> ApplicationPointer;
 Q_DECLARE_METATYPE(ApplicationPointer)
 
+struct ApplicationDaemonPrivate;
 class ApplicationDaemon : public QObject {
         Q_OBJECT
     public:
@@ -64,6 +66,8 @@ class ApplicationDaemon : public QObject {
         void appsUpdateRequired();
 
     private:
+        friend Application;
+        ApplicationDaemonPrivate* d;
         ApplicationDaemon();
 };
 

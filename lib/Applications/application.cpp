@@ -30,6 +30,10 @@
 #include <QPixmap>
 #include <QIcon>
 
+struct ApplicationDaemonPrivate {
+    QMap<QString, QString> desktopEntryLocations;
+};
+
 struct ApplicationPrivate {
     QSettings* appSettings = nullptr;
     QVariantMap details;
@@ -75,9 +79,18 @@ Application::Application() {
 Application::Application(QString desktopEntry, QStringList searchPaths) {
     d = new ApplicationPrivate();
 
+    if (ApplicationDaemon::instance()->d->desktopEntryLocations.contains(desktopEntry)) {
+        //Just use the cached path
+        d->appSettings = new QSettings(ApplicationDaemon::instance()->d->desktopEntryLocations.value(desktopEntry), QSettingsFormats::desktopFormat());
+        d->desktopEntry = desktopEntry;
+        d->useSettings = true;
+        d->isValid = true;
+        return;
+    }
+
     if (searchPaths.isEmpty()) searchPaths = ApplicationPrivate::searchPaths();
 
-    for (QString searchPath : searchPaths) {
+    for (const QString& searchPath : qAsConst(searchPaths)) {
         QDirIterator iterator(searchPath, QDirIterator::Subdirectories);
         while (iterator.hasNext()) {
             iterator.next();
@@ -87,6 +100,9 @@ Application::Application(QString desktopEntry, QStringList searchPaths) {
                 d->desktopEntry = desktopEntry;
                 d->useSettings = true;
                 d->isValid = true;
+
+                //Cache the path for next time
+                ApplicationDaemon::instance()->d->desktopEntryLocations.insert(desktopEntry, iterator.filePath());
                 return;
             }
         }
@@ -272,6 +288,10 @@ void Application::launchAction(QString action, QMap<QString, QString> replacemen
     });
 }
 
+QIcon Application::icon() {
+    return QIcon::fromTheme(this->getProperty("Icon").toString(), QIcon::fromTheme("generic-app"));
+}
+
 QPixmap Application::icon(QSize size, bool cache) {
     return this->icon(size, QIcon::fromTheme("generic-app").pixmap(size), cache);
 }
@@ -295,12 +315,18 @@ QPixmap Application::icon(QSize size, QPixmap fallback, bool cache) {
 }
 
 ApplicationDaemon::ApplicationDaemon() : QObject(nullptr) {
+    d = new ApplicationDaemonPrivate();
+
     QFileSystemWatcher* watcher = new QFileSystemWatcher();
     watcher->addPaths(ApplicationPrivate::searchPaths());
     connect(watcher, &QFileSystemWatcher::directoryChanged, this, &ApplicationDaemon::appsUpdateRequired);
     connect(watcher, &QFileSystemWatcher::fileChanged, this, &ApplicationDaemon::appsUpdateRequired);
     connect(watcher, &QFileSystemWatcher::fileChanged, this, [ = ] {
         ApplicationPrivate::iconCache.clear();
+    });
+
+    connect(this, &ApplicationDaemon::appsUpdateRequired, this, [ = ] {
+        d->desktopEntryLocations.clear();
     });
 }
 

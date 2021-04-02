@@ -252,6 +252,10 @@ void X11Backend::setCurrentDesktop(uint desktopNumber) {
     TX11::sendMessageToRootWindow("_NET_CURRENT_DESKTOP", QX11Info::appRootWindow(), desktopNumber, CurrentTime);
 }
 
+void X11Backend::setNumDesktops(uint numDesktops) {
+    TX11::sendMessageToRootWindow("_NET_NUMBER_OF_DESKTOPS", QX11Info::appRootWindow(), numDesktops);
+}
+
 void X11Backend::setSystemWindow(QWidget* widget) {
     this->setSystemWindow(widget, DesktopWm::SystemWindowTypeSkipTaskbarOnly);
 }

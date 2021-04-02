@@ -38,6 +38,7 @@ class DesktopWmWindow : public QObject {
         virtual quint64 pid() = 0;
         virtual uint desktop() = 0;
         virtual bool isOnCurrentDesktop() = 0;
+        virtual void moveToDesktop(uint desktop) = 0;
 
         bool isActive();
 
@@ -49,6 +50,7 @@ class DesktopWmWindow : public QObject {
         void windowStateChanged();
         void geometryChanged();
         void applicationChanged();
+        void desktopChanged();
 
     public slots:
         virtual void activate() = 0;

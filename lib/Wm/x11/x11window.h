@@ -46,6 +46,7 @@ class X11Window : public DesktopWmWindow {
         bool shouldShowInTaskbar();
         uint desktop();
         bool isOnCurrentDesktop();
+        void moveToDesktop(uint desktop);
 
         ApplicationPointer application();
 

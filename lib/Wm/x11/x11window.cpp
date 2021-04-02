@@ -91,6 +91,9 @@ X11Window::X11Window(Window wid) : DesktopWmWindow() {
         emit windowStateChanged();
     });
 
+    d->propertyChangeEvents.insert("_NET_WM_DESKTOP", [ = ] {
+        emit desktopChanged();
+    });
     this->updateState();
 }
 
@@ -190,6 +193,8 @@ void X11Window::activate() {
 
 quint64 X11Window::pid() {
     TX11::WindowPropertyPtr<long> pid = TX11::getWindowProperty<long>("_NET_WM_PID", d->wid, XA_CARDINAL);
+    if (pid->nItems == 0) return 0;
+
     return static_cast<quint64>(pid->first());
 }
 
@@ -296,6 +301,10 @@ bool X11Window::isOnCurrentDesktop() {
     uint desktop = this->desktop();
     if (desktop == UINT_MAX) return true;
     return DesktopWm::currentDesktop() == desktop;
+}
+
+void X11Window::moveToDesktop(uint desktop) {
+    TX11::sendMessageToRootWindow("_NET_CURRENT_DESKTOP", d->wid, desktop, CurrentTime);
 }
 
 ApplicationPointer X11Window::application() {

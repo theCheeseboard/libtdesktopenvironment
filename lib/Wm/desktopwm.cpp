@@ -64,6 +64,18 @@ void DesktopWm::setCurrentDesktop(uint desktopNumber) {
     d->instance->setCurrentDesktop(desktopNumber);
 }
 
+void DesktopWm::setNumDesktops(uint numDesktops) {
+    d->instance->setNumDesktops(numDesktops);
+}
+
+QList<DesktopWmWindowPtr> DesktopWm::windowsOnDesktop(uint desktopNumber) {
+    QList<DesktopWmWindowPtr> windows;
+    for (DesktopWmWindowPtr window : openWindows()) {
+        if (window->desktop() == desktopNumber) windows.append(window);
+    }
+    return windows;
+}
+
 void DesktopWm::setShowDesktop(bool showDesktop) {
     d->instance->setShowDesktop(showDesktop);
 }

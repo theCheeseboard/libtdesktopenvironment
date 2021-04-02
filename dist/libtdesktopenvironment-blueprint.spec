@@ -1,6 +1,6 @@
 Name:           libtdesktopenvironment-blueprint
 Version:        beta4
-Release:        5%{?dist}
+Release:        6%{?dist}
 Summary:        Common libraries for desktop integration for the- apps
 
 License:        GPLv3+
