@@ -304,7 +304,7 @@ bool X11Window::isOnCurrentDesktop() {
 }
 
 void X11Window::moveToDesktop(uint desktop) {
-    TX11::sendMessageToRootWindow("_NET_CURRENT_DESKTOP", d->wid, desktop, CurrentTime);
+    TX11::sendMessageToRootWindow("_NET_WM_DESKTOP", d->wid, desktop, 2);
 }
 
 ApplicationPointer X11Window::application() {
