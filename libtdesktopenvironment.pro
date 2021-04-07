@@ -6,8 +6,8 @@ testproj.subdir = test
 testproj.depends = libproj
 
 SUBDIRS += \
-    libproj \
-    testproj
+    libproj
+#    testproj
 
 CONFIG += qt
 
