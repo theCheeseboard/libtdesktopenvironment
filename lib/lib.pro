@@ -69,7 +69,7 @@ unix {
         message("Building with NetworkManagerQt support");
     } else {
         exists($$THELIBS_INSTALL_LIB/libKF5NetworkManagerQt.so) {
-            INCLUDEPATH += $$[QT_INSTALL_HEADERS]/KF5/NetworkManagerQt/
+            INCLUDEPATH += $$THELIBS_INSTALL_HEADERS/KF5/NetworkManagerQt/
             LIBS += -lKF5NetworkManagerQt
 
             DEFINES += HAVE_NETWORKMANAGERQT
@@ -82,7 +82,7 @@ unix {
     exists($$THELIBS_INSTALL_LIB/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
         PKGCONFIG += libpulse libpulse-mainloop-glib
         LIBS += -lKF5PulseAudioQt
-        INCLUDEPATH += $$[QT_INSTALL_HEADERS]/../KF5/KF5PulseAudioQt/PulseAudioQt
+        INCLUDEPATH += $$THELIBS_INSTALL_HEADERS/../KF5/KF5PulseAudioQt/PulseAudioQt
 
         DEFINES += HAVE_PULSE
         message("Building with pulseaudio support");
@@ -167,34 +167,34 @@ HEADERS += \
 
 unix {
     upowerheader.files = UPower/*.h
-    upowerheader.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/UPower
+    upowerheader.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/UPower
     wmheader.files = Wm/*.h
-    wmheader.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Wm
+    wmheader.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/Wm
     timedateheaders.files = TimeDate/*.h
-    timedateheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/TimeDate
+    timedateheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/TimeDate
     backgroundheaders.files = Background/*.h
-    backgroundheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Background
+    backgroundheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/Background
     slideheaders.files = SystemSlide/*.h
-    slideheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/SystemSlide
+    slideheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/SystemSlide
     tsiheaders.files = theShellIntegration/*.h
-    tsiheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/theShellIntegration
+    tsiheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/theShellIntegration
     screenheaders.files = Screens/*.h
-    screenheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Screens
+    screenheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/Screens
     applicationsheaders.files = Applications/*.h
-    applicationsheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Applications
+    applicationsheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/Applications
     mprisheaders.files = mpris/*.h
-    mprisheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/mpris
+    mprisheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/mpris
     mimemanagerheaders.files = MimeAssociations/*.h
-    mimemanagerheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/MimeAssociations
+    mimemanagerheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/MimeAssociations
     gestureheaders.files = Gestures/*.h
-    gestureheaders.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment/Gestures
+    gestureheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/Gestures
     header.files = *.h
-    header.path = $$[QT_INSTALL_HEADERS]/libtdesktopenvironment
+    header.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment
 
     module.files = qt_tdesktopenvironment.pri
 
     target.path = $$THELIBS_INSTALL_LIB
-    module.path = $$[QMAKE_MKSPECS]/modules
+    module.path = $$THELIBS_INSTALL_MODULES
 
     INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders mimemanagerheaders gestureheaders
 }
