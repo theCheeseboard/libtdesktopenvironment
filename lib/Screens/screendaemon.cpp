@@ -63,7 +63,7 @@ ScreenDaemon::ScreenDaemon() : QObject(nullptr) {
 #endif
 
     if (d->backend) {
-
+        connect(d->backend, &X11ScreenBackend::screensUpdated, this, &ScreenDaemon::screensUpdated);
     } else {
         //No suitable backend is available
         qWarning() << "No suitable backend for ScreenDaemon";

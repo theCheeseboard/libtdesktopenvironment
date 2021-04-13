@@ -45,15 +45,21 @@ class X11Screen : public SystemScreen {
 
         bool powered() const;
         bool isPrimary() const;
+        void setPowered(bool powered);
         QRect geometry() const;
+        void move(QPoint topLeft);
 
         QList<Mode> availableModes() const;
         int currentMode() const;
         void setCurrentMode(int mode);
         void setAsPrimary();
 
+        Rotation currentRotation() const;
+        void setRotation(Rotation rotation);
+
         QString displayName() const;
         QString physicalMonitorId() const;
+        QByteArray edid() const;
 
         QScreen* qtScreen() const;
 
@@ -70,7 +76,7 @@ class X11Screen : public SystemScreen {
         void updateBrightness();
         void updateGammaRamps();
 
-        template<typename T> OutputPropertyPtr<T> getOutputProperty(Atom property, Atom type, long offset = 0, long length = ~0L);
+        template<typename T> OutputPropertyPtr<T> getOutputProperty(Atom property, Atom type, long offset = 0, long length = ~0L) const;
 };
 
 #endif // X11SCREEN_H

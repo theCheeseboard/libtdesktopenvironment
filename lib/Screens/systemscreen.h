@@ -43,6 +43,13 @@ class SystemScreen : public QObject {
             bool isInterlaced;
         };
 
+        enum Rotation {
+            Landscape = 0,
+            Portrait,
+            UpsideDown,
+            UpsideDownPortrait
+        };
+
         virtual bool isScreenBrightnessAvailable() = 0;
         virtual double screenBrightness() = 0;
         virtual void setScreenBrightness(double screenBrightness) = 0;
@@ -52,15 +59,21 @@ class SystemScreen : public QObject {
 
         virtual bool powered() const = 0;
         virtual bool isPrimary() const = 0;
+        virtual void setPowered(bool powered) = 0;
         virtual QRect geometry() const = 0;
+        virtual void move(QPoint topLeft) = 0;
 
         virtual QList<Mode> availableModes() const = 0;
         virtual int currentMode() const = 0;
         virtual void setCurrentMode(int mode) = 0;
         virtual void setAsPrimary() = 0;
 
+        virtual Rotation currentRotation() const = 0;
+        virtual void setRotation(Rotation rotation) = 0;
+
         virtual QString displayName() const = 0;
         virtual QString physicalMonitorId() const = 0;
+        virtual QByteArray edid() const = 0;
 
         virtual QScreen* qtScreen() const = 0;
 
@@ -70,6 +83,7 @@ class SystemScreen : public QObject {
     signals:
         void screenBrightnessChanged(double brightness);
         void geometryChanged(QRect geometry);
+        void rotationChanged(Rotation rotation);
         void poweredChanged(bool powered);
         void availableModesChanged(QList<Mode> modes);
         void currentModeChanged(int currentMode);

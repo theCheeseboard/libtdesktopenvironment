@@ -256,6 +256,9 @@ ApplicationPointer X11Window::calculateApplication() {
         classHint.res_class
     };
 
+    //Remove empty class hints
+    classHints.removeAll("");
+
     QStringList applications = Application::allApplications();
     for (const QString& desktopEntry : qAsConst(applications)) {
         ApplicationPointer app(new Application(desktopEntry));

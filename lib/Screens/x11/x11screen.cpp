@@ -37,12 +37,14 @@ struct X11ScreenPrivate {
 
     static bool backlightAtomSet;
     static Atom backlightAtom;
+    static Atom edidAtom;
 
     bool powered = false;
     bool isPrimary = false;
     QRect geometry;
     QList<SystemScreen::Mode> modes;
     int currentMode = 0;
+    Rotation currentRotation = 0;
     QString name;
 
     QMap<QString, SystemScreen::GammaRamps> gammaRamps;
@@ -50,6 +52,7 @@ struct X11ScreenPrivate {
 
 bool X11ScreenPrivate::backlightAtomSet = false;
 Atom X11ScreenPrivate::backlightAtom = None;
+Atom X11ScreenPrivate::edidAtom = None;
 
 template <typename T> struct OutputProperty {
     typedef T* iterator;
@@ -119,6 +122,10 @@ X11Screen::X11Screen(RROutput output, QObject* parent) : SystemScreen(parent) {
     if (!d->backlightAtomSet) {
         d->backlightAtom = XInternAtom(QX11Info::display(), "backlight", true);
         if (d->backlightAtom == None) d->backlightAtom = XInternAtom(QX11Info::display(), "BACKLIGHT", true);
+
+        d->edidAtom = XInternAtom(QX11Info::display(), "EDID", true);
+        if (d->edidAtom == None) d->edidAtom = XInternAtom(QX11Info::display(), "EDID_DATA", true);
+
         d->backlightAtomSet = true;
     }
 }
@@ -165,6 +172,7 @@ void X11Screen::updateScreen() {
         XRRCrtcInfo* crtc = XRRGetCrtcInfo(QX11Info::display(), resources, info->crtc);
         d->geometry = QRect(crtc->x, crtc->y, crtc->width, crtc->height);
         d->currentMode = crtc->mode;
+        d->currentRotation = crtc->rotation;
         XRRFreeCrtcInfo(crtc);
 
         d->powered = true;
@@ -173,7 +181,8 @@ void X11Screen::updateScreen() {
     }
 
     emit poweredChanged(d->powered);
-    emit geometryChanged(d->geometry);
+    emit rotationChanged(currentRotation());
+    emit geometryChanged(geometry());
     emit currentModeChanged(d->currentMode);
 
     d->isPrimary = XRRGetOutputPrimary(QX11Info::display(), QX11Info::appRootWindow()) == d->output;
@@ -265,7 +274,7 @@ void X11Screen::set() {
                     if (crtcInfo->mode != static_cast<RRMode>(d->currentMode)) continue;
                     if (crtcInfo->x != d->geometry.left()) continue;
                     if (crtcInfo->y != d->geometry.top()) continue;
-                    if (crtcInfo->rotation != RR_Rotate_0) continue;
+                    if (crtcInfo->rotation != d->currentRotation) continue;
 
                     //We can use this CRTC
                     crtc = info->crtcs[i];
@@ -279,7 +288,7 @@ void X11Screen::set() {
 
             if (crtc != None) {
                 //Configure the output on this CRTC
-                XRRSetCrtcConfig(QX11Info::display(), resources, crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, RR_Rotate_0, &d->output, 1);
+                XRRSetCrtcConfig(QX11Info::display(), resources, crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, d->currentRotation, &d->output, 1);
             }
         } else {
             //Do nothing; the screen isn't powered and doesn't need to be powered
@@ -288,7 +297,7 @@ void X11Screen::set() {
     } else {
         if (d->powered) {
             //Adjust this CRTC
-            XRRSetCrtcConfig(QX11Info::display(), resources, info->crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, RR_Rotate_0, &d->output, 1);
+            XRRSetCrtcConfig(QX11Info::display(), resources, info->crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, d->currentRotation, &d->output, 1);
         } else {
             //Turn off this CRTC
             XRRSetCrtcConfig(QX11Info::display(), resources, info->crtc, CurrentTime, 0, 0, None, RR_Rotate_0, nullptr, 0);
@@ -347,8 +356,20 @@ bool X11Screen::isPrimary() const {
     return d->isPrimary;
 }
 
+void X11Screen::setPowered(bool powered) {
+    d->powered = powered;
+    emit poweredChanged(powered);
+}
+
 QRect X11Screen::geometry() const {
+//    QRect geometry = d->geometry;
+//    return geometry;
     return d->geometry;
+}
+
+void X11Screen::move(QPoint topLeft) {
+    d->geometry.moveTopLeft(topLeft);
+    emit geometryChanged(geometry());
 }
 
 QList<SystemScreen::Mode> X11Screen::availableModes() const {
@@ -364,6 +385,7 @@ void X11Screen::setCurrentMode(int mode) {
     for (Mode modeSpec : d->modes) {
         if (mode == modeSpec.id) {
             d->geometry.setSize(QSize(modeSpec.width, modeSpec.height));
+            if (currentRotation() == Portrait || currentRotation() == UpsideDownPortrait) d->geometry = d->geometry.transposed();
             break;
         }
     }
@@ -382,6 +404,47 @@ void X11Screen::setAsPrimary() {
     emit this->isPrimaryChanged(true);
 }
 
+SystemScreen::Rotation X11Screen::currentRotation() const {
+    if (d->currentRotation & RR_Rotate_0) {
+        return Landscape;
+    } else if (d->currentRotation & RR_Rotate_90) {
+        return Portrait;
+    } else if (d->currentRotation & RR_Rotate_180) {
+        return UpsideDown;
+    } else if (d->currentRotation & RR_Rotate_270) {
+        return UpsideDownPortrait;
+    }
+    return Portrait;
+}
+
+void X11Screen::setRotation(SystemScreen::Rotation rotation) {
+    SystemScreen::Rotation oldRotation = currentRotation();
+
+    switch (rotation) {
+        case SystemScreen::Landscape:
+            d->currentRotation = RR_Rotate_0;
+            break;
+        case SystemScreen::Portrait:
+            d->currentRotation = RR_Rotate_90;
+            break;
+        case SystemScreen::UpsideDown:
+            d->currentRotation = RR_Rotate_180;
+            break;
+        case SystemScreen::UpsideDownPortrait:
+            d->currentRotation = RR_Rotate_270;
+            break;
+    }
+
+    emit rotationChanged(currentRotation());
+
+    if (((oldRotation == Landscape || oldRotation == UpsideDown) && (rotation == Portrait || rotation == UpsideDownPortrait)) ||
+        ((oldRotation == Portrait || oldRotation == UpsideDownPortrait) && (rotation == Landscape || rotation == UpsideDown))) {
+        //We need to transpose the geometry of the screen
+        d->geometry = d->geometry.transposed();
+        emit geometryChanged(geometry());
+    }
+}
+
 QString X11Screen::displayName() const {
     QScreen* scr = this->qtScreen();
     if (scr) {
@@ -392,12 +455,25 @@ QString X11Screen::displayName() const {
 }
 
 QString X11Screen::physicalMonitorId() const {
+    QByteArray edid = this->edid();
+    if (edid.count() > 0) return QCryptographicHash::hash(edid, QCryptographicHash::Sha256).toHex();
+
     QScreen* scr = this->qtScreen();
     if (scr) {
         return QCryptographicHash::hash(scr->manufacturer().append(scr->model()).append(scr->serialNumber()).toUtf8(), QCryptographicHash::Sha256).toHex();
     } else {
         return d->name;
     }
+}
+
+QByteArray X11Screen::edid() const {
+    OutputPropertyPtr<qint8> edidProperty = getOutputProperty<qint8>(d->edidAtom, XA_INTEGER, 0, 4);
+
+    QByteArray edid;
+    if (edidProperty && edidProperty->nItems > 0) {
+        edid = QByteArray(reinterpret_cast<const char*>(edidProperty->data), edidProperty->nBytesRemain);
+    }
+    return edid;
 }
 
 QScreen* X11Screen::qtScreen() const {
@@ -412,7 +488,7 @@ void X11Screen::adjustGammaRamps(QString adjustmentName, SystemScreen::GammaRamp
     updateGammaRamps();
 }
 
-template<typename T> OutputPropertyPtr<T> X11Screen::getOutputProperty(Atom property, Atom type, long offset, long length) {
+template<typename T> OutputPropertyPtr<T> X11Screen::getOutputProperty(Atom property, Atom type, long offset, long length) const {
     OutputPropertyPtr<T> prop(new OutputProperty<T>());
 
     Atom typeReturn;

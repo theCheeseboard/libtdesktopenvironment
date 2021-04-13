@@ -114,6 +114,7 @@ bool X11ScreenBackend::nativeEventFilter(const QByteArray& eventType, void* mess
         if (event->response_type == d->randrEventBase + XCB_RANDR_NOTIFY) {
             //RandR has changed, update all the displays
             this->updateDisplays();
+            emit screensUpdated();
         }
     }
     return false;

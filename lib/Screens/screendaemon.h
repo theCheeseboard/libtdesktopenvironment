@@ -36,6 +36,7 @@ class ScreenDaemon : public QObject {
         void setDpi(int dpi);
 
     signals:
+        void screensUpdated();
 
     private:
         explicit ScreenDaemon();
