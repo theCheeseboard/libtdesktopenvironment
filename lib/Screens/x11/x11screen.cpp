@@ -249,6 +249,27 @@ void X11Screen::updateGammaRamps() {
     XRRFreeScreenResources(resources);
 }
 
+void X11Screen::normaliseScreens() {
+    QRect bounds(0, 0, 0, 0);
+
+    //Find out how far we should offset all of the screens
+    for (SystemScreen* screen : ScreenDaemon::instance()->screens()) {
+        X11Screen* scr = static_cast<X11Screen*>(screen);
+        if (!scr->powered()) continue;
+
+        bounds = bounds.united(scr->geometry());
+    }
+
+    //Offset all of the screens
+    for (SystemScreen* screen : ScreenDaemon::instance()->screens()) {
+        X11Screen* scr = static_cast<X11Screen*>(screen);
+        if (!scr->powered()) continue;
+
+        scr->d->geometry.translate(-bounds.topLeft());
+        emit scr->geometryChanged(scr->geometry());
+    }
+}
+
 void X11Screen::set() {
     XRRScreenResources* resources = XRRGetScreenResources(QX11Info::display(), QX11Info::appRootWindow());
     XRROutputInfo* info = XRRGetOutputInfo(QX11Info::display(), resources, d->output);
@@ -358,6 +379,7 @@ bool X11Screen::isPrimary() const {
 
 void X11Screen::setPowered(bool powered) {
     d->powered = powered;
+    normaliseScreens();
     emit poweredChanged(powered);
 }
 
@@ -369,7 +391,10 @@ QRect X11Screen::geometry() const {
 
 void X11Screen::move(QPoint topLeft) {
     d->geometry.moveTopLeft(topLeft);
-    emit geometryChanged(geometry());
+
+    normaliseScreens();
+
+//    emit geometryChanged(geometry());
 }
 
 QList<SystemScreen::Mode> X11Screen::availableModes() const {
@@ -443,6 +468,8 @@ void X11Screen::setRotation(SystemScreen::Rotation rotation) {
         d->geometry = d->geometry.transposed();
         emit geometryChanged(geometry());
     }
+
+    normaliseScreens();
 }
 
 QString X11Screen::displayName() const {

@@ -76,6 +76,8 @@ class X11Screen : public SystemScreen {
         void updateBrightness();
         void updateGammaRamps();
 
+        static void normaliseScreens();
+
         template<typename T> OutputPropertyPtr<T> getOutputProperty(Atom property, Atom type, long offset = 0, long length = ~0L) const;
 };
 
