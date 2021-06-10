@@ -31,6 +31,16 @@ struct WaylandWindowPrivate {
 
     QString title;
     ApplicationPointer application;
+
+    enum WindowState {
+        NoState = 0,
+        Activated = 1,
+        Maximised = 2,
+        Minimised = 4
+    };
+    typedef QFlags<WindowState> WindowStateFlags;
+
+    WindowStateFlags state = NoState;
 };
 
 struct WaylandWindowEventListener {
@@ -55,6 +65,25 @@ struct WaylandWindowEventListener {
 
         emit this->parent->applicationChanged();
         emit this->parent->iconChanged();
+    }
+
+    void stateChanged(wl_array* state) {
+        WaylandWindowPrivate::WindowStateFlags windowState = WaylandWindowPrivate::NoState;
+        for (quint32* flag = static_cast<quint32*>(state->data); reinterpret_cast<char*>(flag) < (static_cast<char*>(state->data) + state->size); flag++) {
+            if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_ACTIVATED) {
+                windowState |= WaylandWindowPrivate::Activated;
+            }
+            if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_MAXIMIZED) {
+                windowState |= WaylandWindowPrivate::Maximised;
+            }
+            if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_MINIMIZED) {
+                windowState |= WaylandWindowPrivate::Minimised;
+            }
+        }
+
+        this->parent->d->state = windowState;
+        emit this->parent->windowStateChanged();
+        emit this->parent->d->backend->activeWindowChanged();
     }
 
     void closed() {
@@ -85,7 +114,8 @@ WaylandWindow::WaylandWindow(zwlr_foreign_toplevel_handle_v1* handle, WaylandBac
 
     };
     listener->state = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1, struct wl_array * state) {
-
+        Q_UNUSED(zwlr_foreign_toplevel_handle_v1)
+        static_cast<WaylandWindowEventListener*>(data)->stateChanged(state);
     };
     listener->done = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1) {
 
@@ -106,6 +136,10 @@ WaylandWindow::~WaylandWindow() {
     delete d;
 }
 
+bool WaylandWindow::isActive() {
+    return d->state & WaylandWindowPrivate::Activated;
+}
+
 QString WaylandWindow::title() {
     return d->title;
 }
@@ -120,11 +154,11 @@ QIcon WaylandWindow::icon() {
 }
 
 bool WaylandWindow::isMinimized() {
-    return false;
+    return d->state & WaylandWindowPrivate::Minimised;
 }
 
 bool WaylandWindow::isMaximised() {
-    return false;
+    return d->state & WaylandWindowPrivate::Maximised;
 }
 
 bool WaylandWindow::isFullScreen() {

@@ -33,6 +33,8 @@ class WaylandWindow : public DesktopWmWindow {
         explicit WaylandWindow(zwlr_foreign_toplevel_handle_v1* handle, WaylandBackend* backend);
         ~WaylandWindow();
 
+        bool isActive();
+
     signals:
 
     private:

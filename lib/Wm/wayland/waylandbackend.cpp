@@ -129,6 +129,9 @@ QList<DesktopWmWindowPtr> WaylandBackend::openWindows() {
 
 DesktopWmWindowPtr WaylandBackend::activeWindow() {
     //TODO: Implement
+    for (WaylandWindow* window : d->windows.values()) {
+        if (window->isActive()) return window;
+    }
     return nullptr;
 }
 
