@@ -7,13 +7,8 @@ License:        GPLv3+
 URL:            https://github.com/vicr123/libtdesktopenvironment
 Source0:        https://github.com/vicr123/libtdesktopenvironment/archive/%{version}.tar.gz
 
-%if 0%{?fedora} == 32
-BuildRequires:  make qt5-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-devel xcb-util-keysyms-devel
-Requires:       qt5 qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs
-%endif
-
 %if 0%{?fedora} >= 33
-BuildRequires:  make qt5-qtbase-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-devel xcb-util-keysyms-devel
+BuildRequires:  make qt5-qtbase-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-devel xcb-util-keysyms-devel qt5-linguist
 Requires:       qt5-qtbase qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs
 %endif
 

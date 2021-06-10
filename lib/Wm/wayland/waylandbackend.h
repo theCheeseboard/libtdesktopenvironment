@@ -1,7 +1,7 @@
 /****************************************
  *
  *   INSERT-PROJECT-NAME-HERE - INSERT-GENERIC-NAME-HERE
- *   Copyright (C) 2019 Victor Tran
+ *   Copyright (C) 2021 Victor Tran
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,62 +17,56 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * *************************************/
-#ifndef X11BACKEND_H
-#define X11BACKEND_H
+#ifndef WAYLANDBACKEND_H
+#define WAYLANDBACKEND_H
 
 #include <QObject>
-#include <QAbstractNativeEventFilter>
 #include "../private/wmbackend.h"
 
-#include <X11/X.h>
-#include <X11/Xdefs.h>
-
-#undef CursorShape
-
-struct X11BackendPrivate;
-class X11Backend : public WmBackend, public QAbstractNativeEventFilter {
+struct zwlr_foreign_toplevel_handle_v1;
+struct WaylandBackendPrivate;
+struct WaylandWindowEventListener;
+struct wl_display;
+struct wl_seat;
+class WaylandBackend : public WmBackend {
         Q_OBJECT
     public:
-        explicit X11Backend();
-
-        bool nativeEventFilter(const QByteArray& eventType, void* message, long* result);
+        explicit WaylandBackend();
 
         static bool isSuitable();
         QString windowSystemName();
+        wl_display* display();
+        wl_seat* seat();
 
+        void newToplevel(zwlr_foreign_toplevel_handle_v1* toplevel);
+    signals:
+
+    protected:
+        void signalToplevelClosed(zwlr_foreign_toplevel_handle_v1* toplevel);
+
+    private:
+        friend WaylandWindowEventListener;
+        WaylandBackendPrivate* d;
+
+        // WmBackend interface
+    public:
         DesktopAccessibility* accessibility();
-
         QList<DesktopWmWindowPtr> openWindows();
         DesktopWmWindowPtr activeWindow();
-
         QStringList desktops();
         uint currentDesktop();
         void setCurrentDesktop(uint desktopNumber);
         void setNumDesktops(uint numDesktops);
         void setShowDesktop(bool showDesktop);
-
         void setSystemWindow(QWidget* widget);
-        void setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType type);
+        void setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType windowType);
         void blurWindow(QWidget* widget);
-
         void setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width);
-
         void setScreenOff(bool screenOff);
         bool isScreenOff();
         quint64 msecsIdle();
-
         quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers);
         void ungrabKey(quint64 grab);
-
-    signals:
-
-    public slots:
-
-    private:
-        X11BackendPrivate* d;
-
-        void addWindow(Window window);
-
 };
 
-#endif // X11BACKEND_H
+#endif // WAYLANDBACKEND_H

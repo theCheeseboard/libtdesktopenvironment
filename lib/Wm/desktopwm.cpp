@@ -28,6 +28,8 @@
     #include "x11/x11backend.h"
 #endif
 
+#include "wayland/waylandbackend.h"
+
 struct DesktopWmPrivate {
     DesktopWm* dwmInstance = nullptr;
     WmBackend* instance = nullptr;
@@ -42,6 +44,10 @@ DesktopWm* DesktopWm::instance() {
 
 DesktopAccessibility* DesktopWm::accessibility() {
     return d->instance->accessibility();
+}
+
+QString DesktopWm::windowSystemName() {
+    return d->instance->windowSystemName();
 }
 
 QList<DesktopWmWindowPtr> DesktopWm::openWindows() {
@@ -136,6 +142,10 @@ DesktopWm::DesktopWm() : QObject(nullptr) {
         d->instance = new X11Backend();
     }
 #endif
+
+    if (WaylandBackend::isSuitable()) {
+        d->instance = new WaylandBackend();
+    }
 
     if (d->instance) {
         connect(d->instance, &WmBackend::windowAdded, this, &DesktopWm::windowAdded);

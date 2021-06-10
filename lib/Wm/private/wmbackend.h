@@ -30,6 +30,8 @@ class WmBackend : public QObject {
     public:
         explicit WmBackend();
 
+        virtual QString windowSystemName() = 0;
+
         virtual DesktopAccessibility* accessibility() = 0;
         virtual QList<DesktopWmWindowPtr> openWindows() = 0;
         virtual DesktopWmWindowPtr activeWindow() = 0;

@@ -244,7 +244,10 @@ void Application::launchAction(QString action, QMap<QString, QString> replacemen
     }
 
     QProcess* process = new QProcess();
-    QStringList environment = process->environment();
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    if (env.contains("QT_WAYLAND_SHELL_INTEGRATION")) env.remove("QT_WAYLAND_SHELL_INTEGRATION");
+    process->setProcessEnvironment(env);
+
     QStringList commandSpace = command.split(" ", Qt::SkipEmptyParts);
     QString finalCommand = commandSpace.takeFirst();
 

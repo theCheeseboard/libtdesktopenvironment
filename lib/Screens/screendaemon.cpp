@@ -26,6 +26,8 @@
     #include "x11/x11screenbackend.h"
 #endif
 
+#include "wayland/waylandscreenbackend.h"
+
 struct ScreenDaemonPrivate {
     ScreenDaemon* instance = nullptr;
     ScreenBackend* backend = nullptr;
@@ -61,6 +63,10 @@ ScreenDaemon::ScreenDaemon() : QObject(nullptr) {
         d->backend = new X11ScreenBackend();
     }
 #endif
+
+    if (WaylandScreenBackend::isSuitable()) {
+        d->backend = new WaylandScreenBackend();
+    }
 
     if (d->backend) {
         connect(d->backend, &X11ScreenBackend::screensUpdated, this, &ScreenDaemon::screensUpdated);

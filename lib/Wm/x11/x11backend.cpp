@@ -124,6 +124,10 @@ bool X11Backend::isSuitable() {
     return QX11Info::isPlatformX11();
 }
 
+QString X11Backend::windowSystemName() {
+    return QStringLiteral("X11");
+}
+
 DesktopAccessibility* X11Backend::accessibility() {
     return d->accessibility;
 }
@@ -272,7 +276,8 @@ void X11Backend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType ty
         XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&desktop), 1);
 
     switch (type) {
-        case DesktopWm::SystemWindowTypeSkipTaskbarOnly: {
+        case DesktopWm::SystemWindowTypeSkipTaskbarOnly:
+        case DesktopWm::SystemWindowTypeMenu: {
             //Change the window type to a _NET_WM_WINDOW_TYPE_NORMAL
             Atom DesktopWindowTypeAtom;
             DesktopWindowTypeAtom = XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE_NORMAL", False);

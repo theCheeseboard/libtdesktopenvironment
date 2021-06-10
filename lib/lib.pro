@@ -44,20 +44,12 @@ unix {
             message("xrandr not found on this system.");
         }
 
-        SOURCES += Wm/x11/x11backend.cpp \
-                   Wm/x11/x11window.cpp \
-                   Wm/x11/x11functions.cpp \
-                   Wm/x11/x11keyboardtables.cpp \
-                   Screens/x11/x11screenbackend.cpp \
-                   Wm/x11/x11accessibility.cpp \
-                   Screens/x11/x11screen.cpp
-        HEADERS += Wm/x11/x11backend.h \
-                   Wm/x11/x11window.h \
-                   Wm/x11/x11functions.h \
-                   Wm/x11/x11keyboardtables.h \
-                   Screens/x11/x11screenbackend.h \
-                   Wm/x11/x11accessibility.h \
-                   Screens/x11/x11screen.h
+        SOURCES += $$files(Wm/x11/*.cpp) \
+                   $$files(Screens/x11/*.cpp) \
+                   $$files(Gestures/x11/*.cpp)
+        HEADERS += $$files(Wm/x11/*.h) \
+                   $$files(Screens/x11/*.h) \
+                   $$files(Gestures/x11/*.h)
     } else {
         message("X11 not found on this system.");
     }
@@ -77,6 +69,25 @@ unix {
         } else {
             message("NetworkManagerQt not found on this system.");
         }
+    }
+
+    exists($$THELIBS_INSTALL_LIB/libLayerShellQtInterface.so) : packagesExist(wayland-client) {
+        message("Building with Wayland support.");
+        DEFINES += HAVE_WAYLAND
+        LIBS += -lLayerShellQtInterface
+        INCLUDEPATH += $$THELIBS_INSTALL_HEADERS/../LayerShellQt
+
+        QT += gui-private
+
+        PKGCONFIG += wayland-client
+
+        SOURCES += $$files(Wm/wayland/*.cpp) \
+                   $$files(Screens/wayland/*.cpp) \
+                   Wm/wayland/wlr-foreign-toplevel-management-unstable-v1-proto.c
+        HEADERS += $$files(Wm/wayland/*.h) \
+                   $$files(Screens/wayland/*.h)
+    } else {
+        message("layer-shell-qt or wayland-client not found on this system.");
     }
 
     exists($$THELIBS_INSTALL_LIB/libKF5PulseAudioQt.so) : packagesExist(libpulse) : packagesExist(libpulse-mainloop-glib) {
@@ -110,7 +121,6 @@ SOURCES += \
     Gestures/gesturedaemon.cpp \
     Gestures/gestureinteraction.cpp \
     Gestures/private/gesturebackend.cpp \
-    Gestures/x11/x11gesturedaemon.cpp \
     MimeAssociations/mimeassociationmanager.cpp \
     Screens/private/screenbackend.cpp \
     Screens/screendaemon.cpp \
@@ -141,7 +151,6 @@ HEADERS += \
     Gestures/gestureinteraction.h \
     Gestures/gesturetypes.h \
     Gestures/private/gesturebackend.h \
-    Gestures/x11/x11gesturedaemon.h \
     MimeAssociations/mimeassociationmanager.h \
     Screens/private/screenbackend.h \
     Screens/screendaemon.h \

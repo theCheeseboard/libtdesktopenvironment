@@ -244,7 +244,7 @@
 <context>
     <name>X11Backend</name>
     <message>
-        <location filename="../Wm/x11/x11backend.cpp" line="233"/>
+        <location filename="../Wm/x11/x11backend.cpp" line="237"/>
         <source>Desktop %1</source>
         <translation type="unfinished"></translation>
     </message>

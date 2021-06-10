@@ -33,11 +33,14 @@ class DesktopWm : public QObject {
             SystemWindowTypeSkipTaskbarOnly,
             SystemWindowTypeDesktop,
             SystemWindowTypeTaskbar,
-            SystemWindowTypeNotification
+            SystemWindowTypeNotification,
+            SystemWindowTypeMenu
         };
 
         static DesktopWm* instance();
         static DesktopAccessibility* accessibility();
+
+        static QString windowSystemName();
 
         static QList<DesktopWmWindowPtr> openWindows();
         static DesktopWmWindowPtr activeWindow();
