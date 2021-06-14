@@ -1,13 +1,17 @@
 TEMPLATE = subdirs
 
-libproj.subdir = lib
 
 testproj.subdir = test
 testproj.depends = libproj
 
+waylandlayershellproj.subdir = wayland-layer-shell
+
+libproj.subdir = lib
+libproj.depends = waylandlayershellproj
+
 SUBDIRS += \
-    libproj# \
-#    wayland-layer-shell
+    libproj \
+    waylandlayershellproj
 #    testproj
 
 CONFIG += qt

@@ -19,6 +19,44 @@
  * *************************************/
 #include "layershellwindow.h"
 
-LayerShellWindow::LayerShellWindow()
-{
+#include <private/qwaylandwindow_p.h>
+#include "private/layershellsurface.h"
+
+struct LayerShellWindowPrivate {
+    LayerShellSurface* surface;
+};
+
+LayerShellWindow* LayerShellWindow::forWindow(QWindow* window) {
+    QtWaylandClient::QWaylandWindow* waylandWindow = dynamic_cast<QtWaylandClient::QWaylandWindow*>(window->handle());
+    if (!waylandWindow) return nullptr;
+
+    LayerShellSurface* surface = qobject_cast<LayerShellSurface*>(waylandWindow->shellSurface());
+    if (!surface) return nullptr;
+
+    return new LayerShellWindow(surface);
+}
+
+LayerShellWindow::~LayerShellWindow() {
+    delete d;
+}
+
+void LayerShellWindow::setLayer(Layer layer) {
+    d->surface->setLayer(layer);
+}
+
+void LayerShellWindow::setExclusiveZone(quint32 exclusiveZone) {
+    d->surface->setExclusiveZone(exclusiveZone);
+}
+
+void LayerShellWindow::setAnchors(Anchors anchors) {
+    d->surface->setAnchor(anchors);
+}
+
+void LayerShellWindow::setKeyboardInteractivity(KeyboardInteractivity interactivity) {
+    d->surface->setKeyboardInteractivity(interactivity);
+}
+
+LayerShellWindow::LayerShellWindow(LayerShellSurface* surface) : QObject(surface) {
+    d = new LayerShellWindowPrivate();
+    d->surface = surface;
 }

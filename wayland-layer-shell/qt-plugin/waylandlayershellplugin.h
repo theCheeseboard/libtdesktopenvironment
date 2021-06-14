@@ -20,17 +20,19 @@
 #ifndef WAYLANDLAYERSHELLPLUGIN_H
 #define WAYLANDLAYERSHELLPLUGIN_H
 
-#include <QtWaylandClient/private/qwaylandshellintegrationplugin_p.h>
+#include <private/qwaylandshellintegrationplugin_p.h>
 
 class WaylandLayerShellPlugin : public QtWaylandClient::QWaylandShellIntegrationPlugin {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID QGenericPluginFactoryInterface_iid FILE "qt-plugin.json")
+        Q_PLUGIN_METADATA(IID QWaylandShellIntegrationFactoryInterface_iid FILE "qt-plugin.json")
 
     public:
-        explicit WaylandLayerShellPlugin(QObject* parent = nullptr);
+        explicit WaylandLayerShellPlugin();
 
-    private:
-        QObject* create(const QString& name, const QString& spec) override;
+
+        // QWaylandShellIntegrationPlugin interface
+    public:
+        QtWaylandClient::QWaylandShellIntegration* create(const QString& key, const QStringList& paramList);
 };
 
 #endif // WAYLANDLAYERSHELLPLUGIN_H

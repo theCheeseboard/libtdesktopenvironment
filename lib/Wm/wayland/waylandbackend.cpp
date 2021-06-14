@@ -27,7 +27,7 @@
 
 #include <wayland-client.h>
 
-#include <Shell>
+#include <layershellwindow.h>
 #include <tlogger.h>
 
 #include "waylandwindow.h"
@@ -46,10 +46,10 @@ WaylandBackend::WaylandBackend() : WmBackend() {
     d->parent = this;
     d->accessibility = new WaylandAccessibility(this);
 
-    LayerShellQt::Shell::useLayerShell();
+//    LayerShellQt::Shell::useLayerShell();
+    qputenv("QT_WAYLAND_SHELL_INTEGRATION", "tdesktopenvironment-layer-shell");
 
     d->display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
-
 
     wl_registry_listener listener = {
         [](void* data, wl_registry * registry, quint32 name, const char* interface, quint32 version) {
@@ -144,29 +144,31 @@ void WaylandBackend::setSystemWindow(QWidget* widget) {
 }
 
 void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType windowType) {
-    //TODO: Implement
     widget->show();
-    LayerShellQt::Window* layerWindow = LayerShellQt::Window::get(widget->windowHandle());
-    layerWindow->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityOnDemand);
+    LayerShellWindow* layerWindow = LayerShellWindow::forWindow(widget->windowHandle());
+    layerWindow->setKeyboardInteractivity(LayerShellWindow::OnDemand);
 
     switch (windowType) {
         case DesktopWm::SystemWindowTypeSkipTaskbarOnly:
             break;
         case DesktopWm::SystemWindowTypeDesktop:
-            layerWindow->setLayer(LayerShellQt::Window::LayerBackground);
-//            layerWindow->setAnchors(static_cast<LayerShellQt::Window::Anchors>(LayerShellQt::Window::AnchorLeft | LayerShellQt::Window::AnchorBottom | LayerShellQt::Window::AnchorRight | LayerShellQt::Window::AnchorTop));
+            layerWindow->setLayer(LayerShellWindow::Background);
+            layerWindow->setExclusiveZone(-1);
+            layerWindow->setKeyboardInteractivity(LayerShellWindow::None);
             break;
         case DesktopWm::SystemWindowTypeTaskbar:
-            layerWindow->setLayer(LayerShellQt::Window::LayerTop);
-//            layerWindow->setAnchors(LayerShellQt::Window::AnchorTop);
+            layerWindow->setLayer(LayerShellWindow::Top);
+            layerWindow->setAnchors(LayerShellWindow::AnchorTop);
             break;
         case DesktopWm::SystemWindowTypeNotification:
-            layerWindow->setLayer(LayerShellQt::Window::LayerOverlay);
+            layerWindow->setLayer(LayerShellWindow::Overlay);
             layerWindow->setExclusiveZone(0);
             break;
         case DesktopWm::SystemWindowTypeMenu:
-            layerWindow->setLayer(LayerShellQt::Window::LayerOverlay);
-            layerWindow->setAnchors(static_cast<LayerShellQt::Window::Anchors>(LayerShellQt::Window::AnchorLeft | LayerShellQt::Window::AnchorTop | LayerShellQt::Window::AnchorBottom));
+            layerWindow->setLayer(LayerShellWindow::Overlay);
+            layerWindow->setExclusiveZone(-1);
+            layerWindow->setAnchors(static_cast<LayerShellWindow::Anchors>(LayerShellWindow::AnchorLeft | LayerShellWindow::AnchorTop | LayerShellWindow::AnchorBottom));
+//            layerWindow->setAnchors(LayerShellWindow::AnchorRight);
             break;
     }
 }
@@ -177,27 +179,25 @@ void WaylandBackend::blurWindow(QWidget* widget) {
 
 void WaylandBackend::setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width) {
     //TODO: Implement
+    LayerShellWindow* layerWindow = LayerShellWindow::forWindow(widget->windowHandle());
 
-//    QTimer::singleShot(1000, [ = ] {
-//    LayerShellQt::Window::get(widget->windowHandle())->setExclusiveZone(20);
-//    LayerShellQt::Window::Anchors anchors;
-//    switch (edge) {
-//        case Qt::TopEdge:
-//            anchors = static_cast<LayerShellQt::Window::Anchors>(LayerShellQt::Window::AnchorLeft | LayerShellQt::Window::AnchorRight | LayerShellQt::Window::AnchorTop);
-//            break;
-//        case Qt::LeftEdge:
-//            anchors = static_cast<LayerShellQt::Window::Anchors>(LayerShellQt::Window::AnchorLeft | LayerShellQt::Window::AnchorTop | LayerShellQt::Window::AnchorBottom);
-//            break;
-//        case Qt::RightEdge:
-//            anchors = LayerShellQt::Window::AnchorRight;
-//            break;
-//        case Qt::BottomEdge:
-//            anchors = LayerShellQt::Window::AnchorBottom;
-//            break;
-//    }
-//    LayerShellQt::Window::get(widget->windowHandle())->setAnchors(anchors);
-//    });
-
+    layerWindow->setExclusiveZone(width);
+    LayerShellWindow::Anchors anchors;
+    switch (edge) {
+        case Qt::TopEdge:
+            anchors = LayerShellWindow::AnchorTop;
+            break;
+        case Qt::LeftEdge:
+            anchors = LayerShellWindow::AnchorLeft;
+            break;
+        case Qt::RightEdge:
+            anchors = LayerShellWindow::AnchorRight;
+            break;
+        case Qt::BottomEdge:
+            anchors = LayerShellWindow::AnchorBottom;
+            break;
+    }
+    layerWindow->setAnchors(anchors);
 }
 
 void WaylandBackend::setScreenOff(bool screenOff) {

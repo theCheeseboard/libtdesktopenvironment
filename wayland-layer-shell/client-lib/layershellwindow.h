@@ -20,12 +20,51 @@
 #ifndef LAYERSHELLWINDOW_H
 #define LAYERSHELLWINDOW_H
 
+#include <QObject>
+#include <QWindow>
+
 #include "client-lib_global.h"
 
-class CLIENTLIB_EXPORT LayerShellWindow
-{
+class LayerShellSurface;
+struct LayerShellWindowPrivate;
+class CLIENTLIB_EXPORT LayerShellWindow : public QObject {
+        Q_OBJECT
     public:
-        LayerShellWindow();
+        static LayerShellWindow* forWindow(QWindow* window);
+        ~LayerShellWindow();
+
+        enum Layer : quint32 {
+            Overlay = 3,
+            Top = 2,
+            Bottom = 1,
+            Background = 0
+        };
+
+        enum Anchor : quint32 {
+            AnchorTop = 1,
+            AnchorBottom = 2,
+            AnchorLeft = 4,
+            AnchorRight = 8
+        };
+        Q_DECLARE_FLAGS(Anchors, Anchor);
+
+        enum KeyboardInteractivity : quint32 {
+            None = 0,
+            Exclusive = 1,
+            OnDemand = 2
+        };
+
+        void setLayer(Layer layer);
+        void setExclusiveZone(quint32 exclusiveZone);
+        void setAnchors(Anchors anchors);
+        void setKeyboardInteractivity(KeyboardInteractivity interactivity);
+
+    signals:
+
+    private:
+        explicit LayerShellWindow(LayerShellSurface* surface);
+
+        LayerShellWindowPrivate* d;
 };
 
 #endif // LAYERSHELLWINDOW_H

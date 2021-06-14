@@ -1,5 +1,10 @@
 TEMPLATE = subdirs
 
+clientproj.subdir = client-lib
+
+pluginproj.subdir = qt-plugin
+pluginproj.depends = clientproj
+
 SUBDIRS += \
-    client-lib \
-    qt-plugin
+    clientproj \
+    pluginproj

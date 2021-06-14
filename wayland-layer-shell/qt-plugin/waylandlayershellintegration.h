@@ -17,15 +17,25 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * *************************************/
-#include "waylandlayershellplugin.h"
+#ifndef WAYLANDLAYERSHELLINTEGRATION_H
+#define WAYLANDLAYERSHELLINTEGRATION_H
 
-#include "waylandlayershellintegration.h"
+#include <private/qwaylandshellintegration_p.h>
+#include <private/layershellshell.h>
 
-WaylandLayerShellPlugin::WaylandLayerShellPlugin()
-    : QtWaylandClient::QWaylandShellIntegrationPlugin() {
-}
+class WaylandLayerShellIntegration : public QtWaylandClient::QWaylandShellIntegration {
+    public:
+        explicit WaylandLayerShellIntegration();
 
-QtWaylandClient::QWaylandShellIntegration* WaylandLayerShellPlugin::create(const QString& key, const QStringList& paramList) {
-    if (key == "tdesktopenvironment-layer-shell") return new WaylandLayerShellIntegration();
-    return nullptr;
-}
+    signals:
+
+
+        // QWaylandShellIntegration interface
+    public:
+        bool initialize(QtWaylandClient::QWaylandDisplay* display);
+        QtWaylandClient::QWaylandShellSurface* createShellSurface(QtWaylandClient::QWaylandWindow* window);
+
+        LayerShellShell* layershellShell = nullptr;
+};
+
+#endif // WAYLANDLAYERSHELLINTEGRATION_H

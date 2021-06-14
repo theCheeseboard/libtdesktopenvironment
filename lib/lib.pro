@@ -71,11 +71,9 @@ unix {
         }
     }
 
-    exists($$THELIBS_INSTALL_LIB/libLayerShellQtInterface.so) : packagesExist(wayland-client) {
+    packagesExist(wayland-client) {
         message("Building with Wayland support.");
         DEFINES += HAVE_WAYLAND
-        LIBS += -lLayerShellQtInterface
-        INCLUDEPATH += $$THELIBS_INSTALL_HEADERS/../LayerShellQt
 
         QT += gui-private
 
@@ -95,7 +93,7 @@ unix {
         wayland_scanner_headers.CONFIG += target_predeps no_link
 
         wayland_scanner_sources.output = wayland-${QMAKE_FILE_BASE}-client-protocol.c
-        wayland_scanner_sources.commands = wayland-scanner public-code ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
+        wayland_scanner_sources.commands = wayland-scanner private-code ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
         wayland_scanner_sources.input = WAYLAND_PROTOCOL_EXTENSIONS
         wayland_scanner_sources.variable_out = SOURCES
         wayland_scanner_headers.CONFIG += target_predeps no_link
@@ -112,6 +110,11 @@ unix {
         qwayland_scanner_headers.CONFIG += target_predeps no_link
 
         QMAKE_EXTRA_COMPILERS += wayland_scanner_headers wayland_scanner_sources qwayland_scanner_headers qwayland_scanner_sources
+
+        unix:!macx: LIBS += -L$$OUT_PWD/../wayland-layer-shell/client-lib/ -ltdesktopenvironment-wayland-layer-shell-client
+
+        INCLUDEPATH += $$PWD/../wayland-layer-shell/client-lib
+        DEPENDPATH += $$PWD/../wayland-layer-shell/client-lib
     } else {
         message("layer-shell-qt or wayland-client not found on this system.");
     }
