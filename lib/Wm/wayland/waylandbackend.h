@@ -22,13 +22,14 @@
 
 #include <QObject>
 #include "../private/wmbackend.h"
+#include "qwayland-wlr-foreign-toplevel-management-unstable-v1.h"
 
 struct zwlr_foreign_toplevel_handle_v1;
 struct WaylandBackendPrivate;
-struct WaylandWindowEventListener;
+struct WaylandWindow;
 struct wl_display;
 struct wl_seat;
-class WaylandBackend : public WmBackend {
+class WaylandBackend : public WmBackend, public QtWayland::zwlr_foreign_toplevel_manager_v1 {
         Q_OBJECT
     public:
         explicit WaylandBackend();
@@ -38,14 +39,13 @@ class WaylandBackend : public WmBackend {
         wl_display* display();
         wl_seat* seat();
 
-        void newToplevel(zwlr_foreign_toplevel_handle_v1* toplevel);
     signals:
 
     protected:
-        void signalToplevelClosed(zwlr_foreign_toplevel_handle_v1* toplevel);
+        void signalToplevelClosed(::zwlr_foreign_toplevel_handle_v1* toplevel);
 
     private:
-        friend WaylandWindowEventListener;
+        friend WaylandWindow;
         WaylandBackendPrivate* d;
 
         // WmBackend interface
@@ -67,6 +67,10 @@ class WaylandBackend : public WmBackend {
         quint64 msecsIdle();
         quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers);
         void ungrabKey(quint64 grab);
+
+        // zwlr_foreign_toplevel_manager_v1 interface
+    protected:
+        void zwlr_foreign_toplevel_manager_v1_toplevel(::zwlr_foreign_toplevel_handle_v1* toplevel);
 };
 
 #endif // WAYLANDBACKEND_H

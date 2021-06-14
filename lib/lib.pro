@@ -82,10 +82,36 @@ unix {
         PKGCONFIG += wayland-client
 
         SOURCES += $$files(Wm/wayland/*.cpp) \
-                   $$files(Screens/wayland/*.cpp) \
-                   Wm/wayland/wlr-foreign-toplevel-management-unstable-v1-proto.c
+                   $$files(Screens/wayland/*.cpp)
         HEADERS += $$files(Wm/wayland/*.h) \
                    $$files(Screens/wayland/*.h)
+
+
+        WAYLAND_PROTOCOL_EXTENSIONS = wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml
+
+        wayland_scanner_headers.output = wayland-${QMAKE_FILE_BASE}-client-protocol.h
+        wayland_scanner_headers.commands = wayland-scanner client-header ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
+        wayland_scanner_headers.input = WAYLAND_PROTOCOL_EXTENSIONS
+        wayland_scanner_headers.CONFIG += target_predeps no_link
+
+        wayland_scanner_sources.output = wayland-${QMAKE_FILE_BASE}-client-protocol.c
+        wayland_scanner_sources.commands = wayland-scanner public-code ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
+        wayland_scanner_sources.input = WAYLAND_PROTOCOL_EXTENSIONS
+        wayland_scanner_sources.variable_out = SOURCES
+        wayland_scanner_headers.CONFIG += target_predeps no_link
+
+        qwayland_scanner_headers.output = qwayland-${QMAKE_FILE_BASE}.h
+        qwayland_scanner_headers.commands = qtwaylandscanner client-header ${QMAKE_FILE_NAME} > ${QMAKE_FILE_OUT}
+        qwayland_scanner_headers.input = WAYLAND_PROTOCOL_EXTENSIONS
+        qwayland_scanner_headers.CONFIG += target_predeps no_link
+
+        qwayland_scanner_sources.output = qwayland-${QMAKE_FILE_BASE}.cpp
+        qwayland_scanner_sources.commands = qtwaylandscanner client-code ${QMAKE_FILE_NAME} > ${QMAKE_FILE_OUT}
+        qwayland_scanner_sources.input = WAYLAND_PROTOCOL_EXTENSIONS
+        qwayland_scanner_sources.variable_out = SOURCES
+        qwayland_scanner_headers.CONFIG += target_predeps no_link
+
+        QMAKE_EXTRA_COMPILERS += wayland_scanner_headers wayland_scanner_sources qwayland_scanner_headers qwayland_scanner_sources
     } else {
         message("layer-shell-qt or wayland-client not found on this system.");
     }

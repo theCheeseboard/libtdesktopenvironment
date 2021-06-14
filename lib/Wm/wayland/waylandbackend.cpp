@@ -26,7 +26,6 @@
 #include <qpa/qplatformnativeinterface.h>
 
 #include <wayland-client.h>
-#include "wlr-foreign-toplevel-management-unstable-v1-proto.h"
 
 #include <Shell>
 #include <tlogger.h>
@@ -34,16 +33,17 @@
 #include "waylandwindow.h"
 
 struct WaylandBackendPrivate {
+    WaylandBackend* parent;
     WaylandAccessibility* accessibility;
 
     wl_display* display;
     wl_seat* seat;
-    zwlr_foreign_toplevel_manager_v1* toplevelManager = nullptr;
     QMap<zwlr_foreign_toplevel_handle_v1*, WaylandWindowPtr> windows;
 };
 
 WaylandBackend::WaylandBackend() : WmBackend() {
     d = new WaylandBackendPrivate();
+    d->parent = this;
     d->accessibility = new WaylandAccessibility(this);
 
     LayerShellQt::Shell::useLayerShell();
@@ -54,8 +54,7 @@ WaylandBackend::WaylandBackend() : WmBackend() {
     wl_registry_listener listener = {
         [](void* data, wl_registry * registry, quint32 name, const char* interface, quint32 version) {
             if (strcmp(interface, zwlr_foreign_toplevel_manager_v1_interface.name) == 0) {
-                zwlr_foreign_toplevel_manager_v1* toplevelManager = static_cast<zwlr_foreign_toplevel_manager_v1*>(wl_registry_bind(registry, name, &zwlr_foreign_toplevel_manager_v1_interface, std::min(version, static_cast<quint32>(3))));
-                static_cast<WaylandBackendPrivate*>(data)->toplevelManager = toplevelManager;
+                static_cast<WaylandBackendPrivate*>(data)->parent->QtWayland::zwlr_foreign_toplevel_manager_v1::init(registry, name, qMin<quint32>(version, 3));
             } else if (strcmp(interface, wl_seat_interface.name) == 0) {
                 wl_seat* seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, static_cast<quint32>(1))));
                 static_cast<WaylandBackendPrivate*>(data)->seat = seat;
@@ -72,17 +71,7 @@ WaylandBackend::WaylandBackend() : WmBackend() {
     wl_registry_add_listener(registry, &listener, d);
     wl_display_roundtrip(d->display);
 
-    if (d->toplevelManager) {
-        zwlr_foreign_toplevel_manager_v1_listener* toplevelEvents = new zwlr_foreign_toplevel_manager_v1_listener();
-        toplevelEvents->toplevel = [](void* data, struct zwlr_foreign_toplevel_manager_v1 * zwlr_foreign_toplevel_manager_v1, struct zwlr_foreign_toplevel_handle_v1 * toplevel) {
-            static_cast<WaylandBackend*>(data)->newToplevel(toplevel);
-        };
-        toplevelEvents->finished = [](void* data, struct zwlr_foreign_toplevel_manager_v1 * zwlr_foreign_toplevel_manager_v1) {
-
-        };
-
-        zwlr_foreign_toplevel_manager_v1_add_listener(d->toplevelManager, toplevelEvents, this);
-    } else {
+    if (!this->QtWayland::zwlr_foreign_toplevel_manager_v1::isInitialized()) {
         tWarn("WaylandBackend") << "The compositor doesn't support the wlr-foreign-toplevel-management protocol";
     }
     wl_registry_destroy(registry);
@@ -102,13 +91,6 @@ wl_display* WaylandBackend::display() {
 
 wl_seat* WaylandBackend::seat() {
     return d->seat;
-}
-
-void WaylandBackend::newToplevel(zwlr_foreign_toplevel_handle_v1* toplevel) {
-    WaylandWindowPtr window = new WaylandWindow(toplevel, this);
-    d->windows.insert(toplevel, window);
-
-    emit windowAdded(window.data());
 }
 
 void WaylandBackend::signalToplevelClosed(zwlr_foreign_toplevel_handle_v1* toplevel) {
@@ -180,6 +162,7 @@ void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowTyp
             break;
         case DesktopWm::SystemWindowTypeNotification:
             layerWindow->setLayer(LayerShellQt::Window::LayerOverlay);
+            layerWindow->setExclusiveZone(0);
             break;
         case DesktopWm::SystemWindowTypeMenu:
             layerWindow->setLayer(LayerShellQt::Window::LayerOverlay);
@@ -196,23 +179,23 @@ void WaylandBackend::setScreenMarginForWindow(QWidget* widget, QScreen* screen, 
     //TODO: Implement
 
 //    QTimer::singleShot(1000, [ = ] {
-//    LayerShellQt::Window::get(widget->windowHandle())->setExclusiveZone(width);
-//        LayerShellQt::Window::Anchors anchors;
-//        switch (edge) {
-//            case Qt::TopEdge:
-//                anchors = static_cast<LayerShellQt::Window::Anchors>(LayerShellQt::Window::AnchorLeft | LayerShellQt::Window::AnchorRight);
-//                break;
-//            case Qt::LeftEdge:
-//                anchors = static_cast<LayerShellQt::Window::Anchors>(LayerShellQt::Window::AnchorLeft | LayerShellQt::Window::AnchorTop | LayerShellQt::Window::AnchorBottom);
-//                break;
-//            case Qt::RightEdge:
-//                anchors = LayerShellQt::Window::AnchorRight;
-//                break;
-//            case Qt::BottomEdge:
-//                anchors = LayerShellQt::Window::AnchorBottom;
-//                break;
-//        }
-//        LayerShellQt::Window::get(widget->windowHandle())->setAnchors(anchors);
+//    LayerShellQt::Window::get(widget->windowHandle())->setExclusiveZone(20);
+//    LayerShellQt::Window::Anchors anchors;
+//    switch (edge) {
+//        case Qt::TopEdge:
+//            anchors = static_cast<LayerShellQt::Window::Anchors>(LayerShellQt::Window::AnchorLeft | LayerShellQt::Window::AnchorRight | LayerShellQt::Window::AnchorTop);
+//            break;
+//        case Qt::LeftEdge:
+//            anchors = static_cast<LayerShellQt::Window::Anchors>(LayerShellQt::Window::AnchorLeft | LayerShellQt::Window::AnchorTop | LayerShellQt::Window::AnchorBottom);
+//            break;
+//        case Qt::RightEdge:
+//            anchors = LayerShellQt::Window::AnchorRight;
+//            break;
+//        case Qt::BottomEdge:
+//            anchors = LayerShellQt::Window::AnchorBottom;
+//            break;
+//    }
+//    LayerShellQt::Window::get(widget->windowHandle())->setAnchors(anchors);
 //    });
 
 }
@@ -238,4 +221,12 @@ quint64 WaylandBackend::grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) {
 
 void WaylandBackend::ungrabKey(quint64 grab) {
     //TODO: Implement
+}
+
+
+void WaylandBackend::zwlr_foreign_toplevel_manager_v1_toplevel(::zwlr_foreign_toplevel_handle_v1* toplevel) {
+    WaylandWindowPtr window = new WaylandWindow(toplevel, this);
+    d->windows.insert(toplevel, window);
+
+    emit windowAdded(window.data());
 }

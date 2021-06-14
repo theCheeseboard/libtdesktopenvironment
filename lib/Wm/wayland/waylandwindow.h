@@ -22,15 +22,16 @@
 
 #include <QPointer>
 #include "Wm/desktopwmwindow.h"
+#include "qwayland-wlr-foreign-toplevel-management-unstable-v1.h"
 
 struct zwlr_foreign_toplevel_handle_v1;
 struct WaylandWindowPrivate;
 struct WaylandWindowEventListener;
 class WaylandBackend;
-class WaylandWindow : public DesktopWmWindow {
+class WaylandWindow : public DesktopWmWindow, public QtWayland::zwlr_foreign_toplevel_handle_v1 {
         Q_OBJECT
     public:
-        explicit WaylandWindow(zwlr_foreign_toplevel_handle_v1* handle, WaylandBackend* backend);
+        explicit WaylandWindow(::zwlr_foreign_toplevel_handle_v1* handle, WaylandBackend* backend);
         ~WaylandWindow();
 
         bool isActive();
@@ -61,6 +62,14 @@ class WaylandWindow : public DesktopWmWindow {
         void activate();
         void close();
         void kill();
+
+        // zwlr_foreign_toplevel_handle_v1 interface
+    protected:
+        void zwlr_foreign_toplevel_handle_v1_title(const QString& title);
+        void zwlr_foreign_toplevel_handle_v1_app_id(const QString& app_id);
+        void zwlr_foreign_toplevel_handle_v1_state(wl_array* state);
+        void zwlr_foreign_toplevel_handle_v1_closed();
+
 };
 typedef QPointer<WaylandWindow> WaylandWindowPtr;
 

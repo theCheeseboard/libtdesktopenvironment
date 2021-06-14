@@ -6,7 +6,8 @@ testproj.subdir = test
 testproj.depends = libproj
 
 SUBDIRS += \
-    libproj
+    libproj# \
+#    wayland-layer-shell
 #    testproj
 
 CONFIG += qt

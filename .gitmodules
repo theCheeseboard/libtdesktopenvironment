@@ -1,0 +1,6 @@
+[submodule "lib/wayland-protocols/wayland-protocols"]
+	path = lib/wayland-protocols/wayland-protocols
+	url = https://gitlab.freedesktop.org/wayland/wayland-protocols.git
+[submodule "lib/wayland-protocols/wlr-protocols"]
+	path = lib/wayland-protocols/wlr-protocols
+	url = https://github.com/swaywm/wlr-protocols.git

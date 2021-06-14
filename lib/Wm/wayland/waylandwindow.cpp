@@ -22,10 +22,8 @@
 #include <QRect>
 #include <QIcon>
 #include "waylandbackend.h"
-#include "wlr-foreign-toplevel-management-unstable-v1-proto.h"
 
 struct WaylandWindowPrivate {
-    zwlr_foreign_toplevel_handle_v1* handle;
     WaylandBackend* backend;
     WaylandWindowEventListener* listener;
 
@@ -49,85 +47,13 @@ struct WaylandWindowEventListener {
     WaylandWindowEventListener(WaylandWindow* parentWindow) {
         this->parent = parentWindow;
     }
-
-    void titleChanged(QString title) {
-        this->parent->d->title = title;
-        emit this->parent->titleChanged();
-    }
-
-    void applicationChanged(QString application) {
-        ApplicationPointer newApp(new Application(application));
-        if (newApp->isValid()) {
-            this->parent->d->application = newApp;
-        } else {
-            this->parent->d->application.clear();
-        }
-
-        emit this->parent->applicationChanged();
-        emit this->parent->iconChanged();
-    }
-
-    void stateChanged(wl_array* state) {
-        WaylandWindowPrivate::WindowStateFlags windowState = WaylandWindowPrivate::NoState;
-        for (quint32* flag = static_cast<quint32*>(state->data); reinterpret_cast<char*>(flag) < (static_cast<char*>(state->data) + state->size); flag++) {
-            if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_ACTIVATED) {
-                windowState |= WaylandWindowPrivate::Activated;
-            }
-            if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_MAXIMIZED) {
-                windowState |= WaylandWindowPrivate::Maximised;
-            }
-            if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_MINIMIZED) {
-                windowState |= WaylandWindowPrivate::Minimised;
-            }
-        }
-
-        this->parent->d->state = windowState;
-        emit this->parent->windowStateChanged();
-        emit this->parent->d->backend->activeWindowChanged();
-    }
-
-    void closed() {
-        this->parent->d->backend->signalToplevelClosed(this->parent->d->handle);
-    }
 };
 
-WaylandWindow::WaylandWindow(zwlr_foreign_toplevel_handle_v1* handle, WaylandBackend* backend) : DesktopWmWindow() {
+WaylandWindow::WaylandWindow(::zwlr_foreign_toplevel_handle_v1* handle, WaylandBackend* backend) : DesktopWmWindow(), QtWayland::zwlr_foreign_toplevel_handle_v1(handle) {
     d = new WaylandWindowPrivate();
-    d->handle = handle;
     d->backend = backend;
 
     d->listener = new WaylandWindowEventListener(this);
-
-    zwlr_foreign_toplevel_handle_v1_listener* listener = new zwlr_foreign_toplevel_handle_v1_listener();
-    listener->title = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1, const char* title) {
-        Q_UNUSED(zwlr_foreign_toplevel_handle_v1)
-        static_cast<WaylandWindowEventListener*>(data)->titleChanged(QString::fromLocal8Bit(title));
-    };
-    listener->app_id = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1, const char* app_id) {
-        Q_UNUSED(zwlr_foreign_toplevel_handle_v1)
-        static_cast<WaylandWindowEventListener*>(data)->applicationChanged(QString::fromLocal8Bit(app_id));
-    };
-    listener->output_enter = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1, struct wl_output * output) {
-
-    };
-    listener->output_leave = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1, struct wl_output * output) {
-
-    };
-    listener->state = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1, struct wl_array * state) {
-        Q_UNUSED(zwlr_foreign_toplevel_handle_v1)
-        static_cast<WaylandWindowEventListener*>(data)->stateChanged(state);
-    };
-    listener->done = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1) {
-
-    };
-    listener->closed = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1) {
-        Q_UNUSED(zwlr_foreign_toplevel_handle_v1)
-        static_cast<WaylandWindowEventListener*>(data)->closed();
-    };
-    listener->parent = [](void* data, struct zwlr_foreign_toplevel_handle_v1 * zwlr_foreign_toplevel_handle_v1, struct zwlr_foreign_toplevel_handle_v1 * parent) {
-
-    };
-    zwlr_foreign_toplevel_handle_v1_add_listener(handle, listener, d->listener);
     wl_display_roundtrip(backend->display());
 }
 
@@ -190,12 +116,54 @@ ApplicationPointer WaylandWindow::application() {
 
 void WaylandWindow::activate() {
     wl_seat* seat = d->backend->seat();
-    zwlr_foreign_toplevel_handle_v1_activate(d->handle, seat);
-}
-
-void WaylandWindow::close() {
-    zwlr_foreign_toplevel_handle_v1_close(d->handle);
+    this->QtWayland::zwlr_foreign_toplevel_handle_v1::activate(seat);
 }
 
 void WaylandWindow::kill() {
+}
+
+
+void WaylandWindow::zwlr_foreign_toplevel_handle_v1_title(const QString& title) {
+    d->title = title;
+    emit titleChanged();
+}
+
+void WaylandWindow::zwlr_foreign_toplevel_handle_v1_app_id(const QString& app_id) {
+    ApplicationPointer newApp(new Application(app_id));
+    if (newApp->isValid()) {
+        d->application = newApp;
+    } else {
+        d->application.clear();
+    }
+
+    emit applicationChanged();
+    emit iconChanged();
+}
+
+void WaylandWindow::zwlr_foreign_toplevel_handle_v1_state(wl_array* state) {
+    WaylandWindowPrivate::WindowStateFlags windowState = WaylandWindowPrivate::NoState;
+    for (quint32* flag = static_cast<quint32*>(state->data); reinterpret_cast<char*>(flag) < (static_cast<char*>(state->data) + state->size); flag++) {
+        if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_ACTIVATED) {
+            windowState |= WaylandWindowPrivate::Activated;
+        }
+        if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_MAXIMIZED) {
+            windowState |= WaylandWindowPrivate::Maximised;
+        }
+        if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_MINIMIZED) {
+            windowState |= WaylandWindowPrivate::Minimised;
+        }
+    }
+
+    d->state = windowState;
+    emit windowStateChanged();
+    emit d->backend->activeWindowChanged();
+}
+
+void WaylandWindow::zwlr_foreign_toplevel_handle_v1_closed() {
+    d->backend->signalToplevelClosed(this->object());
+    d->backend->activeWindowChanged();
+}
+
+void WaylandWindow::close() {
+    this->QtWayland::zwlr_foreign_toplevel_handle_v1::close();
 }
