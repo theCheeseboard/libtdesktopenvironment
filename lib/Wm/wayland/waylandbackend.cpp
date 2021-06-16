@@ -23,6 +23,7 @@
 #include <QGuiApplication>
 #include <QWidget>
 #include <QTimer>
+#include <QRandomGenerator64>
 #include <qpa/qplatformnativeinterface.h>
 
 #include <wayland-client.h>
@@ -30,6 +31,7 @@
 #include <layershellwindow.h>
 #include <tlogger.h>
 
+#include "waylandkeyboardtables.h"
 #include "waylandwindow.h"
 
 struct WaylandBackendPrivate {
@@ -39,6 +41,11 @@ struct WaylandBackendPrivate {
     wl_display* display;
     wl_seat* seat;
     QMap<zwlr_foreign_toplevel_handle_v1*, WaylandWindowPtr> windows;
+
+    quint64 nextKeygrabId = 0;
+    QMap<quint64, quint64> extKeygrab;
+    QMap<quint64, quint64> keygrabs;
+    QMap<quint64, std::function<void(quint32)>> keygrabFunctions;
 };
 
 WaylandBackend::WaylandBackend() : WmBackend() {
@@ -53,11 +60,14 @@ WaylandBackend::WaylandBackend() : WmBackend() {
 
     wl_registry_listener listener = {
         [](void* data, wl_registry * registry, quint32 name, const char* interface, quint32 version) {
+            WaylandBackendPrivate* backend = static_cast<WaylandBackendPrivate*>(data);
             if (strcmp(interface, zwlr_foreign_toplevel_manager_v1_interface.name) == 0) {
-                static_cast<WaylandBackendPrivate*>(data)->parent->QtWayland::zwlr_foreign_toplevel_manager_v1::init(registry, name, qMin<quint32>(version, 3));
+                backend->parent->QtWayland::zwlr_foreign_toplevel_manager_v1::init(registry, name, qMin<quint32>(version, 3));
+            } else if (strcmp(interface, tdesktopenvironment_keygrab_manager_v1_interface.name) == 0) {
+                backend->parent->QtWayland::tdesktopenvironment_keygrab_manager_v1::init(registry, name, 1);
             } else if (strcmp(interface, wl_seat_interface.name) == 0) {
                 wl_seat* seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, static_cast<quint32>(1))));
-                static_cast<WaylandBackendPrivate*>(data)->seat = seat;
+                backend->seat = seat;
             }
         },
         [](void* data, wl_registry * registry, quint32 name) {
@@ -158,7 +168,6 @@ void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowTyp
             break;
         case DesktopWm::SystemWindowTypeTaskbar:
             layerWindow->setLayer(LayerShellWindow::Top);
-            layerWindow->setAnchors(LayerShellWindow::AnchorTop);
             break;
         case DesktopWm::SystemWindowTypeNotification:
             layerWindow->setLayer(LayerShellWindow::Overlay);
@@ -167,8 +176,8 @@ void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowTyp
         case DesktopWm::SystemWindowTypeMenu:
             layerWindow->setLayer(LayerShellWindow::Overlay);
             layerWindow->setExclusiveZone(-1);
-            layerWindow->setAnchors(static_cast<LayerShellWindow::Anchors>(LayerShellWindow::AnchorLeft | LayerShellWindow::AnchorTop | LayerShellWindow::AnchorBottom));
-//            layerWindow->setAnchors(LayerShellWindow::AnchorRight);
+//            layerWindow->setAnchors(static_cast<LayerShellWindow::Anchors>(LayerShellWindow::AnchorLeft | LayerShellWindow::AnchorTop | LayerShellWindow::AnchorBottom));
+            layerWindow->setAnchors(LayerShellWindow::AnchorRight);
             break;
     }
 }
@@ -178,7 +187,6 @@ void WaylandBackend::blurWindow(QWidget* widget) {
 }
 
 void WaylandBackend::setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width) {
-    //TODO: Implement
     LayerShellWindow* layerWindow = LayerShellWindow::forWindow(widget->windowHandle());
 
     layerWindow->setExclusiveZone(width);
@@ -215,18 +223,54 @@ quint64 WaylandBackend::msecsIdle() {
 }
 
 quint64 WaylandBackend::grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) {
-    //TODO: Implement
-    return 0;
+    quint64 keygrabId = d->nextKeygrabId;
+    d->nextKeygrabId++;
+
+    QList<quint32> codes = TWayland::toEvdevCodes(key);
+    quint32 mod = TWayland::toEvdevMod(modifiers);
+    for (quint32 code : codes) {
+        //Create a new keygrab
+        quint64 id = QRandomGenerator64::system()->generate();
+        while (d->keygrabs.contains(id)) id = QRandomGenerator64::system()->generate();
+
+        d->keygrabs.insert(id, TWayland::evdevDescriptor(mod, code));
+        d->keygrabFunctions.insert(id, [ = ](quint32 type) {
+            emit grabbedKeyPressed(keygrabId);
+        });
+        QtWayland::tdesktopenvironment_keygrab_manager_v1::grab_key(mod, code);
+
+        d->extKeygrab.insert(id, keygrabId);
+    }
+    return keygrabId;
 }
 
 void WaylandBackend::ungrabKey(quint64 grab) {
-    //TODO: Implement
-}
+    if (!d->extKeygrab.values().contains(grab)) return;
+    quint64 id = d->extKeygrab.key(grab);
 
+    quint32 mod, key;
+    TWayland::breakoutEvdevDescriptor(d->keygrabs.value(id), &mod, &key);
+
+    QtWayland::tdesktopenvironment_keygrab_manager_v1::ungrab_key(mod, key);
+
+    d->keygrabFunctions.remove(id);
+    d->keygrabs.remove(id);
+    d->extKeygrab.remove(id);
+}
 
 void WaylandBackend::zwlr_foreign_toplevel_manager_v1_toplevel(::zwlr_foreign_toplevel_handle_v1* toplevel) {
     WaylandWindowPtr window = new WaylandWindow(toplevel, this);
     d->windows.insert(toplevel, window);
 
     emit windowAdded(window.data());
+}
+
+
+void WaylandBackend::tdesktopenvironment_keygrab_manager_v1_activated(uint32_t mod, uint32_t key, uint32_t type) {
+    quint64 descriptor = TWayland::evdevDescriptor(mod, key);
+    if (!d->keygrabs.values().contains(descriptor)) return;
+
+    quint64 id = d->keygrabs.key(descriptor);
+    d->keygrabFunctions.value(id)(type);
+
 }

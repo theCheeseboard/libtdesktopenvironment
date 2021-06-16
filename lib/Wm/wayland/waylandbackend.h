@@ -23,13 +23,17 @@
 #include <QObject>
 #include "../private/wmbackend.h"
 #include "qwayland-wlr-foreign-toplevel-management-unstable-v1.h"
+#include "qwayland-tdesktopenvironment-keygrab-v1.h"
 
 struct zwlr_foreign_toplevel_handle_v1;
 struct WaylandBackendPrivate;
 struct WaylandWindow;
 struct wl_display;
 struct wl_seat;
-class WaylandBackend : public WmBackend, public QtWayland::zwlr_foreign_toplevel_manager_v1 {
+class WaylandBackend : public WmBackend,
+    public QtWayland::zwlr_foreign_toplevel_manager_v1,
+    public QtWayland::tdesktopenvironment_keygrab_manager_v1 {
+
         Q_OBJECT
     public:
         explicit WaylandBackend();
@@ -71,6 +75,10 @@ class WaylandBackend : public WmBackend, public QtWayland::zwlr_foreign_toplevel
         // zwlr_foreign_toplevel_manager_v1 interface
     protected:
         void zwlr_foreign_toplevel_manager_v1_toplevel(::zwlr_foreign_toplevel_handle_v1* toplevel);
+
+        // tdesktopenvironment_keygrab_manager_v1 interface
+    protected:
+        void tdesktopenvironment_keygrab_manager_v1_activated(uint32_t mod, uint32_t key, uint32_t type);
 };
 
 #endif // WAYLANDBACKEND_H

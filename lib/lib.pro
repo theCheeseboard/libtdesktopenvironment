@@ -85,7 +85,7 @@ unix {
                    $$files(Screens/wayland/*.h)
 
 
-        WAYLAND_PROTOCOL_EXTENSIONS = wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml
+        WAYLAND_PROTOCOL_EXTENSIONS = wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-keygrab-v1.xml
 
         wayland_scanner_headers.output = wayland-${QMAKE_FILE_BASE}-client-protocol.h
         wayland_scanner_headers.commands = wayland-scanner client-header ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
@@ -229,12 +229,15 @@ unix {
     header.files = *.h
     header.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment
 
+    waylandprot.files = $$files(wayland-protocols/tdesktopenvironment-protocols/*)
+    waylandprot.path = $$THELIBS_INSTALL_PREFIX/share/libtdesktopenvironment/wayland-protocols
+
     module.files = qt_tdesktopenvironment.pri
 
     target.path = $$THELIBS_INSTALL_LIB
     module.path = $$THELIBS_INSTALL_MODULES
 
-    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders mimemanagerheaders gestureheaders
+    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders mimemanagerheaders gestureheaders waylandprot
 }
 
 DISTFILES += \
