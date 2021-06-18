@@ -179,6 +179,12 @@ void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowTyp
 //            layerWindow->setAnchors(static_cast<LayerShellWindow::Anchors>(LayerShellWindow::AnchorLeft | LayerShellWindow::AnchorTop | LayerShellWindow::AnchorBottom));
             layerWindow->setAnchors(LayerShellWindow::AnchorRight);
             break;
+        case DesktopWm::SystemWindowTypeLockScreen:
+            layerWindow->setLayer(LayerShellWindow::Overlay);
+            layerWindow->setExclusiveZone(-1);
+            layerWindow->setAnchors(static_cast<LayerShellWindow::Anchors>(LayerShellWindow::AnchorLeft | LayerShellWindow::AnchorRight | LayerShellWindow::AnchorTop | LayerShellWindow::AnchorBottom));
+            layerWindow->setKeyboardInteractivity(LayerShellWindow::Exclusive);
+            break;
     }
 }
 
@@ -223,6 +229,8 @@ quint64 WaylandBackend::msecsIdle() {
 }
 
 quint64 WaylandBackend::grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) {
+    if (!QtWayland::tdesktopenvironment_keygrab_manager_v1::isInitialized()) return 0;
+
     quint64 keygrabId = d->nextKeygrabId;
     d->nextKeygrabId++;
 

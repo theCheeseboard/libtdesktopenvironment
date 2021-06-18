@@ -34,7 +34,8 @@ class DesktopWm : public QObject {
             SystemWindowTypeDesktop,
             SystemWindowTypeTaskbar,
             SystemWindowTypeNotification,
-            SystemWindowTypeMenu
+            SystemWindowTypeMenu,
+            SystemWindowTypeLockScreen
         };
 
         static DesktopWm* instance();

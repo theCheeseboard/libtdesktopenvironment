@@ -32,7 +32,7 @@ struct LayerShellSurfacePrivate {
     bool configured = false;
 };
 
-LayerShellSurface::LayerShellSurface(LayerShellShell* shell, QtWaylandClient::QWaylandWindow* window) : QtWaylandClient::QWaylandShellSurface(window), QtWayland::zwlr_layer_surface_v1(shell->get_layer_surface(window->waylandSurface()->object(), window->waylandScreen()->output(), QtWayland::zwlr_layer_shell_v1::layer_top, "qt")) {
+LayerShellSurface::LayerShellSurface(LayerShellShell* shell, QtWaylandClient::QWaylandWindow* window) : QtWaylandClient::QWaylandShellSurface(window), QtWayland::zwlr_layer_surface_v1(shell->get_layer_surface(window->waylandSurface()->object(), window->waylandScreen()->output(), QtWayland::zwlr_layer_shell_v1::layer_top, "window")) {
     d = new LayerShellSurfacePrivate();
     set_anchor(anchor_top | anchor_bottom | anchor_left | anchor_right);
 }

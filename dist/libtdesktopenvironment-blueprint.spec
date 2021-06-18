@@ -10,8 +10,8 @@ Conflicts:      libtdesktopenvironment
 Provides:       libtdesktopenvironment
 
 %if 0%{?fedora} >= 33
-BuildRequires:  make qt5-qtbase-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-blueprint-devel xcb-util-keysyms-devel qt5-linguist wayland-devel
-Requires:       qt5-qtbase qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs-blueprint
+BuildRequires:  make qt5-qtbase-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-blueprint-devel xcb-util-keysyms-devel qt5-linguist wayland-devel qt5-qtwayland-devel
+Requires:       qt5-qtbase qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs-blueprint qt5-qtwayland
 %endif
 
 %define debug_package %{nil}
