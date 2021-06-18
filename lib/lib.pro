@@ -84,6 +84,7 @@ unix {
         HEADERS += $$files(Wm/wayland/*.h) \
                    $$files(Screens/wayland/*.h)
 
+        qtPrepareTool(QTWAYLANDSCANNER, qtwaylandscanner)
 
         WAYLAND_PROTOCOL_EXTENSIONS = wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-keygrab-v1.xml wayland-protocols/wlr-protocols/unstable/wlr-output-management-unstable-v1.xml
 
@@ -99,12 +100,12 @@ unix {
         wayland_scanner_headers.CONFIG += target_predeps no_link
 
         qwayland_scanner_headers.output = qwayland-${QMAKE_FILE_BASE}.h
-        qwayland_scanner_headers.commands = qtwaylandscanner client-header ${QMAKE_FILE_NAME} > ${QMAKE_FILE_OUT}
+        qwayland_scanner_headers.commands = $$QTWAYLANDSCANNER client-header ${QMAKE_FILE_NAME} > ${QMAKE_FILE_OUT}
         qwayland_scanner_headers.input = WAYLAND_PROTOCOL_EXTENSIONS
         qwayland_scanner_headers.CONFIG += target_predeps no_link
 
         qwayland_scanner_sources.output = qwayland-${QMAKE_FILE_BASE}.cpp
-        qwayland_scanner_sources.commands = qtwaylandscanner client-code ${QMAKE_FILE_NAME} > ${QMAKE_FILE_OUT}
+        qwayland_scanner_sources.commands = $$QTWAYLANDSCANNER client-code ${QMAKE_FILE_NAME} > ${QMAKE_FILE_OUT}
         qwayland_scanner_sources.input = WAYLAND_PROTOCOL_EXTENSIONS
         qwayland_scanner_sources.variable_out = SOURCES
         qwayland_scanner_headers.CONFIG += target_predeps no_link
