@@ -1,5 +1,6 @@
 QT -= gui
 QT += waylandclient waylandclient_private
+SHARE_APP_NAME=libtdesktopenvironment/layer-shell-lib
 
 TEMPLATE = lib
 DEFINES += CLIENTLIB_LIBRARY
@@ -25,7 +26,12 @@ HEADERS += \
 
 # Default rules for deployment.
 unix {
-    target.path = /usr/lib
+    equals(THELIBS_BUILDTOOLS_PATH, "") {
+        THELIBS_BUILDTOOLS_PATH = $$[QT_INSTALL_PREFIX]/share/the-libs/pri
+    }
+    include($$THELIBS_BUILDTOOLS_PATH/buildmaster.pri)
+
+    target.path = $$THELIBS_INSTALL_LIB
 }
 !isEmpty(target.path): INSTALLS += target
 

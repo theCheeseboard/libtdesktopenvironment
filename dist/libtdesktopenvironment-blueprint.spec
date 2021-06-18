@@ -54,11 +54,13 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 %files
 %{_libdir}/*.so.*
+%{_libdir}/qt5/plugins/wayland-shell-integration/*.so
 
 %files devel
 %{_includedir}/*
 %{_libdir}/*.so
 %{_libdir}/qt5/mkspecs/modules/qt_tdesktopenvironment.pri
+%{_datadir}/libtdesktopenvironment/wayland-protocols/*.xml
 
 
 %changelog
