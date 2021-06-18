@@ -85,7 +85,7 @@ unix {
                    $$files(Screens/wayland/*.h)
 
 
-        WAYLAND_PROTOCOL_EXTENSIONS = wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-keygrab-v1.xml
+        WAYLAND_PROTOCOL_EXTENSIONS = wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-keygrab-v1.xml wayland-protocols/wlr-protocols/unstable/wlr-output-management-unstable-v1.xml
 
         wayland_scanner_headers.output = wayland-${QMAKE_FILE_BASE}-client-protocol.h
         wayland_scanner_headers.commands = wayland-scanner client-header ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}

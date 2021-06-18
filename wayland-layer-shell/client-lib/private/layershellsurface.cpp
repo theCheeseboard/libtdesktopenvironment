@@ -26,7 +26,7 @@
 
 struct LayerShellSurfacePrivate {
     LayerShellShell* shell;
-    QtWaylandClient::QWaylandWindow* window;
+    QPointer<QtWaylandClient::QWaylandWindow> window;
 
     QSize queuedSize;
     bool configured = false;
@@ -72,7 +72,7 @@ void LayerShellSurface::zwlr_layer_surface_v1_configure(uint32_t serial, uint32_
 }
 
 void LayerShellSurface::zwlr_layer_surface_v1_closed() {
-    d->window->close();
+    if (d->window) d->window->close();
 }
 
 void LayerShellSurface::applyConfigure() {
@@ -82,7 +82,6 @@ void LayerShellSurface::applyConfigure() {
 bool LayerShellSurface::isExposed() const {
     return d->configured;
 }
-
 
 void LayerShellSurface::setWindowGeometry(const QRect& rect) {
     this->set_size(rect.width(), rect.height());

@@ -17,40 +17,34 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * *************************************/
-#ifndef WAYLANDSCREENBACKEND_H
-#define WAYLANDSCREENBACKEND_H
+#ifndef WAYLANDMODE_H
+#define WAYLANDMODE_H
 
 #include <QObject>
-#include "../private/screenbackend.h"
 #include "qwayland-wlr-output-management-unstable-v1.h"
+#include "../systemscreen.h"
 
-struct WaylandScreenBackendPrivate;
-class WaylandScreenBackend : public ScreenBackend,
-    public QtWayland::zwlr_output_manager_v1 {
+struct WaylandModePrivate;
+class WaylandMode : public QObject, public QtWayland::zwlr_output_mode_v1 {
         Q_OBJECT
     public:
-        explicit WaylandScreenBackend();
-        ~WaylandScreenBackend();
+        explicit WaylandMode(::zwlr_output_mode_v1* mode, QObject* parent = nullptr);
+        ~WaylandMode();
 
-        static bool isSuitable();
+        QSize size();
+        SystemScreen::Mode mode(int id);
 
     signals:
 
     private:
-        WaylandScreenBackendPrivate* d;
+        WaylandModePrivate* d;
 
-        // ScreenBackend interface
-    public:
-        QList<SystemScreen*> screens();
-        SystemScreen* primaryScreen();
-        int dpi() const;
-        void setDpi(int dpi);
-
-        // zwlr_output_manager_v1 interface
+        // zwlr_output_mode_v1 interface
     protected:
-        void zwlr_output_manager_v1_head(zwlr_output_head_v1* head);
-        void zwlr_output_manager_v1_done(uint32_t serial);
-        void zwlr_output_manager_v1_finished();
+        void zwlr_output_mode_v1_size(int32_t width, int32_t height);
+        void zwlr_output_mode_v1_refresh(int32_t refresh);
+        void zwlr_output_mode_v1_preferred();
+        void zwlr_output_mode_v1_finished();
 };
 
-#endif // WAYLANDSCREENBACKEND_H
+#endif // WAYLANDMODE_H
