@@ -29,7 +29,7 @@ unix {
 }
 !isEmpty(target.path): INSTALLS += target
 
-WAYLAND_PROTOCOL_EXTENSIONS = ../../lib/tdesktopenvironment-protocols/wlr-layer-shell-unstable-v1.xml ../../lib/wayland-protocols/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+WAYLAND_PROTOCOL_EXTENSIONS = ../../lib/wayland-protocols/tdesktopenvironment-protocols/wlr-layer-shell-unstable-v1.xml ../../lib/wayland-protocols/wayland-protocols/stable/xdg-shell/xdg-shell.xml
 
 wayland_scanner_headers.output = wayland-${QMAKE_FILE_BASE}-client-protocol.h
 wayland_scanner_headers.commands = wayland-scanner client-header ${QMAKE_FILE_NAME} ${QMAKE_FILE_OUT}
