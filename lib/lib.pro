@@ -148,6 +148,7 @@ SOURCES += \
     Applications/application.cpp \
     Applications/qsettingsformats.cpp \
     Background/backgroundselectionmodel.cpp \
+    DesktopPowerProfiles/desktoppowerprofiles.cpp \
     Gestures/gesturedaemon.cpp \
     Gestures/gestureinteraction.cpp \
     Gestures/private/gesturebackend.cpp \
@@ -177,6 +178,7 @@ HEADERS += \
     Applications/application.h \
     Applications/qsettingsformats.h \
     Background/backgroundselectionmodel.h \
+    DesktopPowerProfiles/desktoppowerprofiles.h \
     Gestures/gesturedaemon.h \
     Gestures/gestureinteraction.h \
     Gestures/gesturetypes.h \
@@ -227,6 +229,8 @@ unix {
     mimemanagerheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/MimeAssociations
     gestureheaders.files = Gestures/*.h
     gestureheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/Gestures
+    desktoppowerprofiles.files = Gestures/*.h
+    desktoppowerprofiles.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/DesktopPowerProfiles
     header.files = *.h
     header.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment
 
@@ -238,7 +242,7 @@ unix {
     target.path = $$THELIBS_INSTALL_LIB
     module.path = $$THELIBS_INSTALL_MODULES
 
-    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders mimemanagerheaders gestureheaders waylandprot
+    INSTALLS += target upowerheader wmheader timedateheaders backgroundheaders slideheaders tsiheaders screenheaders applicationsheaders header module mprisheaders mimemanagerheaders gestureheaders waylandprot desktoppowerprofiles
 }
 
 DISTFILES += \
