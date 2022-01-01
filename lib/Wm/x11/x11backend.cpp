@@ -29,6 +29,7 @@
 #include "x11window.h"
 #include "x11functions.h"
 #include "x11accessibility.h"
+#include "x11xsettingsprovider.h"
 
 #include <X11/XKBlib.h>
 
@@ -59,6 +60,7 @@ struct X11BackendPrivate {
     quint64 nextGrab = 1;
 
     X11Accessibility* accessibility;
+    X11XSettingsProvider* xsettingsProvider = nullptr;
 };
 
 X11Backend::X11Backend() : WmBackend() {
@@ -400,6 +402,9 @@ void X11Backend::ungrabKey(quint64 grab) {
     d->grabs.remove(grab);
 }
 
+void X11Backend::registerAsPrimaryProvider() {
+    d->xsettingsProvider = new X11XSettingsProvider(this);
+}
 
 void X11Backend::setScreenOff(bool screenOff) {
 #ifdef HAVE_XEXT

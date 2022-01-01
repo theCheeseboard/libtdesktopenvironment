@@ -266,6 +266,10 @@ void WaylandBackend::ungrabKey(quint64 grab) {
     d->extKeygrab.remove(id);
 }
 
+void WaylandBackend::registerAsPrimaryProvider() {
+//noop
+}
+
 void WaylandBackend::zwlr_foreign_toplevel_manager_v1_toplevel(::zwlr_foreign_toplevel_handle_v1* toplevel) {
     WaylandWindowPtr window = new WaylandWindow(toplevel, this);
     d->windows.insert(toplevel, window);

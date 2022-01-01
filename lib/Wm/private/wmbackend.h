@@ -54,6 +54,8 @@ class WmBackend : public QObject {
         virtual quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) = 0;
         virtual void ungrabKey(quint64 grab) = 0;
 
+        virtual void registerAsPrimaryProvider() = 0;
+
     signals:
         void windowAdded(DesktopWmWindowPtr window);
         void windowRemoved(DesktopWmWindowPtr window);

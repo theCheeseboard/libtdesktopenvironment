@@ -135,6 +135,10 @@ QString DesktopWm::userDisplayName() {
     return displayName(getuid());
 }
 
+void DesktopWm::registerAsPrimaryProvider() {
+    d->instance->registerAsPrimaryProvider();
+}
+
 DesktopWm::DesktopWm() : QObject(nullptr) {
     //Figure out the best backend to use
 #ifdef HAVE_X11

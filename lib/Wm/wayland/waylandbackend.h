@@ -71,6 +71,7 @@ class WaylandBackend : public WmBackend,
         quint64 msecsIdle();
         quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers);
         void ungrabKey(quint64 grab);
+        void registerAsPrimaryProvider();
 
         // zwlr_foreign_toplevel_manager_v1 interface
     protected:

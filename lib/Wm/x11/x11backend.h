@@ -64,6 +64,8 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter {
         quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers);
         void ungrabKey(quint64 grab);
 
+        void registerAsPrimaryProvider();
+
     signals:
 
     public slots:

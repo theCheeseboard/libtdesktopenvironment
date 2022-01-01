@@ -70,6 +70,8 @@ class DesktopWm : public QObject {
         static QString displayName(int uid);
         static QString userDisplayName();
 
+        void registerAsPrimaryProvider();
+
     signals:
         void windowAdded(DesktopWmWindowPtr window);
         void windowRemoved(DesktopWmWindowPtr window);
