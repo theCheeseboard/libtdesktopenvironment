@@ -34,14 +34,13 @@ struct DesktopUPowerPrivate {
     bool powerStretch = false;
 };
 
-DesktopUPower::DesktopUPower(QObject *parent) : QObject(parent)
-{
+DesktopUPower::DesktopUPower(QObject* parent) : QObject(parent) {
     d = new DesktopUPowerPrivate();
     d->interface = new QDBusInterface("org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower", QDBusConnection::systemBus());
     d->tsInterface = new QDBusInterface("org.thesuite.theShell", "/org/thesuite/Power", "org.thesuite.Power");
 
     QDBusPendingCallWatcher* devices = new QDBusPendingCallWatcher(d->interface->asyncCall("EnumerateDevices"));
-    connect(devices, &QDBusPendingCallWatcher::finished, this, [=] {
+    connect(devices, &QDBusPendingCallWatcher::finished, this, [ = ] {
         QDBusArgument arg = devices->reply().arguments().first().value<QDBusArgument>();
         QList<QDBusObjectPath> paths;
         arg >> paths;
@@ -55,7 +54,7 @@ DesktopUPower::DesktopUPower(QObject *parent) : QObject(parent)
 
     QDBusConnection::sessionBus().connect("org.thesuite.theshell", "/org/thesuite/Power", "org.thesuite.Power", "powerStretchChanged", this, SIGNAL(powerStretchChanged(bool)));
     QDBusPendingCallWatcher* powerStretch = new QDBusPendingCallWatcher(d->tsInterface->asyncCall("powerStretch"));
-    connect(powerStretch, &QDBusPendingCallWatcher::finished, this, [=] {
+    connect(powerStretch, &QDBusPendingCallWatcher::finished, this, [ = ] {
         QDBusMessage msg = powerStretch->reply();
         if (msg.type() != QDBusMessage::ErrorMessage) {
             d->powerStretch = powerStretch->reply().arguments().first().toBool();
@@ -64,27 +63,23 @@ DesktopUPower::DesktopUPower(QObject *parent) : QObject(parent)
     });
 }
 
-DesktopUPower::~DesktopUPower()
-{
+DesktopUPower::~DesktopUPower() {
     d->interface->deleteLater();
     delete d;
 }
 
-QList<DesktopUPowerDevice*> DesktopUPower::devices()
-{
+QList<DesktopUPowerDevice*> DesktopUPower::devices() {
     return d->devices.values();
 }
 
-bool DesktopUPower::shouldShowOverallState()
-{
+bool DesktopUPower::shouldShowOverallState() {
     for (DesktopUPowerDevice* device : this->devices()) {
         if (device->type() == DesktopUPowerDevice::Battery) return true;
     }
     return false;
 }
 
-QString DesktopUPower::overallStateDescription()
-{
+QString DesktopUPower::overallStateDescription() {
     QStringList parts;
 
     if (d->powerStretch) {
@@ -107,18 +102,16 @@ QString DesktopUPower::overallStateDescription()
     return parts.join(" · ");
 }
 
-QIcon DesktopUPower::overallStateIcon()
-{
+QIcon DesktopUPower::overallStateIcon() {
     for (DesktopUPowerDevice* device : this->devices()) {
         if (device->type() == DesktopUPowerDevice::Battery) {
-            return QIcon::fromTheme(device->iconName());
+            return device->icon();
         }
     }
     return QIcon();
 }
 
-void DesktopUPower::deviceAdded(QDBusObjectPath device)
-{
+void DesktopUPower::deviceAdded(QDBusObjectPath device) {
     DesktopUPowerDevice* deviceObject = new DesktopUPowerDevice(device);
     d->devices.insert(device, deviceObject);
     connect(deviceObject, &DesktopUPowerDevice::propertiesUpdated, this, &DesktopUPower::overallStateChanged);
@@ -126,8 +119,7 @@ void DesktopUPower::deviceAdded(QDBusObjectPath device)
     emit overallStateChanged();
 }
 
-void DesktopUPower::deviceRemoved(QDBusObjectPath device)
-{
+void DesktopUPower::deviceRemoved(QDBusObjectPath device) {
     if (d->devices.contains(device)) {
         DesktopUPowerDevice* deviceObject = d->devices.value(device);
         deviceObject->deleteLater();
@@ -138,8 +130,7 @@ void DesktopUPower::deviceRemoved(QDBusObjectPath device)
     }
 }
 
-void DesktopUPower::powerStretchChanged(bool isOn)
-{
+void DesktopUPower::powerStretchChanged(bool isOn) {
     d->powerStretch = isOn;
     emit overallStateChanged();
 }

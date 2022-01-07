@@ -21,6 +21,11 @@
 
 #include <QTime>
 #include <QDBusInterface>
+#include <QIcon>
+#include <QPainter>
+#include <QApplication>
+#include <QPalette>
+#include <the-libs_global.h>
 
 struct DesktopUPowerDevicePrivate {
     QDBusInterface* interface;
@@ -217,6 +222,68 @@ QString DesktopUPowerDevice::iconName() {
             return "phone";
     }
     return "";
+}
+
+QIcon DesktopUPowerDevice::icon() {
+    if (QIcon::themeName() != "contemporary" || this->type() != DesktopUPowerDevice::Battery) return QIcon::fromTheme(iconName());
+
+    QIcon icon;
+
+    QList<QSize> sizes = {
+        QSize(16, 16),
+        QSize(24, 24),
+        QSize(32, 32),
+        QSize(48, 48),
+        QSize(64, 64)
+    };
+
+    QPalette pal = QApplication::palette();
+    QColor col = pal.color(QPalette::WindowText);
+    QColor transparentCol = col;
+    transparentCol.setAlpha(127);
+
+    QList<DesktopUPowerDevice::DeviceState> chargingStates = {
+        DesktopUPowerDevice::Charging,
+        DesktopUPowerDevice::FullyCharged
+    };
+
+    for (QSize size : sizes) {
+        QImage image(size, QImage::Format_ARGB32);
+        image.fill(Qt::transparent);
+
+        QPainter painter(&image);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setWindow(QRect(-1, -1, 2, 2));
+
+        QRectF bounds(-0.9, -0.9, 1.8, 1.8);
+        painter.setPen(Qt::transparent);
+        painter.setBrush(transparentCol);
+        painter.drawEllipse(bounds);
+
+        painter.setPen(QPen(col, 0.2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter.drawArc(bounds, 1440, -this->percentage() * 57.6);
+
+        if (chargingStates.contains(this->state())) {
+            QPolygonF zap;
+            zap.append(QPointF(0, -0.6));
+            zap.append(QPointF(-0.3, 0.1));
+            zap.append(QPointF(0, 0.1));
+            zap.append(QPointF(0, 0.6));
+            zap.append(QPointF(0.3, -0.1));
+            zap.append(QPointF(0, -0.1));
+
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOut);
+            painter.setPen(QPen(Qt::transparent, 0));
+            painter.setBrush(Qt::transparent);
+            painter.drawPolygon(zap);
+        }
+
+        painter.end();
+
+        icon.addPixmap(QPixmap::fromImage(image));
+    }
+
+    return icon;
 }
 
 qint64 DesktopUPowerDevice::timeToEmpty() {

@@ -25,8 +25,7 @@
 
 class DesktopUPower;
 struct DesktopUPowerDevicePrivate;
-class DesktopUPowerDevice : public QObject
-{
+class DesktopUPowerDevice : public QObject {
         Q_OBJECT
     public:
         enum DeviceType : uint {
@@ -62,6 +61,7 @@ class DesktopUPowerDevice : public QObject
         int percentage();
         bool online();
         QString iconName();
+        QIcon icon();
 
         qint64 timeToEmpty();
         qint64 timeToFull();
@@ -75,7 +75,7 @@ class DesktopUPowerDevice : public QObject
 
     protected:
         friend DesktopUPower;
-        explicit DesktopUPowerDevice(QDBusObjectPath path, QObject *parent = nullptr);
+        explicit DesktopUPowerDevice(QDBusObjectPath path, QObject* parent = nullptr);
 
     public slots:
 
