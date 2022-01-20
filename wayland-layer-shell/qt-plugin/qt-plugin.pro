@@ -50,7 +50,12 @@ QMAKE_EXTRA_COMPILERS += wayland_scanner_headers wayland_scanner_sources qwaylan
 
 # Default rules for deployment.
 unix {
-    target.path = $$[QT_INSTALL_PLUGINS]/wayland-shell-integration
+    equals(THELIBS_BUILDTOOLS_PATH, "") {
+        THELIBS_BUILDTOOLS_PATH = $$[QT_INSTALL_PREFIX]/share/the-libs/pri
+    }
+    include($$THELIBS_BUILDTOOLS_PATH/varset.pri)
+
+    target.path = $$THELIBS_INSTALL_QT_PLUGINS/wayland-shell-integration
 }
 !isEmpty(target.path): INSTALLS += target
 
