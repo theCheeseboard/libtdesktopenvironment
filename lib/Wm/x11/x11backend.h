@@ -64,6 +64,11 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter {
         quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers);
         void ungrabKey(quint64 grab);
 
+        QStringList availableKeyboardLayouts();
+        QString currentKeyboardLayout();
+        QString keyboardLayoutDescription(QString layout);
+        void setCurrentKeyboardLayout(QString layout);
+
         void registerAsPrimaryProvider();
 
     signals:
@@ -74,7 +79,8 @@ class X11Backend : public WmBackend, public QAbstractNativeEventFilter {
         X11BackendPrivate* d;
 
         void addWindow(Window window);
-
+        void loadKeyboardLayouts();
+        void updateKeyboardLayout();
 };
 
 #endif // X11BACKEND_H

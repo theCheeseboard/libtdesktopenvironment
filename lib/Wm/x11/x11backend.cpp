@@ -24,6 +24,9 @@
 #include <QWidget>
 #include <QScopedPointer>
 #include <QScreen>
+#include <QDir>
+#include <QProcess>
+#include <QDeadlineTimer>
 
 #include "x11backend.h"
 #include "x11window.h"
@@ -61,6 +64,12 @@ struct X11BackendPrivate {
 
     X11Accessibility* accessibility;
     X11XSettingsProvider* xsettingsProvider = nullptr;
+
+    int xkbEventBase;
+    int xkbErrorBase;
+
+    QMap<QString, QString> keyboardLayouts;
+    QString currentLayout;
 };
 
 X11Backend::X11Backend() : WmBackend() {
@@ -113,13 +122,17 @@ X11Backend::X11Backend() : WmBackend() {
         emit currentDesktopChanged();
     });
 
-    int eventBase, errorBase;
+    int eventBase, errorBase, opcode, major = 2, minor = 19;
 #ifdef HAVE_XSCRNSAVER
     if (XScreenSaverQueryExtension(QX11Info::display(), &eventBase, &errorBase)) d->haveScrnsaver = true;
 #endif
 #ifdef HAVE_XEXT
     if (DPMSQueryExtension(QX11Info::display(), &eventBase, &errorBase) && DPMSCapable(QX11Info::display())) d->haveDpms = true;
 #endif
+    if (XkbQueryExtension(QX11Info::display(), &opcode, &d->xkbEventBase, &d->xkbErrorBase, &major, &minor));
+
+    loadKeyboardLayouts();
+    updateKeyboardLayout();
 }
 
 bool X11Backend::isSuitable() {
@@ -151,6 +164,59 @@ void X11Backend::addWindow(Window window) {
     d->windows.insert(window, w);
 }
 
+void X11Backend::loadKeyboardLayouts() {
+    d->keyboardLayouts.clear();
+
+    QDir xkbLayouts("/usr/share/X11/xkb/symbols");
+    for (QFileInfo layoutInfo : xkbLayouts.entryInfoList()) {
+        if (layoutInfo.isDir()) continue;
+
+        QString layout = layoutInfo.baseName();
+        QFile file(layoutInfo.filePath());
+        file.open(QFile::ReadOnly);
+
+        QString currentSubLayout = "";
+        while (!file.atEnd()) {
+            QString line = file.readLine().trimmed();
+            if (line.startsWith("xkb_symbols") && line.endsWith("{")) {
+                QRegExp lineRx("\".+\"");
+                lineRx.indexIn(line);
+
+                if (lineRx.capturedTexts().count() != 0) {
+                    currentSubLayout = lineRx.capturedTexts().first().remove("\"");
+                } else {
+                    currentSubLayout = "";
+                }
+            } else if (line.startsWith("name")) {
+                QRegExp lineRx("\".+\"");
+                lineRx.indexIn(line);
+
+                if (lineRx.capturedTexts().count() != 0 && currentSubLayout != "") {
+                    d->keyboardLayouts.insert(layout + "(" + currentSubLayout + ")", lineRx.capturedTexts().first().remove("\""));
+                } else {
+                    currentSubLayout = "";
+                }
+            }
+        }
+
+        file.close();
+    }
+}
+
+void X11Backend::updateKeyboardLayout() {
+    QProcess xkbmapProcess;
+    xkbmapProcess.start("setxkbmap", {"-query"});
+    xkbmapProcess.waitForFinished();
+
+    while (xkbmapProcess.canReadLine()) {
+        QString line = xkbmapProcess.readLine().trimmed();
+        if (line.startsWith("layout:")) {
+            QString layout = line.split(" ", Qt::SkipEmptyParts).at(1);
+            d->currentLayout = layout;
+            return;
+        }
+    }
+}
 
 bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, long* result) {
     xcb_generic_event_t* event = static_cast<xcb_generic_event_t*>(message);
@@ -205,12 +271,17 @@ bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, l
                 if (grabId != 0) emit grabbedKeyPressed(grabId);
             }
         }
+    } else if (event->response_type == XCB_MAPPING_NOTIFY) { //Mapping Notify Event
+        updateKeyboardLayout();
+        emit currentKeyboardLayoutChanged();
+    } else if (event->response_type == d->xkbEventBase + XkbEventCode) {
+        updateKeyboardLayout();
+        emit currentKeyboardLayoutChanged();
     } else {
         d->accessibility->postEvent(event);
     }
     return false;
 }
-
 
 DesktopWmWindowPtr X11Backend::activeWindow() {
     TX11::WindowPropertyPtr<Window> activeWindow = TX11::getRootWindowProperty<Window>("_NET_ACTIVE_WINDOW", "WINDOW");
@@ -437,4 +508,23 @@ bool X11Backend::isScreenOff() {
 
 bool X11BackendPrivate::X11KeyGrab::operator==(const X11BackendPrivate::X11KeyGrab& other) const {
     return other.keycode == this->keycode && other.keymods == this->keymods;
+}
+
+
+QStringList X11Backend::availableKeyboardLayouts() {
+    return d->keyboardLayouts.keys();
+}
+
+QString X11Backend::currentKeyboardLayout() {
+    return d->currentLayout;
+}
+
+QString X11Backend::keyboardLayoutDescription(QString layout) {
+    return d->keyboardLayouts.value(layout);
+}
+
+void X11Backend::setCurrentKeyboardLayout(QString layout) {
+    QProcess xkbmapProcess;
+    xkbmapProcess.start("setxkbmap", {layout});
+    xkbmapProcess.waitForFinished();
 }

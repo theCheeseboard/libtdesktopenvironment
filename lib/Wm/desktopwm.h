@@ -70,6 +70,11 @@ class DesktopWm : public QObject {
         static QString displayName(int uid);
         static QString userDisplayName();
 
+        static QStringList availableKeyboardLayouts();
+        static QString currentKeyboardLayout();
+        static QString keyboardLayoutDescription(QString layout);
+        static void setCurrentKeyboardLayout(QString layout);
+
         void registerAsPrimaryProvider();
 
     signals:
@@ -79,6 +84,7 @@ class DesktopWm : public QObject {
         void currentDesktopChanged();
         void activeWindowChanged();
         void grabbedKeyPressed(quint64 grab);
+        void currentKeyboardLayoutChanged();
 
     public slots:
 

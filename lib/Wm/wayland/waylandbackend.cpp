@@ -286,3 +286,23 @@ void WaylandBackend::tdesktopenvironment_keygrab_manager_v1_activated(uint32_t m
     d->keygrabFunctions.value(id)(type);
 
 }
+
+
+QStringList WaylandBackend::availableKeyboardLayouts() {
+    //TODO: Implement
+    return {"us"};
+}
+
+QString WaylandBackend::currentKeyboardLayout() {
+    //TODO: Implement
+    return "us";
+}
+
+QString WaylandBackend::keyboardLayoutDescription(QString layout) {
+    //TODO: Implement
+    return "US";
+}
+
+void WaylandBackend::setCurrentKeyboardLayout(QString layout) {
+    //TODO: Implement
+}

@@ -54,6 +54,11 @@ class WmBackend : public QObject {
         virtual quint64 grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) = 0;
         virtual void ungrabKey(quint64 grab) = 0;
 
+        virtual QStringList availableKeyboardLayouts() = 0;
+        virtual QString currentKeyboardLayout() = 0;
+        virtual QString keyboardLayoutDescription(QString layout) = 0;
+        virtual void setCurrentKeyboardLayout(QString layout) = 0;
+
         virtual void registerAsPrimaryProvider() = 0;
 
     signals:
@@ -63,6 +68,7 @@ class WmBackend : public QObject {
         void currentDesktopChanged();
         void activeWindowChanged();
         void grabbedKeyPressed(quint64 grab);
+        void currentKeyboardLayoutChanged();
 
     public slots:
 };

@@ -135,6 +135,22 @@ QString DesktopWm::userDisplayName() {
     return displayName(getuid());
 }
 
+QStringList DesktopWm::availableKeyboardLayouts() {
+    return d->instance->availableKeyboardLayouts();
+}
+
+QString DesktopWm::currentKeyboardLayout() {
+    return d->instance->currentKeyboardLayout();
+}
+
+QString DesktopWm::keyboardLayoutDescription(QString layout) {
+    return d->instance->keyboardLayoutDescription(layout);
+}
+
+void DesktopWm::setCurrentKeyboardLayout(QString layout) {
+    d->instance->setCurrentKeyboardLayout(layout);
+}
+
 void DesktopWm::registerAsPrimaryProvider() {
     d->instance->registerAsPrimaryProvider();
 }
@@ -158,6 +174,7 @@ DesktopWm::DesktopWm() : QObject(nullptr) {
         connect(d->instance, &WmBackend::currentDesktopChanged, this, &DesktopWm::currentDesktopChanged);
         connect(d->instance, &WmBackend::desktopCountChanged, this, &DesktopWm::desktopCountChanged);
         connect(d->instance, &WmBackend::grabbedKeyPressed, this, &DesktopWm::grabbedKeyPressed);
+        connect(d->instance, &WmBackend::currentKeyboardLayoutChanged, this, &DesktopWm::currentKeyboardLayoutChanged);
     } else {
         //No suitable backend is available
         qWarning() << "No suitable backend for DesktopWm";
