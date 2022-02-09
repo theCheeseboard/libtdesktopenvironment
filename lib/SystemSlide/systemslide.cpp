@@ -390,35 +390,35 @@ void SystemSlide::pulseAudioDataAvailable(const float* data, int length) {
 }
 
 void SystemSlide::showQuickSettings() {
-    if (d->quickSettingsShown) return;
-    d->quickSettingsShown = true;
+//    if (d->quickSettingsShown) return;
+//    d->quickSettingsShown = true;
 
-    tVariantAnimation* anim = new tVariantAnimation();
-    anim->setStartValue(d->quickSettings->y());
-    anim->setEndValue(0);
-    anim->setDuration(500);
-    anim->setEasingCurve(QEasingCurve::OutCubic);
-    anim->start();
-    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
-        d->quickSettings->move(0, value.toInt());
-    });
-    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
+//    tVariantAnimation* anim = new tVariantAnimation();
+//    anim->setStartValue(d->quickSettings->y());
+//    anim->setEndValue(0);
+//    anim->setDuration(500);
+//    anim->setEasingCurve(QEasingCurve::OutCubic);
+//    anim->start();
+//    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+//        d->quickSettings->move(0, value.toInt());
+//    });
+//    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
 }
 
 void SystemSlide::hideQuickSettings() {
-    if (!d->quickSettingsShown) return;
-    d->quickSettingsShown = false;
+//    if (!d->quickSettingsShown) return;
+//    d->quickSettingsShown = false;
 
-    tVariantAnimation* anim = new tVariantAnimation();
-    anim->setStartValue(d->quickSettings->y());
-    anim->setEndValue(-d->quickSettings->height());
-    anim->setDuration(500);
-    anim->setEasingCurve(QEasingCurve::OutCubic);
-    anim->start();
-    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
-        d->quickSettings->move(0, value.toInt());
-    });
-    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
+//    tVariantAnimation* anim = new tVariantAnimation();
+//    anim->setStartValue(d->quickSettings->y());
+//    anim->setEndValue(-d->quickSettings->height());
+//    anim->setDuration(500);
+//    anim->setEasingCurve(QEasingCurve::OutCubic);
+//    anim->start();
+//    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+//        d->quickSettings->move(0, value.toInt());
+//    });
+//    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
 }
 
 void SystemSlide::resizeEvent(QResizeEvent* event) {
