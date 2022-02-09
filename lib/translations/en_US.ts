@@ -146,11 +146,6 @@
 <context>
     <name>SlideMprisController</name>
     <message>
-        <location filename="../SystemSlide/private/slidempriscontroller.ui" line="14"/>
-        <source>Form</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../SystemSlide/private/slidempriscontroller.cpp" line="60"/>
         <source>Select Media Player</source>
         <translation type="unfinished"></translation>
@@ -244,7 +239,7 @@
 <context>
     <name>X11Backend</name>
     <message>
-        <location filename="../Wm/x11/x11backend.cpp" line="297"/>
+        <location filename="../Wm/x11/x11backend.cpp" line="310"/>
         <source>Desktop %1</source>
         <translation type="unfinished"></translation>
     </message>
