@@ -200,19 +200,8 @@
 <context>
     <name>SystemSlide</name>
     <message>
-        <location filename="../SystemSlide/systemslide.ui" line="14"/>
-        <source>Form</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../SystemSlide/systemslide.ui" line="253"/>
+        <location filename="../SystemSlide/systemslide.ui" line="252"/>
         <source>BACKGROUND</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../SystemSlide/systemslide.ui" line="265"/>
-        <location filename="../SystemSlide/systemslide.ui" line="272"/>
-        <source>TextLabel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

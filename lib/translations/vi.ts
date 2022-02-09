@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" sourcelanguage="en_US" language="vi">
+<TS version="2.1" language="vi" sourcelanguage="en_US">
 <context>
     <name>BackgroundSelectionModel</name>
     <message>
@@ -200,20 +200,9 @@
 <context>
     <name>SystemSlide</name>
     <message>
-        <location filename="../SystemSlide/systemslide.ui" line="14"/>
-        <source>Form</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../SystemSlide/systemslide.ui" line="253"/>
+        <location filename="../SystemSlide/systemslide.ui" line="252"/>
         <source>BACKGROUND</source>
         <translation>ẢNH NỀN</translation>
-    </message>
-    <message>
-        <location filename="../SystemSlide/systemslide.ui" line="265"/>
-        <location filename="../SystemSlide/systemslide.ui" line="272"/>
-        <source>TextLabel</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="263"/>
