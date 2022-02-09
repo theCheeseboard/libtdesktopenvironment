@@ -6,12 +6,12 @@
     <message>
         <location filename="../Background/backgroundselectionmodel.cpp" line="73"/>
         <source>Community Backgrounds</source>
-        <translation type="unfinished"></translation>
+        <translation>Ảnh nền công cộng</translation>
     </message>
     <message>
         <location filename="../Background/backgroundselectionmodel.cpp" line="74"/>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>Tùy chỉnh</translation>
     </message>
 </context>
 <context>
@@ -19,7 +19,7 @@
     <message>
         <location filename="../Wm/desktopaccessibility.cpp" line="29"/>
         <source>Sticky Keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Phím dính</translation>
     </message>
 </context>
 <context>
@@ -27,13 +27,13 @@
     <message>
         <location filename="../UPower/desktopupower.cpp" line="86"/>
         <source>Power Stretch On</source>
-        <translation type="unfinished"></translation>
+        <translation>Tiết kiệm pin bật</translation>
     </message>
     <message numerus="yes">
         <location filename="../UPower/desktopupower.cpp" line="100"/>
         <source>%n more batteries</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n pin nữa</numerusform>
         </translation>
     </message>
 </context>
@@ -44,95 +44,95 @@
         <location filename="../UPower/desktopupowerdevice.cpp" line="96"/>
         <location filename="../UPower/desktopupowerdevice.cpp" line="100"/>
         <source>About %1% remaining</source>
-        <translation type="unfinished"></translation>
+        <translation>Khoảng %1% còn lại</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="118"/>
         <location filename="../UPower/desktopupowerdevice.cpp" line="138"/>
         <source>Unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Không xác định</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="119"/>
         <source>AC Power</source>
-        <translation type="unfinished"></translation>
+        <translation>Nguồn AC</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="120"/>
         <source>Battery</source>
-        <translation type="unfinished"></translation>
+        <translation>Pin</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="121"/>
         <source>Uninterruptable Power Supply</source>
-        <translation type="unfinished"></translation>
+        <translation>Nguồn cung cấp điện liên tục</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="122"/>
         <source>Display</source>
-        <translation type="unfinished"></translation>
+        <translation>Màn hình</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="123"/>
         <source>Mouse</source>
-        <translation type="unfinished"></translation>
+        <translation>Chuột</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="124"/>
         <source>Keyboard</source>
-        <translation type="unfinished"></translation>
+        <translation>Bàn phím</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="125"/>
         <source>PDA</source>
-        <translation type="unfinished"></translation>
+        <translation>PDA</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="126"/>
         <source>Phone</source>
-        <translation type="unfinished"></translation>
+        <translation>Điện thoại</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="139"/>
         <location filename="../UPower/desktopupowerdevice.cpp" line="151"/>
         <source>Charging</source>
-        <translation type="unfinished"></translation>
+        <translation>Đang sạc</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="140"/>
         <location filename="../UPower/desktopupowerdevice.cpp" line="158"/>
         <source>Discharging</source>
-        <translation type="unfinished"></translation>
+        <translation>Đang xả</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="141"/>
         <source>Empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Hết pin</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="142"/>
         <source>Fully Charged</source>
-        <translation type="unfinished"></translation>
+        <translation>Sạc đầy</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="143"/>
         <source>Pending Charge</source>
-        <translation type="unfinished"></translation>
+        <translation>Chờ sạc</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="144"/>
         <source>Pending Discharge</source>
-        <translation type="unfinished"></translation>
+        <translation>Chờ xả</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="153"/>
         <source>Charging · %1 until full</source>
-        <translation type="unfinished"></translation>
+        <translation>Đang sạc · %1 đến khi đầy</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="160"/>
         <source>Discharging · %1 until empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Đang xả · %1 đến khi hết pin</translation>
     </message>
 </context>
 <context>
@@ -140,7 +140,7 @@
     <message>
         <location filename="../SystemSlide/private/slidepulseaudiomonitor.cpp" line="49"/>
         <source>theShell Screen Lock</source>
-        <translation type="unfinished"></translation>
+        <translation>Màn hình khóa theShell</translation>
     </message>
 </context>
 <context>
@@ -148,7 +148,7 @@
     <message>
         <location filename="../SystemSlide/private/slidempriscontroller.cpp" line="60"/>
         <source>Select Media Player</source>
-        <translation type="unfinished"></translation>
+        <translation>Chọn bộ phát âm</translation>
     </message>
 </context>
 <context>
@@ -156,7 +156,7 @@
     <message>
         <location filename="../SystemSlide/private/slidepulseaudiomonitor.cpp" line="100"/>
         <source>Lock Screen Visualisation</source>
-        <translation type="unfinished"></translation>
+        <translation>Hình dung âm thanh trên màn hình khóa</translation>
     </message>
 </context>
 <context>
@@ -164,37 +164,37 @@
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="61"/>
         <source>QUICK SETTINGS</source>
-        <translation type="unfinished"></translation>
+        <translation>CÀI ĐẶT NHANH</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="172"/>
         <source>QUIET MODE</source>
-        <translation type="unfinished"></translation>
+        <translation>CHẾ ĐỘ IM</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="184"/>
         <source>Sound</source>
-        <translation type="unfinished"></translation>
+        <translation>Âm thanh</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="200"/>
         <source>Critical Only</source>
-        <translation type="unfinished"></translation>
+        <translation>Chỉ quan trọng</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="216"/>
         <source>No Notifications</source>
-        <translation type="unfinished"></translation>
+        <translation>Không có thông báo</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="232"/>
         <source>Mute</source>
-        <translation type="unfinished"></translation>
+        <translation>Im lặng</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.cpp" line="41"/>
         <source>Flight Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Chế độ máy bay</translation>
     </message>
 </context>
 <context>
@@ -207,7 +207,7 @@
     <message>
         <location filename="../SystemSlide/systemslide.ui" line="253"/>
         <source>BACKGROUND</source>
-        <translation type="unfinished"></translation>
+        <translation>ẢNH NỀN</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.ui" line="265"/>
@@ -218,22 +218,22 @@
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="263"/>
         <source>Critical Only</source>
-        <translation type="unfinished"></translation>
+        <translation>Chỉ quan trọng</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="267"/>
         <source>No Notifications</source>
-        <translation type="unfinished"></translation>
+        <translation>Không có thông báo</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="271"/>
         <source>Mute</source>
-        <translation type="unfinished"></translation>
+        <translation>Im lặng</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="323"/>
         <source>by %1</source>
-        <translation type="unfinished"></translation>
+        <translation>bởi %1</translation>
     </message>
 </context>
 <context>
@@ -241,7 +241,7 @@
     <message>
         <location filename="../Wm/x11/x11backend.cpp" line="310"/>
         <source>Desktop %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Màn hình %1</translation>
     </message>
 </context>
 </TS>
