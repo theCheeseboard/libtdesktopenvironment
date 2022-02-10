@@ -6,12 +6,12 @@
     <message>
         <location filename="../Background/backgroundselectionmodel.cpp" line="73"/>
         <source>Community Backgrounds</source>
-        <translation type="unfinished"></translation>
+        <translation>公共の壁紙</translation>
     </message>
     <message>
         <location filename="../Background/backgroundselectionmodel.cpp" line="74"/>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>カスタム</translation>
     </message>
 </context>
 <context>
@@ -19,7 +19,7 @@
     <message>
         <location filename="../Wm/desktopaccessibility.cpp" line="29"/>
         <source>Sticky Keys</source>
-        <translation type="unfinished"></translation>
+        <translation>固定キー</translation>
     </message>
 </context>
 <context>
@@ -50,7 +50,7 @@
         <location filename="../UPower/desktopupowerdevice.cpp" line="118"/>
         <location filename="../UPower/desktopupowerdevice.cpp" line="138"/>
         <source>Unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>不明</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="119"/>
@@ -60,7 +60,7 @@
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="120"/>
         <source>Battery</source>
-        <translation type="unfinished"></translation>
+        <translation>電池</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="121"/>
@@ -70,17 +70,17 @@
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="122"/>
         <source>Display</source>
-        <translation type="unfinished"></translation>
+        <translation>画面</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="123"/>
         <source>Mouse</source>
-        <translation type="unfinished"></translation>
+        <translation>マウス</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="124"/>
         <source>Keyboard</source>
-        <translation type="unfinished"></translation>
+        <translation>鍵盤</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="125"/>
@@ -90,13 +90,13 @@
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="126"/>
         <source>Phone</source>
-        <translation type="unfinished"></translation>
+        <translation>電話</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="139"/>
         <location filename="../UPower/desktopupowerdevice.cpp" line="151"/>
         <source>Charging</source>
-        <translation type="unfinished"></translation>
+        <translation>充電している</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="140"/>
@@ -107,12 +107,12 @@
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="141"/>
         <source>Empty</source>
-        <translation type="unfinished"></translation>
+        <translation>電池切れ</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="142"/>
         <source>Fully Charged</source>
-        <translation type="unfinished"></translation>
+        <translation>満タン</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="143"/>
@@ -169,12 +169,12 @@
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="172"/>
         <source>QUIET MODE</source>
-        <translation type="unfinished"></translation>
+        <translation>マナーモード</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="184"/>
         <source>Sound</source>
-        <translation type="unfinished"></translation>
+        <translation>音</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="200"/>
@@ -189,12 +189,12 @@
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="232"/>
         <source>Mute</source>
-        <translation type="unfinished"></translation>
+        <translation>ミュート</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.cpp" line="41"/>
         <source>Flight Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>機内モード</translation>
     </message>
 </context>
 <context>
@@ -202,7 +202,7 @@
     <message>
         <location filename="../SystemSlide/systemslide.ui" line="252"/>
         <source>BACKGROUND</source>
-        <translation type="unfinished"></translation>
+        <translation>壁紙</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="263"/>
@@ -217,7 +217,7 @@
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="271"/>
         <source>Mute</source>
-        <translation type="unfinished"></translation>
+        <translation>ミュート</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="323"/>
@@ -230,7 +230,7 @@
     <message>
         <location filename="../Wm/x11/x11backend.cpp" line="310"/>
         <source>Desktop %1</source>
-        <translation type="unfinished"></translation>
+        <translation>デスクトップ</translation>
     </message>
 </context>
 </TS>
