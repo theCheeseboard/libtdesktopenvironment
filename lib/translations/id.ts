@@ -6,12 +6,12 @@
     <message>
         <location filename="../Background/backgroundselectionmodel.cpp" line="73"/>
         <source>Community Backgrounds</source>
-        <translation type="unfinished"></translation>
+        <translation>Dari Komunitas</translation>
     </message>
     <message>
         <location filename="../Background/backgroundselectionmodel.cpp" line="74"/>
         <source>Custom</source>
-        <translation type="unfinished"></translation>
+        <translation>Kustom</translation>
     </message>
 </context>
 <context>
@@ -44,23 +44,23 @@
         <location filename="../UPower/desktopupowerdevice.cpp" line="96"/>
         <location filename="../UPower/desktopupowerdevice.cpp" line="100"/>
         <source>About %1% remaining</source>
-        <translation type="unfinished"></translation>
+        <translation>Sekitar %1% tersisa</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="118"/>
         <location filename="../UPower/desktopupowerdevice.cpp" line="138"/>
         <source>Unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Tidak Diketahui</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="119"/>
         <source>AC Power</source>
-        <translation type="unfinished"></translation>
+        <translation>Daya AC</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="120"/>
         <source>Battery</source>
-        <translation type="unfinished"></translation>
+        <translation>Baterai</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="121"/>
@@ -90,13 +90,13 @@
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="126"/>
         <source>Phone</source>
-        <translation type="unfinished"></translation>
+        <translation>HP</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="139"/>
         <location filename="../UPower/desktopupowerdevice.cpp" line="151"/>
         <source>Charging</source>
-        <translation type="unfinished"></translation>
+        <translation>Dicas</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="140"/>
@@ -107,12 +107,12 @@
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="141"/>
         <source>Empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Kosong</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="142"/>
         <source>Fully Charged</source>
-        <translation type="unfinished"></translation>
+        <translation>Daya Penuh</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="143"/>
@@ -127,7 +127,7 @@
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="153"/>
         <source>Charging · %1 until full</source>
-        <translation type="unfinished"></translation>
+        <translation>Dicas · %1 hingga penuh</translation>
     </message>
     <message>
         <location filename="../UPower/desktopupowerdevice.cpp" line="160"/>
@@ -164,37 +164,37 @@
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="61"/>
         <source>QUICK SETTINGS</source>
-        <translation type="unfinished"></translation>
+        <translation>ATUR CEPAT</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="172"/>
         <source>QUIET MODE</source>
-        <translation type="unfinished"></translation>
+        <translation>MODE SUNYI</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="184"/>
         <source>Sound</source>
-        <translation type="unfinished"></translation>
+        <translation>Suara</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="200"/>
         <source>Critical Only</source>
-        <translation type="unfinished"></translation>
+        <translation>Hanya Penting</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="216"/>
         <source>No Notifications</source>
-        <translation type="unfinished"></translation>
+        <translation>Diamkan Notifikasi</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.ui" line="232"/>
         <source>Mute</source>
-        <translation type="unfinished"></translation>
+        <translation>Diamkan</translation>
     </message>
     <message>
         <location filename="../SystemSlide/private/slidequicksettings.cpp" line="41"/>
         <source>Flight Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Mode Terbang</translation>
     </message>
 </context>
 <context>
@@ -202,27 +202,27 @@
     <message>
         <location filename="../SystemSlide/systemslide.ui" line="252"/>
         <source>BACKGROUND</source>
-        <translation type="unfinished"></translation>
+        <translation>LATAR BELAKANG</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="263"/>
         <source>Critical Only</source>
-        <translation type="unfinished"></translation>
+        <translation>Hanya Penting</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="267"/>
         <source>No Notifications</source>
-        <translation type="unfinished"></translation>
+        <translation>Diamkan Notifikasi</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="271"/>
         <source>Mute</source>
-        <translation type="unfinished"></translation>
+        <translation>Diamkan</translation>
     </message>
     <message>
         <location filename="../SystemSlide/systemslide.cpp" line="323"/>
         <source>by %1</source>
-        <translation type="unfinished"></translation>
+        <translation>oleh %1</translation>
     </message>
 </context>
 <context>
@@ -230,7 +230,7 @@
     <message>
         <location filename="../Wm/x11/x11backend.cpp" line="310"/>
         <source>Desktop %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Desktop</translation>
     </message>
 </context>
 </TS>
