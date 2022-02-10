@@ -44,19 +44,23 @@ struct ApplicationPrivate {
 
     struct ApplicationIconDescriptor {
         QString desktopEntry;
+        QString action;
         QSize size;
 
         bool operator<(const ApplicationIconDescriptor& other) const {
             if (this->desktopEntry == other.desktopEntry) {
-                if (this->size.width() == other.size.width()) {
-                    return this->size.height() < other.size.height();
+                if (this->action == other.action) {
+                    if (this->size.width() == other.size.width()) {
+                        return this->size.height() < other.size.height();
+                    }
+                    return this->size.width() < other.size.width();
                 }
-                return this->size.width() < other.size.width();
+                return this->action < other.action;
             }
             return this->desktopEntry < other.desktopEntry;
         };
         bool operator==(const ApplicationIconDescriptor& other) const {
-            return this->desktopEntry == other.desktopEntry && this->size == other.size;
+            return this->desktopEntry == other.desktopEntry && this->action == other.action && this->size == other.size;
         }
     };
     static QMap<ApplicationIconDescriptor, QPixmap> iconCache;
@@ -305,11 +309,39 @@ QPixmap Application::icon(QSize size, QPixmap fallback, bool cache) {
 
     ApplicationPrivate::ApplicationIconDescriptor descriptor = {
         d->desktopEntry,
+        "",
         size
     };
 
     if (d->iconCache.contains(descriptor)) return d->iconCache.value(descriptor);
     QString iconName = this->getProperty("Icon").toString();
+    if (iconName.isEmpty() || !QIcon::hasThemeIcon(iconName)) return fallback;
+
+    QPixmap pixmap = QIcon::fromTheme(iconName).pixmap(size);
+    if (cache) d->iconCache.insert(descriptor, pixmap);
+    return pixmap;
+}
+
+QIcon Application::actionIcon(QString action) {
+    return QIcon::fromTheme(this->getActionProperty(action, "Icon").toString(), QIcon::fromTheme("generic-app"));
+}
+
+QPixmap Application::actionIcon(QString action, QSize size, bool cache) {
+    return this->actionIcon(action, size, QIcon::fromTheme("generic-app").pixmap(size), cache);
+}
+
+QPixmap Application::actionIcon(QString action, QSize size, QPixmap fallback, bool cache) {
+    //Make sure there is an instance of ApplicationDaemon
+    ApplicationDaemon::instance();
+
+    ApplicationPrivate::ApplicationIconDescriptor descriptor = {
+        d->desktopEntry,
+        action,
+        size
+    };
+
+    if (d->iconCache.contains(descriptor)) return d->iconCache.value(descriptor);
+    QString iconName = this->getActionProperty(action, "Icon").toString();
     if (iconName.isEmpty() || !QIcon::hasThemeIcon(iconName)) return fallback;
 
     QPixmap pixmap = QIcon::fromTheme(iconName).pixmap(size);

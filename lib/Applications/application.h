@@ -48,6 +48,10 @@ class Application {
         QPixmap icon(QSize size, bool cache = true);
         QPixmap icon(QSize size, QPixmap fallback, bool cache = true);
 
+        QIcon actionIcon(QString action);
+        QPixmap actionIcon(QString action, QSize size, bool cache = true);
+        QPixmap actionIcon(QString action, QSize size, QPixmap fallback, bool cache = true);
+
         static QStringList allApplications(QStringList searchPaths = QStringList());
 
     private:
