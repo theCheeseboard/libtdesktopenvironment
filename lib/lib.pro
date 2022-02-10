@@ -229,7 +229,7 @@ unix {
     mimemanagerheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/MimeAssociations
     gestureheaders.files = Gestures/*.h
     gestureheaders.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/Gestures
-    desktoppowerprofiles.files = Gestures/*.h
+    desktoppowerprofiles.files = DesktopPowerProfiles//*.h
     desktoppowerprofiles.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment/DesktopPowerProfiles
     header.files = *.h
     header.path = $$THELIBS_INSTALL_HEADERS/libtdesktopenvironment
