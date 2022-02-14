@@ -1,4 +1,4 @@
-Name:           libtdesktopenvironment
+Name:           libtdesktopenvironment-blueprint
 Version:        {{{ git_calculate_version }}}
 Release:        1%{?dist}
 Summary:        Common libraries for desktop integration for the- apps
@@ -6,11 +6,13 @@ Summary:        Common libraries for desktop integration for the- apps
 License:        GPLv3+
 URL:            https://github.com/vicr123/libtdesktopenvironment
 Source:         {{{ git_archive_force path=$GIT_ROOT root_dir_name=libtdesktopenvironment }}}
+Conflicts:      libtdesktopenvironment
+Provides:       libtdesktopenvironment
 VCS:            {{{ git_dir_vcs }}}
 
 %if 0%{?fedora} >= 33
-BuildRequires:  make git qt5-qtbase-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-devel xcb-util-keysyms-devel qt5-linguist
-Requires:       qt5-qtbase qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs
+BuildRequires:  make git qt5-qtbase-devel qt5-qtsvg-devel qt5-qtx11extras-devel libX11-devel libXScrnSaver-devel libXext-devel libXrandr-devel kf5-networkmanager-qt-devel pulseaudio-qt-devel the-libs-blueprint-devel xcb-util-keysyms-devel qt5-linguist wayland-devel qt5-qtwayland-devel qt5-qtbase-static qt5-qtbase-private-devel wayland-devel
+Requires:       qt5-qtbase qt5-qtsvg qt5-qtx11extras libX11 libXScrnSaver libXext libXrandr kf5-networkmanager-qt pulseaudio-qt the-libs-blueprint qt5-qtwayland
 %endif
 
 %define debug_package %{nil}
@@ -22,6 +24,8 @@ Common libraries for desktop integration for the- apps
 %package        devel
 Summary:        Development files for %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
+Conflicts:      libtdesktopenvironment-devel
+Provides:       libtdesktopenvironment-devel
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
@@ -53,11 +57,13 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 %files
 %{_libdir}/*.so.*
+%{_libdir}/qt5/plugins/wayland-shell-integration/*.so
 
 %files devel
 %{_includedir}/*
 %{_libdir}/*.so
 %{_libdir}/qt5/mkspecs/modules/qt_tdesktopenvironment.pri
+%{_datadir}/libtdesktopenvironment/wayland-protocols/*.xml
 
 
 %changelog
