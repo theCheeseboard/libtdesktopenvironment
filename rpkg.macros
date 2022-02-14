@@ -3,3 +3,49 @@ function git_calculate_version {
     version_string_substituted=${version_string//-/.}
     echo ${version_string_substituted#*v}
 }
+
+function git_archive_force {
+    # This macro uses the latest local commit to
+    # archive the content. Useful to reproducibly
+    # provide a trackable archive content. In pax
+    # header, you can find the commit hash.
+    declare path= dir_name= source_name= root_dir_name= "$@"
+ 
+    git_check_path "$path" || return
+ 
+    if [ -z "$GIT_HEAD" ]; then
+        log_error "No commits yet. Content cannot be archived."
+        return 1
+    fi
+    
+    if [ -z "$root_dir_name" ]; then
+        log_error "Root directory name not specified."
+        return 1
+    fi
+ 
+    if [ -z "$dir_name" ];  then
+        dir_name=$(git_url_path_name "$path") || return
+    fi
+ 
+    if [ -z "$dir_name" ]; then
+        log_error "Could not derive dir_name from remote URL and path."
+        return 1
+    fi
+ 
+    if [ -z "$source_name" ]; then
+        source_name=${dir_name}-${GIT_HEAD_SHORT}.tar.gz
+    fi
+ 
+    if [ -z "$OUTDIR" ]; then
+        log_debug "OUTDIR is not set. No action taken."
+        output "$source_name"
+        return
+    fi
+    
+    cd $path/..
+    log_debug tar -zcvf $OUTDIR/$source_name $root_dir_name
+    log_debug "$(tar -zcvf $OUTDIR/$source_name .)"
+    log_info "Wrote: $OUTDIR/$source_name"
+    output "$source_name"
+}
+
