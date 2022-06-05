@@ -46,7 +46,7 @@ class X11ScreenBackend : public ScreenBackend, public QAbstractNativeEventFilter
 
         // QAbstractNativeEventFilter interface
     public:
-        bool nativeEventFilter(const QByteArray& eventType, void* message, long* result);
+        bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result);
 };
 
 #endif // X11SCREENBACKEND_H

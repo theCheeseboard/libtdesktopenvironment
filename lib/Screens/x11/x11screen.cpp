@@ -19,112 +19,112 @@
  * *************************************/
 #include "x11screen.h"
 
-#include <QMap>
-#include <QX11Info>
-#include <QScreen>
+#include "../screendaemon.h"
+#include "Wm/x11/x11functions.h"
 #include <QApplication>
 #include <QCryptographicHash>
+#include <QMap>
+#include <QScreen>
 #include <X11/extensions/Xrandr.h>
-#include "Wm/x11/x11functions.h"
-#include "../screendaemon.h"
+#include <tx11info.h>
 
 #include <math.h>
 
 struct X11ScreenPrivate {
-    RROutput output;
-    double brightness;
-    long brightnessMin, brightnessMax;
+        RROutput output;
+        double brightness;
+        long brightnessMin, brightnessMax;
 
-    static bool backlightAtomSet;
-    static Atom backlightAtom;
-    static Atom edidAtom;
+        static bool backlightAtomSet;
+        static Atom backlightAtom;
+        static Atom edidAtom;
 
-    bool powered = false;
-    bool isPrimary = false;
-    QRect geometry;
-    QList<SystemScreen::Mode> modes;
-    int currentMode = 0;
-    Rotation currentRotation = 0;
-    QString name;
+        bool powered = false;
+        bool isPrimary = false;
+        QRect geometry;
+        QList<SystemScreen::Mode> modes;
+        int currentMode = 0;
+        Rotation currentRotation = 0;
+        QString name;
 
-    QMap<QString, SystemScreen::GammaRamps> gammaRamps;
+        QMap<QString, SystemScreen::GammaRamps> gammaRamps;
 };
 
 bool X11ScreenPrivate::backlightAtomSet = false;
 Atom X11ScreenPrivate::backlightAtom = None;
 Atom X11ScreenPrivate::edidAtom = None;
 
-template <typename T> struct OutputProperty {
-    typedef T* iterator;
+template<typename T> struct OutputProperty {
+        typedef T* iterator;
 
-    Atom type;
-    int format;
-    ulong nItems;
-    ulong nBytesRemain;
-    T* data;
+        Atom type;
+        int format;
+        ulong nItems;
+        ulong nBytesRemain;
+        T* data;
 
-    ~OutputProperty() {
-        //Automatically free the data
-        if (this->data != nullptr) {
-            XFree(reinterpret_cast<void*>(this->data));
+        ~OutputProperty() {
+            // Automatically free the data
+            if (this->data != nullptr) {
+                XFree(reinterpret_cast<void*>(this->data));
+            }
         }
-    }
 
-    QString typeName() {
-        return TX11::atomName(type);
-    }
-    iterator begin() {
-        return data;
-    }
-    iterator end() {
-        return data + nItems;
-    }
-    bool contains(T item) {
-        for (T i : *this) {
-            if (i == item) return true;
+        QString typeName() {
+            return TX11::atomName(type);
         }
-        return false;
-    }
-    T first() {
-        return *data;
-    }
-    T at(int index) {
-        return data[index];
-    }
-    T at(long index) {
-        return data[index];
-    }
-    T operator[](int index) {
-        return data[index];
-    }
-    T operator->() {
-        return *data;
-    }
-    T* operator+(int other) {
-        return data + other;
-    }
-    T* operator+(long other) {
-        return data + other;
-    }
+        iterator begin() {
+            return data;
+        }
+        iterator end() {
+            return data + nItems;
+        }
+        bool contains(T item) {
+            for (T i : *this) {
+                if (i == item) return true;
+            }
+            return false;
+        }
+        T first() {
+            return *data;
+        }
+        T at(int index) {
+            return data[index];
+        }
+        T at(long index) {
+            return data[index];
+        }
+        T operator[](int index) {
+            return data[index];
+        }
+        T operator->() {
+            return *data;
+        }
+        T* operator+(int other) {
+            return data + other;
+        }
+        T* operator+(long other) {
+            return data + other;
+        }
 
-    template<typename U> operator OutputProperty<U>() {
-        OutputProperty<U> prop;
-        prop.data = this->data;
-        return prop;
-    }
+        template<typename U> operator OutputProperty<U>() {
+            OutputProperty<U> prop;
+            prop.data = this->data;
+            return prop;
+        }
 };
 
-
-X11Screen::X11Screen(RROutput output, QObject* parent) : SystemScreen(parent) {
+X11Screen::X11Screen(RROutput output, QObject* parent) :
+    SystemScreen(parent) {
     d = new X11ScreenPrivate();
     d->output = output;
 
     if (!d->backlightAtomSet) {
-        d->backlightAtom = XInternAtom(QX11Info::display(), "backlight", true);
-        if (d->backlightAtom == None) d->backlightAtom = XInternAtom(QX11Info::display(), "BACKLIGHT", true);
+        d->backlightAtom = XInternAtom(tX11Info::display(), "backlight", true);
+        if (d->backlightAtom == None) d->backlightAtom = XInternAtom(tX11Info::display(), "BACKLIGHT", true);
 
-        d->edidAtom = XInternAtom(QX11Info::display(), "EDID", true);
-        if (d->edidAtom == None) d->edidAtom = XInternAtom(QX11Info::display(), "EDID_DATA", true);
+        d->edidAtom = XInternAtom(tX11Info::display(), "EDID", true);
+        if (d->edidAtom == None) d->edidAtom = XInternAtom(tX11Info::display(), "EDID_DATA", true);
 
         d->backlightAtomSet = true;
     }
@@ -137,9 +137,9 @@ X11Screen::~X11Screen() {
 void X11Screen::updateScreen() {
     updateBrightness();
 
-    //Update available modes
-    XRRScreenResources* resources = XRRGetScreenResources(QX11Info::display(), QX11Info::appRootWindow());
-    XRROutputInfo* info = XRRGetOutputInfo(QX11Info::display(), resources, d->output);
+    // Update available modes
+    XRRScreenResources* resources = XRRGetScreenResources(tX11Info::display(), tX11Info::appRootWindow());
+    XRROutputInfo* info = XRRGetOutputInfo(tX11Info::display(), resources, d->output);
     QMap<RRMode, XRRModeInfo> modes;
     for (int i = 0; i < resources->nmode; i++) {
         modes.insert(resources->modes[i].id, resources->modes[i]);
@@ -167,9 +167,9 @@ void X11Screen::updateScreen() {
 
     emit availableModesChanged(availableModes);
 
-    //Update geometry and power status
+    // Update geometry and power status
     if (info->crtc) {
-        XRRCrtcInfo* crtc = XRRGetCrtcInfo(QX11Info::display(), resources, info->crtc);
+        XRRCrtcInfo* crtc = XRRGetCrtcInfo(tX11Info::display(), resources, info->crtc);
         d->geometry = QRect(crtc->x, crtc->y, crtc->width, crtc->height);
         d->currentMode = crtc->mode;
         d->currentRotation = crtc->rotation;
@@ -185,7 +185,7 @@ void X11Screen::updateScreen() {
     emit geometryChanged(geometry());
     emit currentModeChanged(d->currentMode);
 
-    d->isPrimary = XRRGetOutputPrimary(QX11Info::display(), QX11Info::appRootWindow()) == d->output;
+    d->isPrimary = XRRGetOutputPrimary(tX11Info::display(), tX11Info::appRootWindow()) == d->output;
     emit isPrimaryChanged(d->isPrimary);
 
     XRRFreeOutputInfo(info);
@@ -204,7 +204,7 @@ void X11Screen::updateBrightness() {
         return;
     }
 
-    XRRPropertyInfo* info = XRRQueryOutputProperty(QX11Info::display(), d->output, d->backlightAtom);
+    XRRPropertyInfo* info = XRRQueryOutputProperty(tX11Info::display(), d->output, d->backlightAtom);
     d->brightnessMin = info->values[0];
     d->brightnessMax = info->values[1];
     d->brightness = static_cast<double>(*backlightProperty->data - d->brightnessMin) / d->brightnessMax;
@@ -215,12 +215,12 @@ void X11Screen::updateBrightness() {
 void X11Screen::updateGammaRamps() {
     GammaRamps ramps;
     if (d->gammaRamps.count() == 0) {
-        //Reset the gamma
+        // Reset the gamma
         ramps.red = 1;
         ramps.green = 1;
         ramps.blue = 1;
     } else {
-        //Interpolate all the gamma values
+        // Interpolate all the gamma values
         QList<GammaRamps> allRamps = d->gammaRamps.values();
         ramps = allRamps.first();
         for (auto i = allRamps.begin() + 1; i != allRamps.end(); i++) {
@@ -230,7 +230,7 @@ void X11Screen::updateGammaRamps() {
         }
     }
 
-    //Set the gamma ramps
+    // Set the gamma ramps
     XRRCrtcGamma* gamma = XRRAllocGamma(gammaRampSize());
 
     for (int i = 0; i < gamma->size; i++) {
@@ -240,9 +240,9 @@ void X11Screen::updateGammaRamps() {
         gamma->blue[i] = static_cast<quint16>(factor * ramps.blue + 0.5);
     }
 
-    XRRScreenResources* resources = XRRGetScreenResources(QX11Info::display(), QX11Info::appRootWindow());
-    XRROutputInfo* info = XRRGetOutputInfo(QX11Info::display(), resources, d->output);
-    XRRSetCrtcGamma(QX11Info::display(), info->crtc, gamma);
+    XRRScreenResources* resources = XRRGetScreenResources(tX11Info::display(), tX11Info::appRootWindow());
+    XRROutputInfo* info = XRRGetOutputInfo(tX11Info::display(), resources, d->output);
+    XRRSetCrtcGamma(tX11Info::display(), info->crtc, gamma);
 
     XRRFreeGamma(gamma);
     XRRFreeOutputInfo(info);
@@ -252,7 +252,7 @@ void X11Screen::updateGammaRamps() {
 void X11Screen::normaliseScreens() {
     QRect bounds(0, 0, 0, 0);
 
-    //Find out how far we should offset all of the screens
+    // Find out how far we should offset all of the screens
     for (SystemScreen* screen : ScreenDaemon::instance()->screens()) {
         X11Screen* scr = static_cast<X11Screen*>(screen);
         if (!scr->powered()) continue;
@@ -260,7 +260,7 @@ void X11Screen::normaliseScreens() {
         bounds = bounds.united(scr->geometry());
     }
 
-    //Offset all of the screens
+    // Offset all of the screens
     for (SystemScreen* screen : ScreenDaemon::instance()->screens()) {
         X11Screen* scr = static_cast<X11Screen*>(screen);
         if (!scr->powered()) continue;
@@ -271,64 +271,64 @@ void X11Screen::normaliseScreens() {
 }
 
 void X11Screen::set() {
-    XRRScreenResources* resources = XRRGetScreenResources(QX11Info::display(), QX11Info::appRootWindow());
-    XRROutputInfo* info = XRRGetOutputInfo(QX11Info::display(), resources, d->output);
+    XRRScreenResources* resources = XRRGetScreenResources(tX11Info::display(), tX11Info::appRootWindow());
+    XRROutputInfo* info = XRRGetOutputInfo(tX11Info::display(), resources, d->output);
 
-    if (d->isPrimary && XRRGetOutputPrimary(QX11Info::display(), QX11Info::appRootWindow()) != d->output) {
-        XRRSetOutputPrimary(QX11Info::display(), QX11Info::appRootWindow(), d->output);
+    if (d->isPrimary && XRRGetOutputPrimary(tX11Info::display(), tX11Info::appRootWindow()) != d->output) {
+        XRRSetOutputPrimary(tX11Info::display(), tX11Info::appRootWindow(), d->output);
     }
 
     if (info->crtc == 0) {
         if (d->powered) {
-            //Find a suitable CRTC for this output
+            // Find a suitable CRTC for this output
             RRCrtc crtc = None;
             for (int i = 0; i < info->ncrtc; i++) {
                 struct XRRCrtcInfoDeleter {
-                    static inline void cleanup(XRRCrtcInfo* pointer) {
-                        XRRFreeCrtcInfo(pointer);
-                    }
+                        static inline void cleanup(XRRCrtcInfo* pointer) {
+                            XRRFreeCrtcInfo(pointer);
+                        }
                 };
 
-                QScopedPointer<XRRCrtcInfo, XRRCrtcInfoDeleter> crtcInfo(XRRGetCrtcInfo(QX11Info::display(), resources, info->crtcs[i]));
+                QScopedPointer<XRRCrtcInfo, XRRCrtcInfoDeleter> crtcInfo(XRRGetCrtcInfo(tX11Info::display(), resources, info->crtcs[i]));
                 if (crtcInfo->noutput > 0) {
-                    //This CRTC is already being used, but let's check if we can clone the displays
+                    // This CRTC is already being used, but let's check if we can clone the displays
                     if (crtcInfo->mode != static_cast<RRMode>(d->currentMode)) continue;
                     if (crtcInfo->x != d->geometry.left()) continue;
                     if (crtcInfo->y != d->geometry.top()) continue;
                     if (crtcInfo->rotation != d->currentRotation) continue;
 
-                    //We can use this CRTC
+                    // We can use this CRTC
                     crtc = info->crtcs[i];
                     break;
                 } else {
-                    //This CRTC is unused, so we can use this CRTC
+                    // This CRTC is unused, so we can use this CRTC
                     crtc = info->crtcs[i];
                     break;
                 }
             }
 
             if (crtc != None) {
-                //Configure the output on this CRTC
-                XRRSetCrtcConfig(QX11Info::display(), resources, crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, d->currentRotation, &d->output, 1);
+                // Configure the output on this CRTC
+                XRRSetCrtcConfig(tX11Info::display(), resources, crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, d->currentRotation, &d->output, 1);
             }
         } else {
-            //Do nothing; the screen isn't powered and doesn't need to be powered
+            // Do nothing; the screen isn't powered and doesn't need to be powered
             return;
         }
     } else {
         if (d->powered) {
-            //Adjust this CRTC
-            XRRSetCrtcConfig(QX11Info::display(), resources, info->crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, d->currentRotation, &d->output, 1);
+            // Adjust this CRTC
+            XRRSetCrtcConfig(tX11Info::display(), resources, info->crtc, CurrentTime, d->geometry.left(), d->geometry.top(), d->currentMode, d->currentRotation, &d->output, 1);
         } else {
-            //Turn off this CRTC
-            XRRSetCrtcConfig(QX11Info::display(), resources, info->crtc, CurrentTime, 0, 0, None, RR_Rotate_0, nullptr, 0);
+            // Turn off this CRTC
+            XRRSetCrtcConfig(tX11Info::display(), resources, info->crtc, CurrentTime, 0, 0, None, RR_Rotate_0, nullptr, 0);
         }
     }
 
     XRRFreeOutputInfo(info);
     XRRFreeScreenResources(resources);
 
-    //Set the screen size properly
+    // Set the screen size properly
     ScreenDaemon::instance()->setDpi(ScreenDaemon::instance()->dpi());
 }
 
@@ -348,7 +348,7 @@ void X11Screen::setScreenBrightness(double screenBrightness) {
     if (screenBrightness < 0) screenBrightness = 0;
     if (screenBrightness > 1) screenBrightness = 1;
     qint32 brightnessLevel = static_cast<qint32>((d->brightnessMax - d->brightnessMin) * screenBrightness + d->brightnessMin);
-    XRRChangeOutputProperty(QX11Info::display(), d->output, d->backlightAtom, XA_INTEGER, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&brightnessLevel), 1);
+    XRRChangeOutputProperty(tX11Info::display(), d->output, d->backlightAtom, XA_INTEGER, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&brightnessLevel), 1);
 }
 
 void X11Screen::removeGammaRamps(QString adjustmentName) {
@@ -358,10 +358,10 @@ void X11Screen::removeGammaRamps(QString adjustmentName) {
 
 int X11Screen::gammaRampSize() {
     int size;
-    XRRScreenResources* resources = XRRGetScreenResources(QX11Info::display(), QX11Info::appRootWindow());
-    XRROutputInfo* info = XRRGetOutputInfo(QX11Info::display(), resources, d->output);
+    XRRScreenResources* resources = XRRGetScreenResources(tX11Info::display(), tX11Info::appRootWindow());
+    XRROutputInfo* info = XRRGetOutputInfo(tX11Info::display(), resources, d->output);
 
-    size = XRRGetCrtcGammaSize(QX11Info::display(), info->crtc);
+    size = XRRGetCrtcGammaSize(tX11Info::display(), info->crtc);
 
     XRRFreeOutputInfo(info);
     XRRFreeScreenResources(resources);
@@ -384,8 +384,8 @@ void X11Screen::setPowered(bool powered) {
 }
 
 QRect X11Screen::geometry() const {
-//    QRect geometry = d->geometry;
-//    return geometry;
+    //    QRect geometry = d->geometry;
+    //    return geometry;
     return d->geometry;
 }
 
@@ -394,7 +394,7 @@ void X11Screen::move(QPoint topLeft) {
 
     normaliseScreens();
 
-//    emit geometryChanged(geometry());
+    //    emit geometryChanged(geometry());
 }
 
 QList<SystemScreen::Mode> X11Screen::availableModes() const {
@@ -464,7 +464,7 @@ void X11Screen::setRotation(SystemScreen::Rotation rotation) {
 
     if (((oldRotation == Landscape || oldRotation == UpsideDown) && (rotation == Portrait || rotation == UpsideDownPortrait)) ||
         ((oldRotation == Portrait || oldRotation == UpsideDownPortrait) && (rotation == Landscape || rotation == UpsideDown))) {
-        //We need to transpose the geometry of the screen
+        // We need to transpose the geometry of the screen
         d->geometry = d->geometry.transposed();
         emit geometryChanged(geometry());
     }
@@ -523,7 +523,7 @@ template<typename T> OutputPropertyPtr<T> X11Screen::getOutputProperty(Atom prop
     unsigned long nItems, nBytesRemain;
     unsigned char* data;
 
-    XRRGetOutputProperty(QX11Info::display(),
+    XRRGetOutputProperty(tX11Info::display(),
         d->output,
         property,
         offset,
@@ -537,7 +537,7 @@ template<typename T> OutputPropertyPtr<T> X11Screen::getOutputProperty(Atom prop
         &nBytesRemain,
         &data);
 
-    if (!data) return nullptr; //Couldn't get output property
+    if (!data) return nullptr; // Couldn't get output property
 
     prop->type = typeReturn;
     prop->format = formatReturn;

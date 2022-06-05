@@ -19,28 +19,29 @@
  * *************************************/
 #include "backgroundcontroller.h"
 
+#include <QDirIterator>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QSvgRenderer>
 #include <QPainter>
 #include <QStandardPaths>
-#include <QDirIterator>
+#include <QSvgRenderer>
 
 struct BackgroundControllerPrivate {
-    QNetworkAccessManager mgr;
-    QSettings* settings;
+        QNetworkAccessManager mgr;
+        QSettings* settings;
 
-    BackgroundController::BackgroundType type;
-    bool retrievingImages = false;
-    int downloadCount = 0;
+        BackgroundController::BackgroundType type;
+        bool retrievingImages = false;
+        int downloadCount = 0;
 
-    int timerId;
-    uint lastPeriod = 0;
+        int timerId;
+        uint lastPeriod = 0;
 
-    QStringList additionalWallpapers;
+        QStringList additionalWallpapers;
 };
 
-BackgroundController::BackgroundController(BackgroundType type, QObject* parent) : QObject(parent) {
+BackgroundController::BackgroundController(BackgroundType type, QObject* parent) :
+    QObject(parent) {
     Q_INIT_RESOURCE(libtdesktopenvironment_resources);
 
     d = new BackgroundControllerPrivate();
@@ -49,12 +50,12 @@ BackgroundController::BackgroundController(BackgroundType type, QObject* parent)
 
     d->timerId = this->startTimer(60000, Qt::VeryCoarseTimer);
 
-    //Find backgrounds from /usr/share/wallpapers and /usr/share/backgrounds
-    searchWallpapers("/usr/share/wallpapers")->then([ = ](QStringList wallpapers) {
+    // Find backgrounds from /usr/share/wallpapers and /usr/share/backgrounds
+    searchWallpapers("/usr/share/wallpapers")->then([=](QStringList wallpapers) {
         d->additionalWallpapers.append(wallpapers);
         emit availableWallpapersChanged(wallpapers.count());
     });
-    searchWallpapers("/usr/share/backgrounds")->then([ = ](QStringList wallpapers) {
+    searchWallpapers("/usr/share/backgrounds")->then([=](QStringList wallpapers) {
         d->additionalWallpapers.append(wallpapers);
         emit availableWallpapersChanged(wallpapers.count());
     });
@@ -69,54 +70,57 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
 }
 
 tPromise<BackgroundController::BackgroundData>* BackgroundController::getBackground(QString backgroundName, QSize screenSize) {
-    return tPromise<BackgroundData>::runOnSameThread([ = ](tPromiseFunctions<BackgroundData>::SuccessFunction res, tPromiseFunctions<BackgroundData>::FailureFunction rej) {
+    return tPromise<BackgroundData>::runOnSameThread([=](tPromiseFunctions<BackgroundData>::SuccessFunction res, tPromiseFunctions<BackgroundData>::FailureFunction rej) {
         BackgroundData data;
         data.px = QPixmap(screenSize);
 
-        auto drawBackground = [ = ](QPixmap pixmap) {
+        auto drawBackground = [=](QPixmap pixmap) {
             QPixmap newPixmap(screenSize);
 
             QPainter painter(&newPixmap);
             painter.setRenderHint(QPainter::SmoothPixmapTransform);
 
-            //Draw newPixmap
+            // Draw newPixmap
             switch (d->settings->value("desktop/stretchStyle", 0).toInt()) {
-                case 0: //Stretch
+                case 0: // Stretch
                     painter.drawPixmap(0, 0, newPixmap.width(), newPixmap.height(), pixmap);
                     break;
-                case 1: { //Zoom and Crop
-                    QRect rect;
-                    rect.setSize(pixmap.size().scaled(newPixmap.width(), newPixmap.height(), Qt::KeepAspectRatioByExpanding));
-                    rect.moveLeft(newPixmap.width() / 2 - rect.width() / 2);
-                    rect.moveTop(newPixmap.height() / 2 - rect.height() / 2);
-                    painter.drawPixmap(rect, pixmap);
-                    break;
-                }
-                case 2: { //Center
-                    QRect rect;
-                    rect.setSize(pixmap.size());
-                    rect.moveLeft(newPixmap.width() / 2 - rect.width() / 2);
-                    rect.moveTop(newPixmap.height() / 2 - rect.height() / 2);
-                    painter.drawPixmap(rect, pixmap);
-                    break;
-                }
-                case 3: //Tile
+                case 1:
+                    { // Zoom and Crop
+                        QRect rect;
+                        rect.setSize(pixmap.size().scaled(newPixmap.width(), newPixmap.height(), Qt::KeepAspectRatioByExpanding));
+                        rect.moveLeft(newPixmap.width() / 2 - rect.width() / 2);
+                        rect.moveTop(newPixmap.height() / 2 - rect.height() / 2);
+                        painter.drawPixmap(rect, pixmap);
+                        break;
+                    }
+                case 2:
+                    { // Center
+                        QRect rect;
+                        rect.setSize(pixmap.size());
+                        rect.moveLeft(newPixmap.width() / 2 - rect.width() / 2);
+                        rect.moveTop(newPixmap.height() / 2 - rect.height() / 2);
+                        painter.drawPixmap(rect, pixmap);
+                        break;
+                    }
+                case 3: // Tile
                     painter.drawTiledPixmap(0, 0, newPixmap.width(), newPixmap.height(), pixmap);
                     break;
-                case 4: { //Zoom and Fit
-                    QRect rect;
-                    rect.setSize(pixmap.size().scaled(newPixmap.width(), newPixmap.height(), Qt::KeepAspectRatio));
-                    rect.moveLeft(newPixmap.width() / 2 - rect.width() / 2);
-                    rect.moveTop(newPixmap.height() / 2 - rect.height() / 2);
-                    painter.drawPixmap(rect, pixmap);
-                    break;
-                }
+                case 4:
+                    { // Zoom and Fit
+                        QRect rect;
+                        rect.setSize(pixmap.size().scaled(newPixmap.width(), newPixmap.height(), Qt::KeepAspectRatio));
+                        rect.moveLeft(newPixmap.width() / 2 - rect.width() / 2);
+                        rect.moveTop(newPixmap.height() / 2 - rect.height() / 2);
+                        painter.drawPixmap(rect, pixmap);
+                        break;
+                    }
             }
 
             return newPixmap;
         };
 
-        if (backgroundName.startsWith("inbuilt:")) { //Inbuilt background
+        if (backgroundName.startsWith("inbuilt:")) { // Inbuilt background
             QSvgRenderer renderer(QStringLiteral(":/libtdesktopenvironment/backgrounds/%1.svg").arg(backgroundName.mid(backgroundName.indexOf(':') + 1)));
             if (!renderer.isValid()) {
                 rej("Unavailable Background");
@@ -131,25 +135,27 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getBackgro
             bool metadataExists = QFile(QDir::homePath() + "/.theshell/backgrounds.conf").exists();
             bool expired = d->settings->value("desktop/fetched").toDateTime().secsTo(QDateTime::currentDateTimeUtc()) > 604800 /* 1 week */;
 
-            auto chooseBackground = [ = ] {
-                this->getCurrentCommunityBackground()->then([ = ](BackgroundData data) {
-                    data.px = drawBackground(data.px);
-                    res(data);
-                })->error([ = ](QString error) {
-                    rej(error);
-                });
+            auto chooseBackground = [=] {
+                this->getCurrentCommunityBackground()->then([=](BackgroundData data) {
+                                                         data.px = drawBackground(data.px);
+                                                         res(data);
+                                                     })
+                    ->error([=](QString error) {
+                        rej(error);
+                    });
             };
 
             if (metadataExists && !expired) {
-                //Choose a random community background and show it
+                // Choose a random community background and show it
                 chooseBackground();
             } else {
-                //Get a new community background, choose a random one and show it
-                this->getNewCommunityBackground()->then([ = ] {
-                    chooseBackground();
-                })->error([ = ](QString error) {
-                    rej(error);
-                });
+                // Get a new community background, choose a random one and show it
+                this->getNewCommunityBackground()->then([=] {
+                                                     chooseBackground();
+                                                 })
+                    ->error([=](QString error) {
+                        rej(error);
+                    });
             }
         } else {
             QPixmap image;
@@ -165,17 +171,14 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getBackgro
 }
 
 QStringList BackgroundController::availableBackgrounds() {
-
     QStringList backgrounds = {
         "community",
         "inbuilt:cactus",
         "inbuilt:triangles",
-        "inbuilt:ribbon"
-    };
+        "inbuilt:ribbon"};
 
     backgrounds.append(d->additionalWallpapers);
-    backgrounds.append({
-        "inbuilt:arrows",
+    backgrounds.append({"inbuilt:arrows",
         "inbuilt:beach",
         "inbuilt:leftwaves",
         "inbuilt:nav",
@@ -185,8 +188,7 @@ QStringList BackgroundController::availableBackgrounds() {
         "inbuilt:waves",
         currentBackgroundName(BackgroundType::Desktop),
         currentBackgroundName(BackgroundType::LockScreen),
-        "custom"
-    });
+        "custom"});
     backgrounds.removeDuplicates();
     return backgrounds;
 }
@@ -231,7 +233,7 @@ bool BackgroundController::shouldShowCommunityLabels() {
 }
 
 void BackgroundController::timerEvent(QTimerEvent* event) {
-    //Check to see if the community background has changed
+    // Check to see if the community background has changed
     if (event->timerId() == d->timerId) {
         uint currentPeriod = this->communityBackgroundPeriod();
         if (d->lastPeriod != 0 && d->lastPeriod != currentPeriod) {
@@ -243,7 +245,7 @@ void BackgroundController::timerEvent(QTimerEvent* event) {
 }
 
 tPromise<QNetworkReply*>* BackgroundController::get(QString path) {
-    return tPromise<QNetworkReply*>::runOnSameThread([ = ](tPromiseFunctions<QNetworkReply*>::SuccessFunction res, tPromiseFunctions<QNetworkReply*>::FailureFunction rej) {
+    return tPromise<QNetworkReply*>::runOnSameThread([=](tPromiseFunctions<QNetworkReply*>::SuccessFunction res, tPromiseFunctions<QNetworkReply*>::FailureFunction rej) {
         QUrl url;
         url.setScheme("https");
         url.setHost("vicr123.com");
@@ -251,10 +253,9 @@ tPromise<QNetworkReply*>* BackgroundController::get(QString path) {
 
         QNetworkRequest req(url);
         req.setHeader(QNetworkRequest::UserAgentHeader, QString("theShell"));
-        req.setAttribute(QNetworkRequest::FollowRedirectsAttribute, true);
         QNetworkReply* reply = d->mgr.get(req);
 
-        connect(reply, &QNetworkReply::finished, this, [ = ] {
+        connect(reply, &QNetworkReply::finished, this, [=] {
             res(reply);
         });
     });
@@ -264,7 +265,7 @@ tPromise<void>* BackgroundController::getNewCommunityBackground() {
     return TPROMISE_CREATE_SAME_THREAD(void, {
         if (d->retrievingImages) {
             QMetaObject::Connection* c = new QMetaObject::Connection();
-            *c = connect(this, &BackgroundController::newCommunityBackgroundsAvailable, this, [ = ] {
+            *c = connect(this, &BackgroundController::newCommunityBackgroundsAvailable, this, [=] {
                 disconnect(*c);
                 delete c;
 
@@ -274,79 +275,78 @@ tPromise<void>* BackgroundController::getNewCommunityBackground() {
         }
 
         d->retrievingImages = true;
-        get("/theshell/backgrounds/backgrounds.json")->then([ = ](QNetworkReply * reply) {
-            QByteArray data = reply->readAll();
-            QJsonDocument doc = QJsonDocument::fromJson(data);
+        get("/theshell/backgrounds/backgrounds.json")->then([=](QNetworkReply* reply) {
+                                                         QByteArray data = reply->readAll();
+                                                         QJsonDocument doc = QJsonDocument::fromJson(data);
 
-            if (!doc.isArray()) {
-                //Error
-                rej("Invalid backgrond data received");
-                reply->deleteLater();
-            } else {
-                QJsonArray arr = doc.array();
-                arr.removeFirst();
+                                                         if (!doc.isArray()) {
+                                                             // Error
+                                                             rej("Invalid backgrond data received");
+                                                             reply->deleteLater();
+                                                         } else {
+                                                             QJsonArray arr = doc.array();
+                                                             arr.removeFirst();
 
-                QStringList downloadImages;
+                                                             QStringList downloadImages;
 
-                for (int i = 0; i < 10; i++) {
-                    int index = QRandomGenerator::system()->bounded(arr.count());
-                    QString url = arr.at(index).toString();
-                    downloadImages.append(url);
-                    arr.removeAt(index);
+                                                             for (int i = 0; i < 10; i++) {
+                                                                 int index = QRandomGenerator::system()->bounded(arr.count());
+                                                                 QString url = arr.at(index).toString();
+                                                                 downloadImages.append(url);
+                                                                 arr.removeAt(index);
 
-                    if (arr.count() == 0) i = 10;
-                }
+                                                                 if (arr.count() == 0) i = 10;
+                                                             }
 
-                //Keep track of time when these images were retrieved
-                d->settings->setValue("desktop/fetched", QDateTime::currentDateTimeUtc());
+                                                             // Keep track of time when these images were retrieved
+                                                             d->settings->setValue("desktop/fetched", QDateTime::currentDateTimeUtc());
 
-                //Delete list of known images
-                QFile(QDir::homePath() + "/.theshell/backgrounds.conf").remove();
-                QDir(QDir::homePath() + "/.theshell/backgrounds/").removeRecursively();
-                QDir::home().mkpath(".theshell/backgrounds/");
+                                                             // Delete list of known images
+                                                             QFile(QDir::homePath() + "/.theshell/backgrounds.conf").remove();
+                                                             QDir(QDir::homePath() + "/.theshell/backgrounds/").removeRecursively();
+                                                             QDir::home().mkpath(".theshell/backgrounds/");
 
-                d->downloadCount = 0;
-                for (QString url : downloadImages) {
-                    get(url)->then([ = ](QNetworkReply * reply) {
-                        QByteArray data = reply->readAll();
-                        QJsonDocument doc = QJsonDocument::fromJson(data);
-                        if (doc.isObject()) {
-                            QJsonObject obj = doc.object();
+                                                             d->downloadCount = 0;
+                                                             for (QString url : downloadImages) {
+                                                                 get(url)->then([=](QNetworkReply* reply) {
+                                                                     QByteArray data = reply->readAll();
+                                                                     QJsonDocument doc = QJsonDocument::fromJson(data);
+                                                                     if (doc.isObject()) {
+                                                                         QJsonObject obj = doc.object();
 
-                            QString fileName = obj.value("filename").toString();
-                            QString dirName = fileName.left(fileName.indexOf("."));
+                                                                         QString fileName = obj.value("filename").toString();
+                                                                         QString dirName = fileName.left(fileName.indexOf("."));
 
-                            QDir::home().mkpath(".theshell/backgrounds/" + dirName);
-                            QFile metadataFile(QDir::homePath() + "/.theshell/backgrounds/" + dirName + "/metadata.json");
-                            metadataFile.open(QFile::WriteOnly);
-                            metadataFile.write(data);
-                            metadataFile.close();
+                                                                         QDir::home().mkpath(".theshell/backgrounds/" + dirName);
+                                                                         QFile metadataFile(QDir::homePath() + "/.theshell/backgrounds/" + dirName + "/metadata.json");
+                                                                         metadataFile.open(QFile::WriteOnly);
+                                                                         metadataFile.write(data);
+                                                                         metadataFile.close();
 
-                            QFile backgroundListConf(QDir::homePath() + "/.theshell/backgrounds.conf");
-                            backgroundListConf.open(QFile::Append);
-                            backgroundListConf.write(dirName.append("\n").toUtf8());
-                            backgroundListConf.close();
-                        }
-                        reply->deleteLater();
-                        d->downloadCount++;
+                                                                         QFile backgroundListConf(QDir::homePath() + "/.theshell/backgrounds.conf");
+                                                                         backgroundListConf.open(QFile::Append);
+                                                                         backgroundListConf.write(dirName.append("\n").toUtf8());
+                                                                         backgroundListConf.close();
+                                                                     }
+                                                                     reply->deleteLater();
+                                                                     d->downloadCount++;
 
-                        if (d->downloadCount == downloadImages.count()) {
-                            d->downloadCount = 0;
-                            emit newCommunityBackgroundsAvailable();
-                            res();
-                        }
-                    });
-                }
+                                                                     if (d->downloadCount == downloadImages.count()) {
+                                                                         d->downloadCount = 0;
+                                                                         emit newCommunityBackgroundsAvailable();
+                                                                         res();
+                                                                     }
+                                                                 });
+                                                             }
 
-                reply->deleteLater();
-            }
-            d->retrievingImages = false;
-        })->error([ = ](QString error) {
-            d->retrievingImages = true;
-        });
+                                                             reply->deleteLater();
+                                                         }
+                                                         d->retrievingImages = false;
+                                                     })
+            ->error([=](QString error) {
+                d->retrievingImages = true;
+            });
     });
-
-
 }
 
 tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrentCommunityBackground() {
@@ -358,7 +358,7 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
 
         allBackgrounds.removeAll("");
 
-        //TODO: Fix algorithm
+        // TODO: Fix algorithm
         QRandomGenerator generator(this->communityBackgroundPeriod());
 
         QString background = allBackgrounds.at(generator.bounded(allBackgrounds.count()));
@@ -373,7 +373,7 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
             return;
         }
 
-        auto readBackground = [ = ] {
+        auto readBackground = [=] {
             QFile imageFile(QDir::homePath() + "/.theshell/backgrounds/" + background + "/" + background + ".jpeg");
             QJsonObject metadata = doc.object();
 
@@ -394,24 +394,25 @@ tPromise<BackgroundController::BackgroundData>* BackgroundController::getCurrent
             QString fileName = doc.object().value("filename").toString();
             QString dirName = fileName.left(fileName.indexOf("."));
 
-            get(QStringLiteral("/theshell/backgrounds/%1/%2").arg(dirName, fileName))->then([ = ](QNetworkReply * reply) {
-                if (reply->error() == QNetworkReply::NoError) {
-                    QByteArray data = reply->readAll();
-                    QFile imageFile(QDir::homePath() + "/.theshell/backgrounds/" + background + "/" + background + ".jpeg");
-                    imageFile.open(QFile::WriteOnly);
-                    imageFile.write(data);
-                    imageFile.close();
-                    reply->deleteLater();
+            get(QStringLiteral("/theshell/backgrounds/%1/%2").arg(dirName, fileName))->then([=](QNetworkReply* reply) {
+                                                                                         if (reply->error() == QNetworkReply::NoError) {
+                                                                                             QByteArray data = reply->readAll();
+                                                                                             QFile imageFile(QDir::homePath() + "/.theshell/backgrounds/" + background + "/" + background + ".jpeg");
+                                                                                             imageFile.open(QFile::WriteOnly);
+                                                                                             imageFile.write(data);
+                                                                                             imageFile.close();
+                                                                                             reply->deleteLater();
 
-                    //Set the background
-                    readBackground();
-                } else {
-                    //Error retrieving image
-                    rej("Background Not Available");
-                }
-            })->error([ = ](QString error) {
-                rej(error);
-            });
+                                                                                             // Set the background
+                                                                                             readBackground();
+                                                                                         } else {
+                                                                                             // Error retrieving image
+                                                                                             rej("Background Not Available");
+                                                                                         }
+                                                                                     })
+                ->error([=](QString error) {
+                    rej(error);
+                });
         }
     });
 }
@@ -421,15 +422,15 @@ uint BackgroundController::communityBackgroundPeriod() {
 }
 
 tPromise<QStringList>* BackgroundController::searchWallpapers(QString searchPath) {
-    return tPromise<QStringList>::runOnNewThread([ = ](tPromiseFunctions<QStringList>::SuccessFunction res, tPromiseFunctions<QStringList>::FailureFunction rej) {
+    return tPromise<QStringList>::runOnNewThread([=](tPromiseFunctions<QStringList>::SuccessFunction res, tPromiseFunctions<QStringList>::FailureFunction rej) {
         QStringList wallpapers;
         struct WallpaperInformation {
-            int w, h;
-            QString suffix;
+                int w, h;
+                QString suffix;
 
-            bool operator<(WallpaperInformation other) {
-                return (w * h) < (other.w * other.h);
-            }
+                bool operator<(WallpaperInformation other) {
+                    return (w * h) < (other.w * other.h);
+                }
         };
 
         QMap<QString, WallpaperInformation> largestImages;
@@ -439,9 +440,9 @@ tPromise<QStringList>* BackgroundController::searchWallpapers(QString searchPath
             QFileInfo fi = iterator.fileInfo();
             if (QStringList({"png", "jpg", "jpeg"}).contains(fi.suffix())) {
                 if (fi.filePath().contains("contents") && QRegularExpression("^(\\d+x\\d+)|(screenshot)$").match(fi.baseName()).hasMatch()) {
-                    if (fi.baseName() == "screenshot") continue; //Ignore
+                    if (fi.baseName() == "screenshot") continue; // Ignore
 
-                    //Find only the largest image in this set
+                    // Find only the largest image in this set
                     WallpaperInformation info;
                     info.w = fi.fileName().split("x").first().toInt();
                     info.h = fi.fileName().split("x").at(1).split(".").first().toInt();

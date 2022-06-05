@@ -19,19 +19,19 @@
  * *************************************/
 
 #include <QApplication>
+#include <QDeadlineTimer>
 #include <QDebug>
-#include <QX11Info>
-#include <QWidget>
-#include <QScopedPointer>
-#include <QScreen>
 #include <QDir>
 #include <QProcess>
-#include <QDeadlineTimer>
+#include <QScopedPointer>
+#include <QScreen>
+#include <QWidget>
+#include <tx11info.h>
 
-#include "x11backend.h"
-#include "x11window.h"
-#include "x11functions.h"
 #include "x11accessibility.h"
+#include "x11backend.h"
+#include "x11functions.h"
+#include "x11window.h"
 #include "x11xsettingsprovider.h"
 
 #include <X11/XKBlib.h>
@@ -45,38 +45,39 @@
 #endif
 
 struct X11BackendPrivate {
-    struct X11KeyGrab {
-        KeyCode keycode;
-        uint keymods;
+        struct X11KeyGrab {
+                KeyCode keycode;
+                uint keymods;
 
-        bool operator==(const X11KeyGrab& other) const;
-    };
+                bool operator==(const X11KeyGrab& other) const;
+        };
 
-    QMap<Window, X11WindowPtr> windows;
-    QMap<QString, std::function<void()>> propertyChangeEvents;
+        QMap<Window, X11WindowPtr> windows;
+        QMap<QString, std::function<void()>> propertyChangeEvents;
 
-    bool haveScrnsaver = false;
-    bool haveDpms = false;
-    bool heardSuper = false;
+        bool haveScrnsaver = false;
+        bool haveDpms = false;
+        bool heardSuper = false;
 
-    QHash<quint64, X11KeyGrab> grabs;
-    quint64 nextGrab = 1;
+        QHash<quint64, X11KeyGrab> grabs;
+        quint64 nextGrab = 1;
 
-    X11Accessibility* accessibility;
-    X11XSettingsProvider* xsettingsProvider = nullptr;
+        X11Accessibility* accessibility;
+        X11XSettingsProvider* xsettingsProvider = nullptr;
 
-    int xkbEventBase;
-    int xkbErrorBase;
+        int xkbEventBase;
+        int xkbErrorBase;
 
-    QMap<QString, QString> keyboardLayouts;
-    QString currentLayout;
+        QMap<QString, QString> keyboardLayouts;
+        QString currentLayout;
 };
 
-X11Backend::X11Backend() : WmBackend() {
+X11Backend::X11Backend() :
+    WmBackend() {
     d = new X11BackendPrivate();
 
     QApplication::instance()->installNativeEventFilter(this);
-    XSelectInput(QX11Info::display(), QX11Info::appRootWindow(), PropertyChangeMask);
+    XSelectInput(tX11Info::display(), tX11Info::appRootWindow(), PropertyChangeMask);
 
     d->accessibility = new X11Accessibility(this);
 
@@ -85,14 +86,14 @@ X11Backend::X11Backend() : WmBackend() {
         addWindow(window);
     }
 
-    d->propertyChangeEvents.insert("_NET_CLIENT_LIST", [ = ] {
+    d->propertyChangeEvents.insert("_NET_CLIENT_LIST", [=] {
         TX11::WindowPropertyPtr<Window> newWindowList = TX11::getRootWindowProperty<Window>("_NET_CLIENT_LIST", XA_WINDOW);
 
-        //Find out which windows no longer exist
+        // Find out which windows no longer exist
         for (int i = 0; i < d->windows.count(); i++) {
             Window win = d->windows.keys().at(i);
             if (!newWindowList->contains(win)) {
-                //This window no longer exists
+                // This window no longer exists
                 X11WindowPtr window = d->windows.value(win);
                 emit windowRemoved(window.data());
                 window->deleteLater();
@@ -101,42 +102,43 @@ X11Backend::X11Backend() : WmBackend() {
             }
         }
 
-        //Find out which windows are new
+        // Find out which windows are new
         for (Window win : *newWindowList) {
             if (!d->windows.contains(win)) {
-                //This window is new
+                // This window is new
                 addWindow(win);
             }
         }
     });
-    d->propertyChangeEvents.insert("_NET_ACTIVE_WINDOW", [ = ] {
+    d->propertyChangeEvents.insert("_NET_ACTIVE_WINDOW", [=] {
         emit activeWindowChanged();
     });
-    d->propertyChangeEvents.insert("_NET_NUMBER_OF_DESKTOPS", [ = ] {
+    d->propertyChangeEvents.insert("_NET_NUMBER_OF_DESKTOPS", [=] {
         emit desktopCountChanged();
     });
-    d->propertyChangeEvents.insert("_NET_DESKTOP_NAMES", [ = ] {
+    d->propertyChangeEvents.insert("_NET_DESKTOP_NAMES", [=] {
         emit desktopCountChanged();
     });
-    d->propertyChangeEvents.insert("_NET_CURRENT_DESKTOP", [ = ] {
+    d->propertyChangeEvents.insert("_NET_CURRENT_DESKTOP", [=] {
         emit currentDesktopChanged();
     });
 
     int eventBase, errorBase, opcode, major = 2, minor = 19;
 #ifdef HAVE_XSCRNSAVER
-    if (XScreenSaverQueryExtension(QX11Info::display(), &eventBase, &errorBase)) d->haveScrnsaver = true;
+    if (XScreenSaverQueryExtension(tX11Info::display(), &eventBase, &errorBase)) d->haveScrnsaver = true;
 #endif
 #ifdef HAVE_XEXT
-    if (DPMSQueryExtension(QX11Info::display(), &eventBase, &errorBase) && DPMSCapable(QX11Info::display())) d->haveDpms = true;
+    if (DPMSQueryExtension(tX11Info::display(), &eventBase, &errorBase) && DPMSCapable(tX11Info::display())) d->haveDpms = true;
 #endif
-    if (XkbQueryExtension(QX11Info::display(), &opcode, &d->xkbEventBase, &d->xkbErrorBase, &major, &minor));
+    if (XkbQueryExtension(tX11Info::display(), &opcode, &d->xkbEventBase, &d->xkbErrorBase, &major, &minor))
+        ;
 
     loadKeyboardLayouts();
     updateKeyboardLayout();
 }
 
 bool X11Backend::isSuitable() {
-    return QX11Info::isPlatformX11();
+    return tX11Info::isPlatformX11();
 }
 
 QString X11Backend::windowSystemName() {
@@ -158,7 +160,7 @@ QList<DesktopWmWindowPtr> X11Backend::openWindows() {
 void X11Backend::addWindow(Window window) {
     X11WindowPtr w(new X11Window(window));
     emit windowAdded(w.data());
-    connect(w, &X11Window::destroyed, this, [ = ] {
+    connect(w, &X11Window::destroyed, this, [=] {
         d->windows.remove(window);
     });
     d->windows.insert(window, w);
@@ -179,20 +181,20 @@ void X11Backend::loadKeyboardLayouts() {
         while (!file.atEnd()) {
             QString line = file.readLine().trimmed();
             if (line.startsWith("xkb_symbols") && line.endsWith("{")) {
-                QRegExp lineRx("\".+\"");
-                lineRx.indexIn(line);
+                QRegularExpression lineRx("\".+\"");
+                auto match = lineRx.match(line);
 
-                if (lineRx.capturedTexts().count() != 0) {
-                    currentSubLayout = lineRx.capturedTexts().first().remove("\"");
+                if (match.capturedTexts().count() != 0) {
+                    currentSubLayout = match.capturedTexts().first().remove("\"");
                 } else {
                     currentSubLayout = "";
                 }
             } else if (line.startsWith("name")) {
-                QRegExp lineRx("\".+\"");
-                lineRx.indexIn(line);
+                QRegularExpression lineRx("\".+\"");
+                auto match = lineRx.match(line);
 
-                if (lineRx.capturedTexts().count() != 0 && currentSubLayout != "") {
-                    d->keyboardLayouts.insert(layout + "(" + currentSubLayout + ")", lineRx.capturedTexts().first().remove("\""));
+                if (match.capturedTexts().count() != 0 && currentSubLayout != "") {
+                    d->keyboardLayouts.insert(layout + "(" + currentSubLayout + ")", match.capturedTexts().first().remove("\""));
                 } else {
                     currentSubLayout = "";
                 }
@@ -218,7 +220,7 @@ void X11Backend::updateKeyboardLayout() {
     }
 }
 
-bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, long* result) {
+bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) {
     xcb_generic_event_t* event = static_cast<xcb_generic_event_t*>(message);
     if (event->response_type == XCB_PROPERTY_NOTIFY) {
         xcb_property_notify_event_t* propertyNotify = reinterpret_cast<xcb_property_notify_event_t*>(event);
@@ -226,7 +228,7 @@ bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, l
         if (d->windows.contains(propertyNotify->window)) {
             X11WindowPtr window = d->windows.value(propertyNotify->window);
             window->x11PropertyChanged(property);
-        } else if (propertyNotify->window == QX11Info::appRootWindow()) {
+        } else if (propertyNotify->window == tX11Info::appRootWindow()) {
             if (d->propertyChangeEvents.contains(property)) d->propertyChangeEvents.value(property)();
         }
     } else if (event->response_type == XCB_CONFIGURE_NOTIFY) {
@@ -235,7 +237,7 @@ bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, l
             X11WindowPtr window = d->windows.value(configureNotify->event);
             window->configureNotify();
         }
-    } else if (event->response_type == XCB_KEY_PRESS) { //Key Press Event
+    } else if (event->response_type == XCB_KEY_PRESS) { // Key Press Event
         xcb_key_release_event_t* button = static_cast<xcb_key_release_event_t*>(message);
         ulong keyState = 0;
         if (button->state & XCB_MOD_MASK_1) keyState |= Mod1Mask;
@@ -247,31 +249,29 @@ bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, l
         if (button->state & XCB_MOD_MASK_SHIFT) keyState |= ShiftMask;
 
         for (KeySym keysym : {
-                XK_Control_L, XK_Control_R, XK_Alt_L, XK_Alt_R, XK_Shift_L, XK_Shift_R, XK_Super_L, XK_Super_R, XK_Meta_L, XK_Meta_R, XK_Hyper_L, XK_Hyper_R
-            }) {
-            if (button->detail == XKeysymToKeycode(QX11Info::display(), keysym)) return false; //Do nothing; this is a modifier key
+                 XK_Control_L, XK_Control_R, XK_Alt_L, XK_Alt_R, XK_Shift_L, XK_Shift_R, XK_Super_L, XK_Super_R, XK_Meta_L, XK_Meta_R, XK_Hyper_L, XK_Hyper_R}) {
+            if (button->detail == XKeysymToKeycode(tX11Info::display(), keysym)) return false; // Do nothing; this is a modifier key
         }
 
-        //Go through all the keys and find the appropriate grab ID
+        // Go through all the keys and find the appropriate grab ID
         for (auto i = d->grabs.begin(); i != d->grabs.end(); i++) {
             if (i.value().keycode == button->detail && i.value().keymods == keyState) {
                 emit grabbedKeyPressed(i.key());
             }
         }
-    } else if (event->response_type == XCB_KEY_RELEASE) { //Key Release Event
+    } else if (event->response_type == XCB_KEY_RELEASE) { // Key Release Event
         xcb_key_release_event_t* button = static_cast<xcb_key_release_event_t*>(message);
-        if (button->detail == XKeysymToKeycode(QX11Info::display(), XK_Super_L)) {
+        if (button->detail == XKeysymToKeycode(tX11Info::display(), XK_Super_L)) {
             if (d->heardSuper) {
                 d->heardSuper = false;
             } else {
-                quint64 grabId = d->grabs.key({
-                    XKeysymToKeycode(QX11Info::display(), XK_Super_L),
-                    0
-                }, 0);
+                quint64 grabId = d->grabs.key({XKeysymToKeycode(tX11Info::display(), XK_Super_L),
+                                                  0},
+                    0);
                 if (grabId != 0) emit grabbedKeyPressed(grabId);
             }
         }
-    } else if (event->response_type == XCB_MAPPING_NOTIFY) { //Mapping Notify Event
+    } else if (event->response_type == XCB_MAPPING_NOTIFY) { // Mapping Notify Event
         updateKeyboardLayout();
         emit currentKeyboardLayoutChanged();
     } else if (event->response_type == d->xkbEventBase + XkbEventCode) {
@@ -290,7 +290,6 @@ DesktopWmWindowPtr X11Backend::activeWindow() {
     return d->windows.value(activeWindow->first(), nullptr).data();
 }
 
-
 QStringList X11Backend::desktops() {
     QStringList desktops;
 
@@ -299,7 +298,7 @@ QStringList X11Backend::desktops() {
 
     QByteArray desktopNamesBytes(desktopNames->data, static_cast<int>(desktopNames->nItems));
     QList<QByteArray> desktopNamesList = desktopNamesBytes.split('\0');
-    desktopNamesList.takeLast(); //Remove the trailing null character
+    desktopNamesList.takeLast(); // Remove the trailing null character
 
     if (desktopCountMessage->nItems > 0) {
         for (int i = 0; static_cast<uint>(i) < desktopCountMessage->first(); i++) {
@@ -324,13 +323,12 @@ uint X11Backend::currentDesktop() {
     }
 }
 
-
 void X11Backend::setCurrentDesktop(uint desktopNumber) {
-    TX11::sendMessageToRootWindow("_NET_CURRENT_DESKTOP", QX11Info::appRootWindow(), desktopNumber, CurrentTime);
+    TX11::sendMessageToRootWindow("_NET_CURRENT_DESKTOP", tX11Info::appRootWindow(), desktopNumber, CurrentTime);
 }
 
 void X11Backend::setNumDesktops(uint numDesktops) {
-    TX11::sendMessageToRootWindow("_NET_NUMBER_OF_DESKTOPS", QX11Info::appRootWindow(), numDesktops);
+    TX11::sendMessageToRootWindow("_NET_NUMBER_OF_DESKTOPS", tX11Info::appRootWindow(), numDesktops);
 }
 
 void X11Backend::setSystemWindow(QWidget* widget) {
@@ -338,59 +336,63 @@ void X11Backend::setSystemWindow(QWidget* widget) {
 }
 
 void X11Backend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType type) {
-    //Skip the taskbar
+    // Skip the taskbar
     unsigned long skipTaskbar = 1;
-    XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_THESHELL_SKIP_TASKBAR", False),
+    XChangeProperty(tX11Info::display(), widget->winId(), XInternAtom(tX11Info::display(), "_THESHELL_SKIP_TASKBAR", False),
         XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&skipTaskbar), 1);
 
-    //Set visible on all desktops
+    // Set visible on all desktops
     unsigned long desktop = 0xFFFFFFFF;
-    XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_DESKTOP", False),
+    XChangeProperty(tX11Info::display(), widget->winId(), XInternAtom(tX11Info::display(), "_NET_WM_DESKTOP", False),
         XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&desktop), 1);
 
     switch (type) {
         case DesktopWm::SystemWindowTypeLockScreen:
         case DesktopWm::SystemWindowTypeSkipTaskbarOnly:
-        case DesktopWm::SystemWindowTypeMenu: {
-            //Change the window type to a _NET_WM_WINDOW_TYPE_NORMAL
-            Atom DesktopWindowTypeAtom;
-            DesktopWindowTypeAtom = XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE_NORMAL", False);
-            XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
-                XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 1);
-            break;
-        }
-        case DesktopWm::SystemWindowTypeDesktop: {
-            //Change the window type to a _NET_WM_WINDOW_TYPE_DESKTOP
-            Atom DesktopWindowTypeAtom;
-            DesktopWindowTypeAtom = XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE_DESKTOP", False);
-            XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
-                XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 1);
-            break;
-        }
-        case DesktopWm::SystemWindowTypeTaskbar: {
-            //Change the window type to a _NET_WM_WINDOW_TYPE_DOCK
-            Atom DesktopWindowTypeAtom;
-            DesktopWindowTypeAtom = XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE_DOCK", False);
-            XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
-                XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 1);
-            break;
-        }
-        case DesktopWm::SystemWindowTypeNotification: {
-            //Change the window type to a _NET_WM_WINDOW_TYPE_NOTIFICATION
-            //And also a _KDE_NET_WM_WINDOW_TYPE_ON_SCREEN_DISPLAY specifically for KWin :)
+        case DesktopWm::SystemWindowTypeMenu:
+            {
+                // Change the window type to a _NET_WM_WINDOW_TYPE_NORMAL
+                Atom DesktopWindowTypeAtom;
+                DesktopWindowTypeAtom = XInternAtom(tX11Info::display(), "_NET_WM_WINDOW_TYPE_NORMAL", False);
+                XChangeProperty(tX11Info::display(), widget->winId(), XInternAtom(tX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
+                    XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 1);
+                break;
+            }
+        case DesktopWm::SystemWindowTypeDesktop:
+            {
+                // Change the window type to a _NET_WM_WINDOW_TYPE_DESKTOP
+                Atom DesktopWindowTypeAtom;
+                DesktopWindowTypeAtom = XInternAtom(tX11Info::display(), "_NET_WM_WINDOW_TYPE_DESKTOP", False);
+                XChangeProperty(tX11Info::display(), widget->winId(), XInternAtom(tX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
+                    XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 1);
+                break;
+            }
+        case DesktopWm::SystemWindowTypeTaskbar:
+            {
+                // Change the window type to a _NET_WM_WINDOW_TYPE_DOCK
+                Atom DesktopWindowTypeAtom;
+                DesktopWindowTypeAtom = XInternAtom(tX11Info::display(), "_NET_WM_WINDOW_TYPE_DOCK", False);
+                XChangeProperty(tX11Info::display(), widget->winId(), XInternAtom(tX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
+                    XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 1);
+                break;
+            }
+        case DesktopWm::SystemWindowTypeNotification:
+            {
+                // Change the window type to a _NET_WM_WINDOW_TYPE_NOTIFICATION
+                // And also a _KDE_NET_WM_WINDOW_TYPE_ON_SCREEN_DISPLAY specifically for KWin :)
 
-            Atom DesktopWindowTypeAtom[2];
-            DesktopWindowTypeAtom[0] = XInternAtom(QX11Info::display(), "_KDE_NET_WM_WINDOW_TYPE_ON_SCREEN_DISPLAY", False);
-            DesktopWindowTypeAtom[1] = XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE_NOTIFICATION", False);
-            XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
-                XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 2);
-        }
+                Atom DesktopWindowTypeAtom[2];
+                DesktopWindowTypeAtom[0] = XInternAtom(tX11Info::display(), "_KDE_NET_WM_WINDOW_TYPE_ON_SCREEN_DISPLAY", False);
+                DesktopWindowTypeAtom[1] = XInternAtom(tX11Info::display(), "_NET_WM_WINDOW_TYPE_NOTIFICATION", False);
+                XChangeProperty(tX11Info::display(), widget->winId(), XInternAtom(tX11Info::display(), "_NET_WM_WINDOW_TYPE", False),
+                    XA_ATOM, 32, PropModeReplace, reinterpret_cast<unsigned char*>(&DesktopWindowTypeAtom), 2);
+            }
     }
 }
 
 void X11Backend::blurWindow(QWidget* widget) {
     unsigned char value = 0;
-    XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_KDE_NET_WM_BLUR_BEHIND_REGION", False),
+    XChangeProperty(tX11Info::display(), widget->winId(), XInternAtom(tX11Info::display(), "_KDE_NET_WM_BLUR_BEHIND_REGION", False),
         XA_CARDINAL, 32, PropModeReplace, &value, 1);
 }
 
@@ -405,43 +407,41 @@ void X11Backend::setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::
     QRect screenGeometry = screen->geometry();
     switch (edge) {
         case Qt::TopEdge:
-            struts[2] = screenGeometry.y() + width; //top
-            struts[8] = screenGeometry.x(); //top_start_x
-            struts[9] = screenGeometry.right(); //top_end_x
+            struts[2] = screenGeometry.y() + width; // top
+            struts[8] = screenGeometry.x();         // top_start_x
+            struts[9] = screenGeometry.right();     // top_end_x
             break;
         case Qt::LeftEdge:
-            struts[0] = screenGeometry.x() + width; //left
-            struts[4] = screenGeometry.y(); //left_start_y
-            struts[5] = screenGeometry.bottom(); //left_end_y
+            struts[0] = screenGeometry.x() + width; // left
+            struts[4] = screenGeometry.y();         // left_start_y
+            struts[5] = screenGeometry.bottom();    // left_end_y
             break;
         case Qt::RightEdge:
-            struts[1] = rootGeometry.width() - screenGeometry.right() + width; //right
-            struts[6] = screenGeometry.y(); //right_start_y
-            struts[7] = screenGeometry.bottom(); //right_end_y
+            struts[1] = rootGeometry.width() - screenGeometry.right() + width; // right
+            struts[6] = screenGeometry.y();                                    // right_start_y
+            struts[7] = screenGeometry.bottom();                               // right_end_y
             break;
         case Qt::BottomEdge:
-            struts[3] = rootGeometry.height() - screenGeometry.bottom() + width; //bottom
-            struts[10] = screenGeometry.x(); //bottom_start_x
-            struts[11] = screenGeometry.right(); //bottom_end_x
+            struts[3] = rootGeometry.height() - screenGeometry.bottom() + width; // bottom
+            struts[10] = screenGeometry.x();                                     // bottom_start_x
+            struts[11] = screenGeometry.right();                                 // bottom_end_x
             break;
-
     }
 
-    XChangeProperty(QX11Info::display(), widget->winId(), XInternAtom(QX11Info::display(), "_NET_WM_STRUT_PARTIAL", False),
+    XChangeProperty(tX11Info::display(), widget->winId(), XInternAtom(tX11Info::display(), "_NET_WM_STRUT_PARTIAL", False),
         XA_CARDINAL, 32, PropModeReplace, reinterpret_cast<unsigned char*>(struts), 12);
 }
 
 void X11Backend::setShowDesktop(bool showDesktop) {
-    TX11::sendMessageToRootWindow("_NET_SHOWING_DESKTOP", QX11Info::appRootWindow(), showDesktop ? 1 : 0);
+    TX11::sendMessageToRootWindow("_NET_SHOWING_DESKTOP", tX11Info::appRootWindow(), showDesktop ? 1 : 0);
 }
-
 
 quint64 X11Backend::msecsIdle() {
 #ifdef HAVE_XSCRNSAVER
     if (d->haveScrnsaver) {
         QScopedPointer<XScreenSaverInfo, TX11::XDeleter> info(XScreenSaverAllocInfo());
         if (info.isNull()) return 0;
-        if (!XScreenSaverQueryInfo(QX11Info::display(), QX11Info::appRootWindow(), info.data())) return 0;
+        if (!XScreenSaverQueryInfo(tX11Info::display(), tX11Info::appRootWindow(), info.data())) return 0;
 
         return info->idle;
     }
@@ -456,9 +456,9 @@ quint64 X11Backend::grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) {
 
     uint keymods = TX11::toNativeModifiers(modifiers);
     KeySym keysym = TX11::toKeySym(key);
-    KeyCode keycode = XKeysymToKeycode(QX11Info::display(), keysym);
+    KeyCode keycode = XKeysymToKeycode(tX11Info::display(), keysym);
 
-    if (XGrabKey(QX11Info::display(), keycode, keymods, QX11Info::appRootWindow(), true, GrabModeAsync, GrabModeAsync) == 0) {
+    if (XGrabKey(tX11Info::display(), keycode, keymods, tX11Info::appRootWindow(), true, GrabModeAsync, GrabModeAsync) == 0) {
         qDebug() << "Failed grabbing key" << key << modifiers;
     }
 
@@ -469,7 +469,7 @@ quint64 X11Backend::grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) {
 
 void X11Backend::ungrabKey(quint64 grab) {
     X11BackendPrivate::X11KeyGrab kg = d->grabs.value(grab);
-    XUngrabKey(QX11Info::display(), kg.keycode, kg.keymods, QX11Info::appRootWindow());
+    XUngrabKey(tX11Info::display(), kg.keycode, kg.keymods, tX11Info::appRootWindow());
     d->grabs.remove(grab);
 }
 
@@ -481,9 +481,9 @@ void X11Backend::setScreenOff(bool screenOff) {
 #ifdef HAVE_XEXT
     if (d->haveDpms) {
         if (screenOff) {
-            DPMSForceLevel(QX11Info::display(), DPMSModeOff);
+            DPMSForceLevel(tX11Info::display(), DPMSModeOff);
         } else {
-            DPMSForceLevel(QX11Info::display(), DPMSModeOff);
+            DPMSForceLevel(tX11Info::display(), DPMSModeOff);
         }
     }
 #endif
@@ -494,7 +494,7 @@ bool X11Backend::isScreenOff() {
     if (d->haveDpms) {
         BOOL state;
         CARD16 powerLevel;
-        DPMSInfo(QX11Info::display(), &powerLevel, &state);
+        DPMSInfo(tX11Info::display(), &powerLevel, &state);
 
         if (powerLevel == DPMSModeOn) {
             return true;
@@ -509,7 +509,6 @@ bool X11Backend::isScreenOff() {
 bool X11BackendPrivate::X11KeyGrab::operator==(const X11BackendPrivate::X11KeyGrab& other) const {
     return other.keycode == this->keycode && other.keymods == this->keymods;
 }
-
 
 QStringList X11Backend::availableKeyboardLayouts() {
     return d->keyboardLayouts.keys();

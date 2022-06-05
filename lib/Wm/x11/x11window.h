@@ -20,11 +20,10 @@
 #ifndef X11WINDOW_H
 #define X11WINDOW_H
 
-#include <QPointer>
-#include <QObject>
 #include "../desktopwmwindow.h"
-
-#include <X11/X.h>
+#include <QObject>
+#include <QPointer>
+#include <tx11info.h>
 
 struct X11WindowPrivate;
 class X11Window : public DesktopWmWindow {

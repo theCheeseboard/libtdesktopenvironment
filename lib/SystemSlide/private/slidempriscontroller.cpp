@@ -20,29 +20,30 @@
 #include "slidempriscontroller.h"
 #include "ui_slidempriscontroller.h"
 
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QNetworkAccessManager>
-#include <QPainter>
-#include <the-libs_global.h>
-#include <QMenu>
 #include "../../mpris/mprisengine.h"
+#include <QActionGroup>
+#include <QMenu>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QPainter>
+#include <libcontemporary_global.h>
 
 struct SlideMprisControllerPrivate {
-    QMenu* mprisSelection;
-    QActionGroup* menuActionsGroup;
-    QMap<QString, QAction*> menuActions;
-    MprisPlayerPtr player;
-    QObject* mprisContextObject = nullptr;
-    QPalette defaultPal;
-    QNetworkAccessManager mgr;
+        QMenu* mprisSelection;
+        QActionGroup* menuActionsGroup;
+        QMap<QString, QAction*> menuActions;
+        MprisPlayerPtr player;
+        QObject* mprisContextObject = nullptr;
+        QPalette defaultPal;
+        QNetworkAccessManager mgr;
 
-    void addServer(QString service, MprisPlayerPtr player);
-    void removeServer(QString service);
-    void setServer(MprisPlayerPtr player);
+        void addServer(QString service, MprisPlayerPtr player);
+        void removeServer(QString service);
+        void setServer(MprisPlayerPtr player);
 
-    SlideMprisController* parent;
-    Ui::SlideMprisController* ui;
+        SlideMprisController* parent;
+        Ui::SlideMprisController* ui;
 };
 
 SlideMprisController::SlideMprisController(QWidget* parent) :
@@ -113,10 +114,10 @@ void SlideMprisControllerPrivate::addServer(QString service, MprisPlayerPtr play
     menuActions.insert(service, serverAction);
     menuActionsGroup->addAction(serverAction);
 
-    QObject::connect(player.data(), &MprisPlayerInterface::identityChanged, serverAction, [ = ] {
+    QObject::connect(player.data(), &MprisPlayerInterface::identityChanged, serverAction, [=] {
         serverAction->setText(player->identity());
     });
-    QObject::connect(serverAction, &QAction::triggered, [ = ] {
+    QObject::connect(serverAction, &QAction::triggered, [=] {
         this->setServer(player);
     });
 
@@ -144,7 +145,7 @@ void SlideMprisControllerPrivate::removeServer(QString service) {
 void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {
     this->player = player;
 
-    //Set up the context object
+    // Set up the context object
     if (mprisContextObject != nullptr) mprisContextObject->deleteLater();
     mprisContextObject = new QObject();
 
@@ -154,7 +155,7 @@ void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {
         this->menuActions.value(player->service())->setChecked(true);
         parent->setVisible(true);
 
-        auto setMetadataFunction = [ = ] {
+        auto setMetadataFunction = [=] {
             QString statusString;
             QString title = player->metadata().value("xesam:title").toString();
             if (title == "") {
@@ -177,7 +178,7 @@ void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {
             if (albumArt != "") {
                 QNetworkRequest req((QUrl(albumArt)));
                 QNetworkReply* reply = mgr.get(req);
-                QObject::connect(reply, &QNetworkReply::finished, [ = ] {
+                QObject::connect(reply, &QNetworkReply::finished, [=] {
                     if (reply->error() == QNetworkReply::NoError) {
                         QImage image = QImage::fromData(reply->readAll());
                         if (!image.isNull()) {
@@ -235,7 +236,6 @@ void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {
                     reply->deleteLater();
                 });
             }
-
         };
         setMetadataFunction();
 
@@ -245,7 +245,7 @@ void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {
             ui->mprisPlay->setIcon(QIcon::fromTheme("media-playback-start"));
         }
         QObject::connect(player.data(), &MprisPlayerInterface::metadataChanged, mprisContextObject, setMetadataFunction);
-        QObject::connect(player.data(), &MprisPlayerInterface::playbackStatusChanged, mprisContextObject, [ = ] {
+        QObject::connect(player.data(), &MprisPlayerInterface::playbackStatusChanged, mprisContextObject, [=] {
             if (player->playbackStatus() == MprisPlayerInterface::Playing) {
                 ui->mprisPlay->setIcon(QIcon::fromTheme("media-playback-pause"));
             } else {

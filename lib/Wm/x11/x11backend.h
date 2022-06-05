@@ -20,22 +20,19 @@
 #ifndef X11BACKEND_H
 #define X11BACKEND_H
 
-#include <QObject>
-#include <QAbstractNativeEventFilter>
 #include "../private/wmbackend.h"
-
-#include <X11/X.h>
-#include <X11/Xdefs.h>
-
-#undef CursorShape
+#include "tx11info.h"
+#include <QAbstractNativeEventFilter>
+#include <QObject>
 
 struct X11BackendPrivate;
-class X11Backend : public WmBackend, public QAbstractNativeEventFilter {
+class X11Backend : public WmBackend,
+                   public QAbstractNativeEventFilter {
         Q_OBJECT
     public:
         explicit X11Backend();
 
-        bool nativeEventFilter(const QByteArray& eventType, void* message, long* result);
+        bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result);
 
         static bool isSuitable();
         QString windowSystemName();

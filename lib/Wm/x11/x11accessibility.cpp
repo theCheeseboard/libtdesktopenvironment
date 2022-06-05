@@ -17,30 +17,33 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * *************************************/
+
+#include <tx11info.h>
+
 #include "x11accessibility.h"
 
 #include <QDebug>
 
-#include <X11/extensions/XKB.h>
 #include <X11/XKBlib.h>
 #include <X11/Xatom.h>
-#include <QX11Info>
+#include <X11/extensions/XKB.h>
 
 // xkb.h expects "explicit" to not be a keyword
 #define explicit _explicit
 #include <xcb/xkb.h>
 
 struct X11AccessibilityPrivate {
-    int xkbEventBase;
+        int xkbEventBase;
 
-    bool stickyKeysEnabled = false;
-    bool mouseKeysEnabled = false;
+        bool stickyKeysEnabled = false;
+        bool mouseKeysEnabled = false;
 };
 
-X11Accessibility::X11Accessibility(X11Backend* parent) : DesktopAccessibility(parent) {
+X11Accessibility::X11Accessibility(X11Backend* parent) :
+    DesktopAccessibility(parent) {
     d = new X11AccessibilityPrivate();
-    XkbQueryExtension(QX11Info::display(), nullptr, &d->xkbEventBase, nullptr, nullptr, nullptr);
-    XkbSelectEvents(QX11Info::display(), XkbUseCoreKbd, XkbStateNotifyMask | XkbBellNotifyMask | XkbControlsNotifyMask, XkbStateNotifyMask | XkbBellNotifyMask | XkbControlsNotifyMask);
+    XkbQueryExtension(tX11Info::display(), nullptr, &d->xkbEventBase, nullptr, nullptr, nullptr);
+    XkbSelectEvents(tX11Info::display(), XkbUseCoreKbd, XkbStateNotifyMask | XkbBellNotifyMask | XkbControlsNotifyMask, XkbStateNotifyMask | XkbBellNotifyMask | XkbControlsNotifyMask);
 }
 
 X11Accessibility::~X11Accessibility() {
@@ -49,8 +52,7 @@ X11Accessibility::~X11Accessibility() {
 
 void X11Accessibility::postEvent(xcb_generic_event_t* event) {
     if (event->response_type == d->xkbEventBase) {
-
-        //pad0 contains the event subtype
+        // pad0 contains the event subtype
         if (event->pad0 == XkbStateNotify) {
             xcb_xkb_state_notify_event_t* notifyEvent = reinterpret_cast<xcb_xkb_state_notify_event_t*>(event);
 
@@ -68,7 +70,7 @@ void X11Accessibility::postEvent(xcb_generic_event_t* event) {
         } else if (event->pad0 == XkbBellNotify) {
             xcb_xkb_bell_notify_event_t* notifyEvent = reinterpret_cast<xcb_xkb_bell_notify_event_t*>(event);
             if (notifyEvent->name != None) {
-                char* atomName = XGetAtomName(QX11Info::display(), notifyEvent->name);
+                char* atomName = XGetAtomName(tX11Info::display(), notifyEvent->name);
                 qDebug() << atomName;
             }
         } else if (event->pad0 == XkbControlsNotify) {
@@ -100,19 +102,21 @@ bool X11Accessibility::isAccessibilityOptionEnabled(AccessibilityOption option) 
 }
 
 void X11Accessibility::setAccessibilityOptionEnabled(AccessibilityOption option, bool enabled) {
-    XkbChangeEnabledControls(QX11Info::display(), XkbUseCoreKbd, XkbAccessXFeedbackMask, XkbAccessXFeedbackMask);
+    XkbChangeEnabledControls(tX11Info::display(), XkbUseCoreKbd, XkbAccessXFeedbackMask, XkbAccessXFeedbackMask);
 
     switch (option) {
-        case DesktopAccessibility::StickyKeys: {
-            XkbChangeEnabledControls(QX11Info::display(), XkbUseCoreKbd, XkbStickyKeysMask, XkbStickyKeysMask * enabled);
-            d->stickyKeysEnabled = enabled;
-            break;
-        }
-        case DesktopAccessibility::MouseKeys: {
-            XkbChangeEnabledControls(QX11Info::display(), XkbUseCoreKbd, XkbMouseKeysMask, XkbMouseKeysMask * enabled);
-            d->mouseKeysEnabled = enabled;
-            break;
-        }
+        case DesktopAccessibility::StickyKeys:
+            {
+                XkbChangeEnabledControls(tX11Info::display(), XkbUseCoreKbd, XkbStickyKeysMask, XkbStickyKeysMask * enabled);
+                d->stickyKeysEnabled = enabled;
+                break;
+            }
+        case DesktopAccessibility::MouseKeys:
+            {
+                XkbChangeEnabledControls(tX11Info::display(), XkbUseCoreKbd, XkbMouseKeysMask, XkbMouseKeysMask * enabled);
+                d->mouseKeysEnabled = enabled;
+                break;
+            }
         case DesktopAccessibility::LastAccessibilityOption:
             break;
     }

@@ -26,7 +26,7 @@ void TX11::sendMessageToRootWindow(QString message, Window window, long data0, l
     event.xclient.type = ClientMessage;
     event.xclient.serial = 0;
     event.xclient.send_event = True;
-    event.xclient.message_type = XInternAtom(QX11Info::display(), qPrintable(message), false);
+    event.xclient.message_type = XInternAtom(tX11Info::display(), qPrintable(message), false);
     event.xclient.window = window;
     event.xclient.format = 32;
     event.xclient.data.l[0] = data0;
@@ -35,10 +35,9 @@ void TX11::sendMessageToRootWindow(QString message, Window window, long data0, l
     event.xclient.data.l[3] = data3;
     event.xclient.data.l[4] = data4;
 
-    XSendEvent(QX11Info::display(), QX11Info::appRootWindow(), false, SubstructureRedirectMask | SubstructureNotifyMask, &event);
+    XSendEvent(tX11Info::display(), tX11Info::appRootWindow(), false, SubstructureRedirectMask | SubstructureNotifyMask, &event);
 }
 
-QString TX11::atomName(Atom atom)
-{
-    return XGetAtomName(QX11Info::display(), atom);
+QString TX11::atomName(Atom atom) {
+    return XGetAtomName(tX11Info::display(), atom);
 }

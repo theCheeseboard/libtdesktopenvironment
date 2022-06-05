@@ -19,32 +19,33 @@
  * *************************************/
 #include "desktopupowerdevice.h"
 
-#include <QTime>
+#include <QApplication>
 #include <QDBusInterface>
 #include <QIcon>
 #include <QPainter>
-#include <QApplication>
 #include <QPalette>
-#include <the-libs_global.h>
+#include <QTime>
+#include <libcontemporary_global.h>
 
 struct DesktopUPowerDevicePrivate {
-    QDBusInterface* interface;
+        QDBusInterface* interface;
 
-    bool settingUp = true;
+        bool settingUp = true;
 
-    bool notification25 = false;
-    bool notification10 = false;
-    bool notification5 = false;
-    DesktopUPowerDevice::DeviceState oldState = DesktopUPowerDevice::UnknownState;
+        bool notification25 = false;
+        bool notification10 = false;
+        bool notification5 = false;
+        DesktopUPowerDevice::DeviceState oldState = DesktopUPowerDevice::UnknownState;
 };
 
-DesktopUPowerDevice::DesktopUPowerDevice(QDBusObjectPath path, QObject* parent) : QObject(parent) {
+DesktopUPowerDevice::DesktopUPowerDevice(QDBusObjectPath path, QObject* parent) :
+    QObject(parent) {
     d = new DesktopUPowerDevicePrivate();
 
     d->interface = new QDBusInterface("org.freedesktop.UPower", path.path(), "org.freedesktop.UPower.Device", QDBusConnection::systemBus());
     QDBusConnection::systemBus().connect("org.freedesktop.UPower", path.path(), "org.freedesktop.DBus.Properties", "PropertiesChanged", this, SIGNAL(propertiesUpdated()));
 
-    connect(this, &DesktopUPowerDevice::propertiesUpdated, this, [ = ] {
+    connect(this, &DesktopUPowerDevice::propertiesUpdated, this, [=] {
         if (this->type() == Battery) {
             DeviceState state = this->state();
             if (d->oldState != Charging && state == Charging) {
@@ -75,7 +76,7 @@ DesktopUPowerDevice::DesktopUPowerDevice(QDBusObjectPath path, QObject* parent) 
                 d->settingUp = false;
                 return;
             } else if (state == Charging) {
-                //Return early so that the low battery notification is not displayed
+                // Return early so that the low battery notification is not displayed
                 d->settingUp = false;
                 return;
             }
@@ -123,8 +124,7 @@ QString DesktopUPowerDevice::typeString() {
         QT_TR_NOOP("Mouse"),
         QT_TR_NOOP("Keyboard"),
         QT_TR_NOOP("PDA"),
-        QT_TR_NOOP("Phone")
-    };
+        QT_TR_NOOP("Phone")};
 
     return tr(types[this->type()]);
 }
@@ -141,8 +141,7 @@ QString DesktopUPowerDevice::stateString() {
         QT_TR_NOOP("Empty"),
         QT_TR_NOOP("Fully Charged"),
         QT_TR_NOOP("Pending Charge"),
-        QT_TR_NOOP("Pending Discharge")
-    };
+        QT_TR_NOOP("Pending Discharge")};
 
     DeviceState state = this->state();
     if (state == Charging) {
@@ -178,37 +177,38 @@ QString DesktopUPowerDevice::iconName() {
             break;
         case DesktopUPowerDevice::LinePower:
             return "ac-adapter";
-        case DesktopUPowerDevice::Battery: {
-            if (this->state() == DesktopUPowerDevice::Charging) {
-                if (this->percentage() < 10) {
-                    return "battery-charging-empty";
-                } else if (this->percentage() < 30) {
-                    return "battery-charging-020";
-                } else if (this->percentage() < 50) {
-                    return "battery-charging-040";
-                } else if (this->percentage() < 70) {
-                    return "battery-charging-060";
-                } else if (this->percentage() < 90) {
-                    return "battery-charging-080";
+        case DesktopUPowerDevice::Battery:
+            {
+                if (this->state() == DesktopUPowerDevice::Charging) {
+                    if (this->percentage() < 10) {
+                        return "battery-charging-empty";
+                    } else if (this->percentage() < 30) {
+                        return "battery-charging-020";
+                    } else if (this->percentage() < 50) {
+                        return "battery-charging-040";
+                    } else if (this->percentage() < 70) {
+                        return "battery-charging-060";
+                    } else if (this->percentage() < 90) {
+                        return "battery-charging-080";
+                    } else {
+                        return "battery-charging-100";
+                    }
                 } else {
-                    return "battery-charging-100";
-                }
-            } else {
-                if (this->percentage() < 10) {
-                    return "battery-empty";
-                } else if (this->percentage() < 30) {
-                    return "battery-020";
-                } else if (this->percentage() < 50) {
-                    return "battery-040";
-                } else if (this->percentage() < 70) {
-                    return "battery-060";
-                } else if (this->percentage() < 90) {
-                    return "battery-080";
-                } else {
-                    return "battery-100";
+                    if (this->percentage() < 10) {
+                        return "battery-empty";
+                    } else if (this->percentage() < 30) {
+                        return "battery-020";
+                    } else if (this->percentage() < 50) {
+                        return "battery-040";
+                    } else if (this->percentage() < 70) {
+                        return "battery-060";
+                    } else if (this->percentage() < 90) {
+                        return "battery-080";
+                    } else {
+                        return "battery-100";
+                    }
                 }
             }
-        }
         case DesktopUPowerDevice::Ups:
             return "ups";
         case DesktopUPowerDevice::Monitor:
@@ -234,8 +234,7 @@ QIcon DesktopUPowerDevice::icon() {
         QSize(24, 24),
         QSize(32, 32),
         QSize(48, 48),
-        QSize(64, 64)
-    };
+        QSize(64, 64)};
 
     QPalette pal = QApplication::palette();
     QColor col = pal.color(QPalette::WindowText);
@@ -244,8 +243,7 @@ QIcon DesktopUPowerDevice::icon() {
 
     QList<DesktopUPowerDevice::DeviceState> chargingStates = {
         DesktopUPowerDevice::Charging,
-        DesktopUPowerDevice::FullyCharged
-    };
+        DesktopUPowerDevice::FullyCharged};
 
     for (QSize size : sizes) {
         QImage image(size, QImage::Format_ARGB32);

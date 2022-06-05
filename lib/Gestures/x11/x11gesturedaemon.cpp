@@ -1,14 +1,15 @@
 #include "x11gesturedaemon.h"
 
 #include <QDBusConnection>
-#include <QX11Info>
 #include <QMap>
+#include <tx11info.h>
 
 struct X11GestureDaemonPrivate {
-    GestureInteractionPtr currentInteraction;
+        GestureInteractionPtr currentInteraction;
 };
 
-X11GestureDaemon::X11GestureDaemon(QObject* parent) : GestureBackend(parent) {
+X11GestureDaemon::X11GestureDaemon(QObject* parent) :
+    GestureBackend(parent) {
     d = new X11GestureDaemonPrivate;
 
     QDBusConnection conn = QDBusConnection::connectToPeer("unix:abstract=touchegg", "touchegg");
@@ -22,7 +23,7 @@ X11GestureDaemon::~X11GestureDaemon() {
 }
 
 bool X11GestureDaemon::isSuitable() {
-    return QX11Info::isPlatformX11();
+    return tX11Info::isPlatformX11();
 }
 
 void X11GestureDaemon::gestureBegin(quint32 type, quint32 direction, double percentage, qint32 fingers, quint32 deviceType, quint64 time) {
@@ -38,15 +39,15 @@ void X11GestureDaemon::gestureUpdate(quint32 type, quint32 direction, double per
         {2, GestureTypes::Pinch}
     };
     const QMap<quint32, GestureTypes::GestureDirection> directions = {
-        {1, GestureTypes::Up},
-        {2, GestureTypes::Down},
-        {3, GestureTypes::Left},
+        {1, GestureTypes::Up   },
+        {2, GestureTypes::Down },
+        {3, GestureTypes::Left },
         {4, GestureTypes::Right},
-        {5, GestureTypes::In},
-        {6, GestureTypes::Out}
+        {5, GestureTypes::In   },
+        {6, GestureTypes::Out  }
     };
     const QMap<quint32, GestureTypes::DeviceType> devices = {
-        {1, GestureTypes::Touchpad},
+        {1, GestureTypes::Touchpad   },
         {2, GestureTypes::TouchScreen}
     };
     updateGesture(d->currentInteraction, types.value(type), directions.value(direction), percentage / 100, fingers, devices.value(deviceType), time);

@@ -21,74 +21,74 @@
 #define X11FUNCTIONS_H
 
 #include <QSharedPointer>
-#include <QX11Info>
+#include <tx11info.h>
 
-#include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#include <X11/Xlib.h>
 
 #include "x11keyboardtables.h"
 
 namespace TX11 {
     QString atomName(Atom atom);
 
-    template <typename T> struct WindowProperty {
-        typedef T* iterator;
+    template<typename T> struct WindowProperty {
+            typedef T* iterator;
 
-        Atom type;
-        int format;
-        ulong nItems;
-        ulong nBytesRemain;
-        T* data = nullptr;
+            Atom type;
+            int format;
+            ulong nItems;
+            ulong nBytesRemain;
+            T* data = nullptr;
 
-        ~WindowProperty() {
-            //Automatically free the data
-            if (this->data != nullptr) {
-                XFree(reinterpret_cast<void*>(this->data));
+            ~WindowProperty() {
+                // Automatically free the data
+                if (this->data != nullptr) {
+                    XFree(reinterpret_cast<void*>(this->data));
+                }
             }
-        }
 
-        QString typeName() {
-            return atomName(type);
-        }
-        iterator begin() {
-            return data;
-        }
-        iterator end() {
-            return data + nItems;
-        }
-        bool contains(T item) {
-            for (T i : *this) {
-                if (i == item) return true;
+            QString typeName() {
+                return atomName(type);
             }
-            return false;
-        }
-        T first() {
-            return *data;
-        }
-        T at(int index) {
-            return data[index];
-        }
-        T at(long index) {
-            return data[index];
-        }
-        T operator[](int index) {
-            return data[index];
-        }
-        T operator->() {
-            return *data;
-        }
-        T* operator+(int other) {
-            return data + other;
-        }
-        T* operator+(long other) {
-            return data + other;
-        }
+            iterator begin() {
+                return data;
+            }
+            iterator end() {
+                return data + nItems;
+            }
+            bool contains(T item) {
+                for (T i : *this) {
+                    if (i == item) return true;
+                }
+                return false;
+            }
+            T first() {
+                return *data;
+            }
+            T at(int index) {
+                return data[index];
+            }
+            T at(long index) {
+                return data[index];
+            }
+            T operator[](int index) {
+                return data[index];
+            }
+            T operator->() {
+                return *data;
+            }
+            T* operator+(int other) {
+                return data + other;
+            }
+            T* operator+(long other) {
+                return data + other;
+            }
 
-        template<typename U> operator WindowProperty<U>() {
-            WindowProperty<U> prop;
-            prop.data = this->data;
-            return prop;
-        }
+            template<typename U> operator WindowProperty<U>() {
+                WindowProperty<U> prop;
+                prop.data = this->data;
+                return prop;
+            }
     };
     template<typename T> using WindowPropertyPtr = QSharedPointer<WindowProperty<T>>;
 
@@ -100,10 +100,9 @@ namespace TX11 {
         unsigned long nItems, nBytesRemain;
         unsigned char* data;
 
-
-        XGetWindowProperty(QX11Info::display(),
+        XGetWindowProperty(tX11Info::display(),
             window,
-            XInternAtom(QX11Info::display(), qPrintable(property), true),
+            XInternAtom(tX11Info::display(), qPrintable(property), true),
             offset,
             length,
             false,
@@ -123,26 +122,25 @@ namespace TX11 {
         return prop;
     }
 
-
     template<typename T> WindowPropertyPtr<T> getWindowProperty(QString property, Window window, QString type, long offset = 0, long length = ~0L) {
-        return getWindowProperty<T>(property, window, XInternAtom(QX11Info::display(), qPrintable(type), true), offset, length);
+        return getWindowProperty<T>(property, window, XInternAtom(tX11Info::display(), qPrintable(type), true), offset, length);
     }
 
     template<typename T> WindowPropertyPtr<T> getRootWindowProperty(QString property, Atom type, long offset = 0, long length = ~0L) {
-        return getWindowProperty<T>(property, QX11Info::appRootWindow(), type, offset, length);
+        return getWindowProperty<T>(property, tX11Info::appRootWindow(), type, offset, length);
     };
 
     template<typename T> WindowPropertyPtr<T> getRootWindowProperty(QString property, QString type, long offset = 0, long length = ~0L) {
-        return getRootWindowProperty<T>(property, XInternAtom(QX11Info::display(), qPrintable(type), true), offset, length);
+        return getRootWindowProperty<T>(property, XInternAtom(tX11Info::display(), qPrintable(type), true), offset, length);
     }
 
     struct XDeleter {
-        static inline void cleanup(void* pointer) {
-            XFree(pointer);
-        }
+            static inline void cleanup(void* pointer) {
+                XFree(pointer);
+            }
     };
 
     void sendMessageToRootWindow(QString message, Window window, long data0, long data1 = 0, long data2 = 0, long data3 = 0, long data4 = 0);
-}
+} // namespace TX11
 
 #endif // X11FUNCTIONS_H

@@ -22,7 +22,7 @@
 
 #include <QIcon>
 #include <QPainter>
-#include <the-libs_global.h>
+#include <libcontemporary_global.h>
 
 SlideHud::SlideHud(QWidget* parent) :
     QWidget(parent),

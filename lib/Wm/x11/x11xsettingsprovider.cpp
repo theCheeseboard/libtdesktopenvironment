@@ -1,14 +1,14 @@
 #include "x11xsettingsprovider.h"
 
-#include <QMap>
 #include <QColor>
-#include <QX11Info>
+#include <QMap>
+#include <tx11info.h>
 
 #include "x11functions.h"
-#include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#include <X11/Xlib.h>
 
-template <typename T> QByteArray stringToXSettingProperty(QString string) {
+template<typename T> QByteArray stringToXSettingProperty(QString string) {
     QByteArray data;
     QByteArray utf8String = string.toUtf8();
 
@@ -17,7 +17,7 @@ template <typename T> QByteArray stringToXSettingProperty(QString string) {
     data.append(reinterpret_cast<char*>(&stringLength), sizeof(stringLength));
     data.append(utf8String);
 
-    //Pad out the rest with bytes
+    // Pad out the rest with bytes
     int pad = (4 - (stringLength % 4)) % 4;
     data.append(pad, 0);
 
@@ -25,78 +25,79 @@ template <typename T> QByteArray stringToXSettingProperty(QString string) {
 }
 
 struct XSetting {
-    enum SettingType : char {
-        Integer = 0,
-        String = 1,
-        Colour = 2
-    };
+        enum SettingType : char {
+            Integer = 0,
+            String = 1,
+            Colour = 2
+        };
 
-    SettingType type;
-    QString name;
-    quint32 lastChangeSerial;
+        SettingType type;
+        QString name;
+        quint32 lastChangeSerial;
 
-    quint32 intValue;
-    QString stringValue;
-    QColor colorValue;
+        quint32 intValue;
+        QString stringValue;
+        QColor colorValue;
 
-    QByteArray exportToProperty() {
-        QByteArray data;
+        QByteArray exportToProperty() {
+            QByteArray data;
 
-        data.append(type);
-        data.append(static_cast<char>(0)); // -
-        data.append(stringToXSettingProperty<quint16>(name));
-        data.append(reinterpret_cast<char*>(&lastChangeSerial), sizeof(lastChangeSerial));
+            data.append(type);
+            data.append(static_cast<char>(0)); // -
+            data.append(stringToXSettingProperty<quint16>(name));
+            data.append(reinterpret_cast<char*>(&lastChangeSerial), sizeof(lastChangeSerial));
 
-        switch (type) {
-            case XSetting::Integer:
-                data.append(reinterpret_cast<char*>(&intValue), sizeof(intValue));
-                break;
-            case XSetting::String:
-                data.append(stringToXSettingProperty<quint32>(stringValue));
-                break;
-            case XSetting::Colour:
-                quint16 r, g, b, a;
-                r = colorValue.red();
-                g = colorValue.green();
-                b = colorValue.blue();
-                a = colorValue.alpha();
+            switch (type) {
+                case XSetting::Integer:
+                    data.append(reinterpret_cast<char*>(&intValue), sizeof(intValue));
+                    break;
+                case XSetting::String:
+                    data.append(stringToXSettingProperty<quint32>(stringValue));
+                    break;
+                case XSetting::Colour:
+                    quint16 r, g, b, a;
+                    r = colorValue.red();
+                    g = colorValue.green();
+                    b = colorValue.blue();
+                    a = colorValue.alpha();
 
-                data.append(reinterpret_cast<char*>(&r), sizeof(r));
-                data.append(reinterpret_cast<char*>(&g), sizeof(g));
-                data.append(reinterpret_cast<char*>(&b), sizeof(b));
-                data.append(reinterpret_cast<char*>(&a), sizeof(a));
-                break;
+                    data.append(reinterpret_cast<char*>(&r), sizeof(r));
+                    data.append(reinterpret_cast<char*>(&g), sizeof(g));
+                    data.append(reinterpret_cast<char*>(&b), sizeof(b));
+                    data.append(reinterpret_cast<char*>(&a), sizeof(a));
+                    break;
+            }
+
+            return data;
         }
-
-        return data;
-    }
 };
 
 struct X11XSettingsProviderPrivate {
-    Window settingsWindow = 0;
-    quint32 serial = 0;
+        Window settingsWindow = 0;
+        quint32 serial = 0;
 
-    QMap<QString, XSetting> settings;
+        QMap<QString, XSetting> settings;
 };
 
-X11XSettingsProvider::X11XSettingsProvider(QObject* parent) : QObject{parent} {
+X11XSettingsProvider::X11XSettingsProvider(QObject* parent) :
+    QObject{parent} {
     d = new X11XSettingsProviderPrivate();
 
     setString("Gtk/CursorThemeName", "contemporary_cursors");
     setInt("Gtk/CursorThemeSize", 24);
     setString("Gtk/FontName", "Contemporary 10");
 
-    Atom xsettingsAtom = XInternAtom(QX11Info::display(), "_XSETTINGS_S0", true);
+    Atom xsettingsAtom = XInternAtom(tX11Info::display(), "_XSETTINGS_S0", true);
 
-    d->settingsWindow = XCreateSimpleWindow(QX11Info::display(), QX11Info::appRootWindow(), 0, 0, 1, 1, 1, 1, 1);
-    XSetSelectionOwner(QX11Info::display(), xsettingsAtom, d->settingsWindow, CurrentTime);
+    d->settingsWindow = XCreateSimpleWindow(tX11Info::display(), tX11Info::appRootWindow(), 0, 0, 1, 1, 1, 1, 1);
+    XSetSelectionOwner(tX11Info::display(), xsettingsAtom, d->settingsWindow, CurrentTime);
 
     TX11::sendMessageToRootWindow("MANAGER", d->settingsWindow, CurrentTime, xsettingsAtom, d->settingsWindow);
     updateSetting();
 }
 
 X11XSettingsProvider::~X11XSettingsProvider() {
-    XDestroyWindow(QX11Info::display(), d->settingsWindow);
+    XDestroyWindow(tX11Info::display(), d->settingsWindow);
     delete d;
 }
 
@@ -157,6 +158,6 @@ void X11XSettingsProvider::updateSetting() {
         propertyValue.append(setting.exportToProperty());
     }
 
-    Atom property = XInternAtom(QX11Info::display(), "_XSETTINGS_SETTINGS", true);
-    XChangeProperty(QX11Info::display(), d->settingsWindow, property, property, 8, PropModeReplace, reinterpret_cast<const unsigned char*>(propertyValue.constData()), propertyValue.length());
+    Atom property = XInternAtom(tX11Info::display(), "_XSETTINGS_SETTINGS", true);
+    XChangeProperty(tX11Info::display(), d->settingsWindow, property, property, 8, PropModeReplace, reinterpret_cast<const unsigned char*>(propertyValue.constData()), propertyValue.length());
 }

@@ -19,20 +19,22 @@
  * *************************************/
 #include "desktopwm.h"
 
-#include <QDebug>
-#include <unistd.h>
-#include <pwd.h>
 #include "private/wmbackend.h"
+#include <QDebug>
+#include <pwd.h>
+#include <unistd.h>
 
 #ifdef HAVE_X11
     #include "x11/x11backend.h"
 #endif
 
-#include "wayland/waylandbackend.h"
+#ifdef HAVE_WAYLAND
+    #include "wayland/waylandbackend.h"
+#endif
 
 struct DesktopWmPrivate {
-    DesktopWm* dwmInstance = nullptr;
-    WmBackend* instance = nullptr;
+        DesktopWm* dwmInstance = nullptr;
+        WmBackend* instance = nullptr;
 };
 
 DesktopWmPrivate* DesktopWm::d = new DesktopWmPrivate();
@@ -155,17 +157,20 @@ void DesktopWm::registerAsPrimaryProvider() {
     d->instance->registerAsPrimaryProvider();
 }
 
-DesktopWm::DesktopWm() : QObject(nullptr) {
-    //Figure out the best backend to use
+DesktopWm::DesktopWm() :
+    QObject(nullptr) {
+    // Figure out the best backend to use
 #ifdef HAVE_X11
     if (X11Backend::isSuitable()) {
         d->instance = new X11Backend();
     }
 #endif
 
+#ifdef HAVE_WAYLAND
     if (WaylandBackend::isSuitable()) {
         d->instance = new WaylandBackend();
     }
+#endif
 
     if (d->instance) {
         connect(d->instance, &WmBackend::windowAdded, this, &DesktopWm::windowAdded);
@@ -176,7 +181,7 @@ DesktopWm::DesktopWm() : QObject(nullptr) {
         connect(d->instance, &WmBackend::grabbedKeyPressed, this, &DesktopWm::grabbedKeyPressed);
         connect(d->instance, &WmBackend::currentKeyboardLayoutChanged, this, &DesktopWm::currentKeyboardLayoutChanged);
     } else {
-        //No suitable backend is available
+        // No suitable backend is available
         qWarning() << "No suitable backend for DesktopWm";
     }
 }

@@ -19,18 +19,20 @@
  * *************************************/
 #include "screendaemon.h"
 
-#include <QDebug>
 #include "private/screenbackend.h"
+#include <QDebug>
 
 #ifdef HAVE_X11
     #include "x11/x11screenbackend.h"
 #endif
 
-#include "wayland/waylandscreenbackend.h"
+#ifdef HAVE_WAYLAND
+    #include "wayland/waylandscreenbackend.h"
+#endif
 
 struct ScreenDaemonPrivate {
-    ScreenDaemon* instance = nullptr;
-    ScreenBackend* backend = nullptr;
+        ScreenDaemon* instance = nullptr;
+        ScreenBackend* backend = nullptr;
 };
 
 ScreenDaemonPrivate* ScreenDaemon::d = new ScreenDaemonPrivate();
@@ -56,22 +58,25 @@ void ScreenDaemon::setDpi(int dpi) {
     d->backend->setDpi(dpi);
 }
 
-ScreenDaemon::ScreenDaemon() : QObject(nullptr) {
-    //Figure out the best backend to use
+ScreenDaemon::ScreenDaemon() :
+    QObject(nullptr) {
+    // Figure out the best backend to use
 #ifdef HAVE_X11
     if (X11ScreenBackend::isSuitable()) {
         d->backend = new X11ScreenBackend();
     }
 #endif
 
+#ifdef HAVE_WAYLAND
     if (WaylandScreenBackend::isSuitable()) {
         d->backend = new WaylandScreenBackend();
     }
+#endif
 
     if (d->backend) {
-        connect(d->backend, &X11ScreenBackend::screensUpdated, this, &ScreenDaemon::screensUpdated);
+        connect(d->backend, &ScreenBackend::screensUpdated, this, &ScreenDaemon::screensUpdated);
     } else {
-        //No suitable backend is available
+        // No suitable backend is available
         qWarning() << "No suitable backend for ScreenDaemon";
     }
 }

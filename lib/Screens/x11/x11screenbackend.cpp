@@ -19,25 +19,27 @@
  * *************************************/
 #include "x11screenbackend.h"
 
+#include "x11screen.h"
 #include <QApplication>
-#include <QX11Info>
+#include <tx11info.h>
+
 #include <X11/extensions/Xrandr.h>
 #include <xcb/randr.h>
-#include "x11screen.h"
 
 struct X11ScreenBackendPrivate {
-    QMap<RROutput, SystemScreen*> screens;
-    int randrEventBase, randrErrorBase;
+        QMap<RROutput, SystemScreen*> screens;
+        int randrEventBase, randrErrorBase;
 
-    int dpi = 96; //TODO: find a sensible default DPI for the primary monitor
+        int dpi = 96; // TODO: find a sensible default DPI for the primary monitor
 };
 
-X11ScreenBackend::X11ScreenBackend() : ScreenBackend() {
+X11ScreenBackend::X11ScreenBackend() :
+    ScreenBackend() {
     d = new X11ScreenBackendPrivate();
 
     if (this->isSuitable()) {
         qApp->installNativeEventFilter(this);
-        XRRQueryExtension(QX11Info::display(), &d->randrEventBase, &d->randrErrorBase);
+        XRRQueryExtension(tX11Info::display(), &d->randrEventBase, &d->randrErrorBase);
 
         this->updateDisplays();
     }
@@ -48,7 +50,7 @@ X11ScreenBackend::~X11ScreenBackend() {
 }
 
 bool X11ScreenBackend::isSuitable() {
-    return QX11Info::isPlatformX11();
+    return tX11Info::isPlatformX11();
 }
 
 QList<SystemScreen*> X11ScreenBackend::screens() {
@@ -73,26 +75,26 @@ void X11ScreenBackend::setDpi(int dpi) {
     for (SystemScreen* screen : this->screens()) {
         rect = rect.united(screen->geometry());
     }
-    XRRSetScreenSize(QX11Info::display(), QX11Info::appRootWindow(), rect.width(), rect.height(), qRound((25.4 * rect.width()) / dpi), qRound((25.4 * rect.height()) / dpi));
+    XRRSetScreenSize(tX11Info::display(), tX11Info::appRootWindow(), rect.width(), rect.height(), qRound((25.4 * rect.width()) / dpi), qRound((25.4 * rect.height()) / dpi));
 }
 
 void X11ScreenBackend::updateDisplays() {
-    //Update all the displays
+    // Update all the displays
     XRRMonitorInfo* monitorInfo;
     int monitorCount;
 
-    XRRScreenResources* resources = XRRGetScreenResources(QX11Info::display(), QX11Info::appRootWindow());
-    monitorInfo = XRRGetMonitors(QX11Info::display(), QX11Info::appRootWindow(), false, &monitorCount);
+    XRRScreenResources* resources = XRRGetScreenResources(tX11Info::display(), tX11Info::appRootWindow());
+    monitorInfo = XRRGetMonitors(tX11Info::display(), tX11Info::appRootWindow(), false, &monitorCount);
 
     for (int i = 0; i < resources->noutput; i++) {
         RROutput output = resources->outputs[i];
-        XRROutputInfo* newOutputInfo = XRRGetOutputInfo(QX11Info::display(), resources, resources->outputs[i]);
+        XRROutputInfo* newOutputInfo = XRRGetOutputInfo(tX11Info::display(), resources, resources->outputs[i]);
         if (newOutputInfo->connection == RR_Connected) {
-            //Make sure this output is available and update the information on it
+            // Make sure this output is available and update the information on it
             if (!d->screens.contains(output)) d->screens.insert(output, new X11Screen(output));
             static_cast<X11Screen*>(d->screens.value(output))->updateScreen();
         } else {
-            //Make sure this output is unavailable
+            // Make sure this output is unavailable
             if (d->screens.contains(output)) {
                 SystemScreen* screen = d->screens.value(output);
                 d->screens.remove(output);
@@ -106,13 +108,13 @@ void X11ScreenBackend::updateDisplays() {
     XRRFreeMonitors(monitorInfo);
 }
 
-bool X11ScreenBackend::nativeEventFilter(const QByteArray& eventType, void* message, long* result) {
+bool X11ScreenBackend::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) {
     Q_UNUSED(result)
 
     if (eventType == "xcb_generic_event_t") {
         xcb_generic_event_t* event = static_cast<xcb_generic_event_t*>(message);
         if (event->response_type == d->randrEventBase + XCB_RANDR_NOTIFY) {
-            //RandR has changed, update all the displays
+            // RandR has changed, update all the displays
             this->updateDisplays();
             emit screensUpdated();
         }
