@@ -22,59 +22,63 @@
 #include "qsettingsformats.h"
 #include <QDir>
 #include <QDirIterator>
-#include <QLocale>
-#include <QSet>
 #include <QFileSystemWatcher>
+#include <QIcon>
+#include <QLocale>
+#include <QPixmap>
 #include <QProcess>
 #include <QRegularExpression>
-#include <QPixmap>
-#include <QIcon>
+#include <QSet>
+#include <QtConcurrent>
 
 struct ApplicationDaemonPrivate {
-    QMap<QString, QString> desktopEntryLocations;
+        QMap<QString, QString> desktopEntryLocations;
 };
 
 struct ApplicationPrivate {
-    QSettings* appSettings = nullptr;
-    QVariantMap details;
+        QSettings* appSettings = nullptr;
+        QVariantMap details;
 
-    bool useSettings = false;
-    bool isValid = false;
-    QString desktopEntry;
-
-    struct ApplicationIconDescriptor {
+        bool useSettings = false;
+        bool isValid = false;
         QString desktopEntry;
-        QString action;
-        QSize size;
 
-        bool operator<(const ApplicationIconDescriptor& other) const {
-            if (this->desktopEntry == other.desktopEntry) {
-                if (this->action == other.action) {
-                    if (this->size.width() == other.size.width()) {
-                        return this->size.height() < other.size.height();
+        struct ApplicationIconDescriptor {
+                QString desktopEntry;
+                QString action;
+                QSize size;
+
+                bool operator<(const ApplicationIconDescriptor& other) const {
+                    if (this->desktopEntry == other.desktopEntry) {
+                        if (this->action == other.action) {
+                            if (this->size.width() == other.size.width()) {
+                                return this->size.height() < other.size.height();
+                            }
+                            return this->size.width() < other.size.width();
+                        }
+                        return this->action < other.action;
                     }
-                    return this->size.width() < other.size.width();
+                    return this->desktopEntry < other.desktopEntry;
+                };
+                bool operator==(const ApplicationIconDescriptor& other) const {
+                    return this->desktopEntry == other.desktopEntry && this->action == other.action && this->size == other.size;
                 }
-                return this->action < other.action;
-            }
-            return this->desktopEntry < other.desktopEntry;
         };
-        bool operator==(const ApplicationIconDescriptor& other) const {
-            return this->desktopEntry == other.desktopEntry && this->action == other.action && this->size == other.size;
-        }
-    };
-    static QMap<ApplicationIconDescriptor, QPixmap> iconCache;
+        static QMap<ApplicationIconDescriptor, QPixmap> iconCache;
 
-    static const QStringList searchPaths();
+        static const QStringList searchPaths();
+
+        static QRegularExpression quoteSplitRegex;
 };
 
 QMap<ApplicationPrivate::ApplicationIconDescriptor, QPixmap> ApplicationPrivate::iconCache = QMap<ApplicationPrivate::ApplicationIconDescriptor, QPixmap>();
+QRegularExpression ApplicationPrivate::quoteSplitRegex = QRegularExpression("\\s+(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
 
-//const QStringList ApplicationPrivate::searchPaths = {
-//    QDir::homePath() + "/.local/share/applications",
-//    "/usr/share/applications",
-//    "/var/lib/flatpak/exports/share/applications"
-//};
+// const QStringList ApplicationPrivate::searchPaths = {
+//     QDir::homePath() + "/.local/share/applications",
+//     "/usr/share/applications",
+//     "/var/lib/flatpak/exports/share/applications"
+// };
 
 Application::Application() {
     d = new ApplicationPrivate();
@@ -84,7 +88,7 @@ Application::Application(QString desktopEntry, QStringList searchPaths) {
     d = new ApplicationPrivate();
 
     if (ApplicationDaemon::instance()->d->desktopEntryLocations.contains(desktopEntry)) {
-        //Just use the cached path
+        // Just use the cached path
         d->appSettings = new QSettings(ApplicationDaemon::instance()->d->desktopEntryLocations.value(desktopEntry), QSettingsFormats::desktopFormat());
         d->desktopEntry = desktopEntry;
         d->useSettings = true;
@@ -99,13 +103,13 @@ Application::Application(QString desktopEntry, QStringList searchPaths) {
         while (iterator.hasNext()) {
             iterator.next();
             if (desktopEntry == iterator.fileInfo().completeBaseName()) {
-                //We found the file
+                // We found the file
                 d->appSettings = new QSettings(iterator.filePath(), QSettingsFormats::desktopFormat());
                 d->desktopEntry = desktopEntry;
                 d->useSettings = true;
                 d->isValid = true;
 
-                //Cache the path for next time
+                // Cache the path for next time
                 ApplicationDaemon::instance()->d->desktopEntryLocations.insert(desktopEntry, iterator.filePath());
                 return;
             }
@@ -134,11 +138,10 @@ bool Application::hasProperty(QString propertyName) const {
     QLocale locale;
     if (d->useSettings) d->appSettings->beginGroup("Desktop Entry");
 
-    //Check to see if there's a localised version of the property name
+    // Check to see if there's a localised version of the property name
     QString usedKey = propertyName;
     for (QString trialKey : {
-            "[" + locale.name() + "]", "[" + locale.name().split("_").first() + "]", QString("")
-        }) {
+             "[" + locale.name() + "]", "[" + locale.name().split("_").first() + "]", QString("")}) {
         QString test = propertyName + trialKey;
         if ((d->useSettings && d->appSettings->contains(test)) || (!d->useSettings && d->details.contains(test))) {
             if (d->useSettings) d->appSettings->endGroup();
@@ -156,11 +159,10 @@ QVariant Application::getProperty(QString propertyName, QVariant defaultValue) c
     QLocale locale;
     if (d->useSettings) d->appSettings->beginGroup("Desktop Entry");
 
-    //Check to see if there's a localised version of the property name
+    // Check to see if there's a localised version of the property name
     QString usedKey = propertyName;
     for (QString trialKey : {
-            "[" + locale.name() + "]", "[" + locale.name().split("_").first() + "]"
-        }) {
+             "[" + locale.name() + "]", "[" + locale.name().split("_").first() + "]"}) {
         QString test = propertyName + trialKey;
         if ((d->useSettings && d->appSettings->contains(test)) || (!d->useSettings && d->details.contains(test))) {
             usedKey = test;
@@ -168,7 +170,7 @@ QVariant Application::getProperty(QString propertyName, QVariant defaultValue) c
         }
     }
 
-    //Return the property
+    // Return the property
     QVariant retval = d->useSettings ? d->appSettings->value(usedKey, defaultValue) : d->details.value(usedKey, defaultValue);
     if (d->useSettings) d->appSettings->endGroup();
     return retval;
@@ -180,11 +182,10 @@ QVariant Application::getActionProperty(QString action, QString propertyName, QV
     QLocale locale;
     if (d->useSettings) d->appSettings->beginGroup("Desktop Action " + action);
 
-    //Check to see if there's a localised version of the property name
+    // Check to see if there's a localised version of the property name
     QString usedKey = propertyName;
     for (QString trialKey : {
-            "[" + locale.name() + "]", "[" + locale.name().split("_").first() + "]"
-        }) {
+             "[" + locale.name() + "]", "[" + locale.name().split("_").first() + "]"}) {
         QString test = propertyName + trialKey;
         if ((d->useSettings && d->appSettings->contains(test)) || (!d->useSettings && d->details.contains(test))) {
             usedKey = test;
@@ -192,7 +193,7 @@ QVariant Application::getActionProperty(QString action, QString propertyName, QV
         }
     }
 
-    //Return the property
+    // Return the property
     QVariant retval = d->useSettings ? d->appSettings->value(usedKey, defaultValue) : d->details.value(usedKey, defaultValue);
     if (d->useSettings) d->appSettings->endGroup();
     return retval;
@@ -238,26 +239,29 @@ void Application::launchAction(QString action) {
 }
 
 void Application::launchAction(QString action, QMap<QString, QString> replacements) {
-    //TODO: D-Bus Activation
+    // TODO: D-Bus Activation
 
     QString command;
     if (action.isEmpty()) {
-        command  = this->getProperty("Exec").toString();
+        command = this->getProperty("Exec").toString();
     } else {
         command = this->getActionProperty(action, "Exec").toString();
     }
 
-    QProcess* process = new QProcess();
+    auto* process = new QProcess();
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     if (env.contains("QT_WAYLAND_SHELL_INTEGRATION")) env.remove("QT_WAYLAND_SHELL_INTEGRATION");
     process->setProcessEnvironment(env);
 
-    QStringList commandSpace = command.split(" ", Qt::SkipEmptyParts);
+    QStringList commandSpace = QtConcurrent::blockingMapped(command.split(d->quoteSplitRegex, Qt::SkipEmptyParts), [=](QString cmd) {
+        if (cmd.startsWith("\"") && cmd.endsWith("\"")) return cmd.mid(1, cmd.length() - 2);
+        return cmd;
+    });
     QString finalCommand = commandSpace.takeFirst();
 
     if (!commandSpace.contains("%f") && !commandSpace.contains("%F") && !commandSpace.contains("%u") && !commandSpace.contains("%U")) {
-        //Add a %f to the end as a last ditch effort to open a file with this app
-        //It will be removed anyway if there's no file to be opened
+        // Add a %f to the end as a last ditch effort to open a file with this app
+        // It will be removed anyway if there's no file to be opened
         commandSpace.append("%f");
     }
 
@@ -284,14 +288,14 @@ void Application::launchAction(QString action, QMap<QString, QString> replacemen
     } else {
         process->start(finalCommand, commandSpace);
     }
-    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [ = ](int exitCode, QProcess::ExitStatus exitStatus) {
+    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), [=](int exitCode, QProcess::ExitStatus exitStatus) {
         process->deleteLater();
     });
-    QObject::connect(process, &QProcess::readyReadStandardError, [ = ] {
-        process->readAllStandardError(); //Discard stderr
+    QObject::connect(process, &QProcess::readyReadStandardError, [=] {
+        process->readAllStandardError(); // Discard stderr
     });
-    QObject::connect(process, &QProcess::readyReadStandardOutput, [ = ] {
-        process->readAllStandardOutput(); //Discard stdout
+    QObject::connect(process, &QProcess::readyReadStandardOutput, [=] {
+        process->readAllStandardOutput(); // Discard stdout
     });
 }
 
@@ -304,14 +308,13 @@ QPixmap Application::icon(QSize size, bool cache) {
 }
 
 QPixmap Application::icon(QSize size, QPixmap fallback, bool cache) {
-    //Make sure there is an instance of ApplicationDaemon
+    // Make sure there is an instance of ApplicationDaemon
     ApplicationDaemon::instance();
 
     ApplicationPrivate::ApplicationIconDescriptor descriptor = {
         d->desktopEntry,
         "",
-        size
-    };
+        size};
 
     if (d->iconCache.contains(descriptor)) return d->iconCache.value(descriptor);
     QString iconName = this->getProperty("Icon").toString();
@@ -331,14 +334,13 @@ QPixmap Application::actionIcon(QString action, QSize size, bool cache) {
 }
 
 QPixmap Application::actionIcon(QString action, QSize size, QPixmap fallback, bool cache) {
-    //Make sure there is an instance of ApplicationDaemon
+    // Make sure there is an instance of ApplicationDaemon
     ApplicationDaemon::instance();
 
     ApplicationPrivate::ApplicationIconDescriptor descriptor = {
         d->desktopEntry,
         action,
-        size
-    };
+        size};
 
     if (d->iconCache.contains(descriptor)) return d->iconCache.value(descriptor);
     QString iconName = this->getActionProperty(action, "Icon").toString();
@@ -349,18 +351,19 @@ QPixmap Application::actionIcon(QString action, QSize size, QPixmap fallback, bo
     return pixmap;
 }
 
-ApplicationDaemon::ApplicationDaemon() : QObject(nullptr) {
+ApplicationDaemon::ApplicationDaemon() :
+    QObject(nullptr) {
     d = new ApplicationDaemonPrivate();
 
     QFileSystemWatcher* watcher = new QFileSystemWatcher();
     watcher->addPaths(ApplicationPrivate::searchPaths());
     connect(watcher, &QFileSystemWatcher::directoryChanged, this, &ApplicationDaemon::appsUpdateRequired);
     connect(watcher, &QFileSystemWatcher::fileChanged, this, &ApplicationDaemon::appsUpdateRequired);
-    connect(watcher, &QFileSystemWatcher::fileChanged, this, [ = ] {
+    connect(watcher, &QFileSystemWatcher::fileChanged, this, [=] {
         ApplicationPrivate::iconCache.clear();
     });
 
-    connect(this, &ApplicationDaemon::appsUpdateRequired, this, [ = ] {
+    connect(this, &ApplicationDaemon::appsUpdateRequired, this, [=] {
         d->desktopEntryLocations.clear();
     });
 }
