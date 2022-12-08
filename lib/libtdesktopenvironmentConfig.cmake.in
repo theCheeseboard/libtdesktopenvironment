@@ -4,6 +4,8 @@ set(libtdesktopenvironment_VERSION 1.0.0)
 
 include("${CMAKE_CURRENT_LIST_DIR}/libtdesktopenvironmentTargets.cmake")
 
+find_package(Qt6 REQUIRED Concurrent)
+
 check_required_components(libtdesktopenvironment)
 cntp_find_pkgconfig(X11 x11)
 cntp_find_pkgconfig(X11_SCRNSAVER xscrnsaver)

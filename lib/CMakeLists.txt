@@ -94,7 +94,7 @@ set_target_properties(libtdesktopenvironment PROPERTIES
         FRAMEWORK TRUE
         MACOSX_FRAMEWORK_IDENTIFIER com.vicr123.libtdesktopenvironment
         VERSION 1.0.0
-        PUBLIC_HEADER "${HEADERS}")
+)
 
 target_link_libraries(libtdesktopenvironment Qt6::Widgets Qt6::DBus Qt6::Multimedia Qt6::Concurrent libcontemporary)
 target_compile_definitions(libtdesktopenvironment PRIVATE LIBTDESKTOPENVIRONMENT_LIBRARY)
