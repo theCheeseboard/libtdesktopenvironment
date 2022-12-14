@@ -43,6 +43,10 @@ void LoginGreeter::setSessions(QMenu* sessions) {
     d->sessions = sessions;
 }
 
+QString LoginGreeter::selectedSession() {
+    return d->defaultSession;
+}
+
 void LoginGreeter::init(QString displayName, QString userName, bool isUnlock, QString defaultSession) {
     for (auto pane : d->panes) {
         ui->stackedWidget->removeWidget(pane);
@@ -122,4 +126,5 @@ void LoginGreeter::reset() {
 }
 
 void LoginGreeter::changeSession(QString session) {
+    d->defaultSession = session;
 }

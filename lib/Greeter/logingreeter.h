@@ -16,6 +16,7 @@ class LoginGreeter : public QWidget {
         ~LoginGreeter();
 
         void setSessions(QMenu* sessions);
+        QString selectedSession();
 
         void init(QString displayName, QString userName, bool isUnlock, QString defaultSession);
         void showPrompt(QString prompt, bool echo);
