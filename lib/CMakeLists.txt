@@ -42,6 +42,10 @@ set(SOURCES
     mpris/mprisengine.cpp
     mpris/mprisplayer.cpp
     theShellIntegration/quietmodemanager.cpp
+    Greeter/passwordpane.cpp Greeter/passwordpane.ui
+    Greeter/readypane.cpp Greeter/readypane.ui
+    Greeter/logingreeter.cpp Greeter/logingreeter.ui
+    Greeter/messagepane.cpp Greeter/messagepane.ui
     
     libtdesktopenvironment_resources.qrc
     
@@ -76,6 +80,10 @@ set(HEADERS
     mpris/mprisengine.h
     mpris/mprisplayer.h
     theShellIntegration/quietmodemanager.h
+    Greeter/passwordpane.h
+    Greeter/readypane.h
+    Greeter/logingreeter.h
+    Greeter/messagepane.h
 )
 
 set(PRIVATE_HEADERS
