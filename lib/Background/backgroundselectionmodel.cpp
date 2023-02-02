@@ -19,24 +19,24 @@
  * *************************************/
 #include "backgroundselectionmodel.h"
 
-#include <QPainter>
 #include "backgroundcontroller.h"
+#include <QPainter>
 
 struct BackgroundSelectionModelPrivate {
-    BackgroundController* bg;
+        BackgroundController* bg;
 
-    QMap<int, QPixmap> px;
-    QList<int> loadingPx;
+        QMap<int, QPixmap> px;
+        QList<int> loadingPx;
 
-    int oldRowCount = 0;
+        int oldRowCount = 0;
 };
 
-BackgroundSelectionModel::BackgroundSelectionModel(QObject* parent)
-    : QAbstractListModel(parent) {
+BackgroundSelectionModel::BackgroundSelectionModel(QObject* parent) :
+    QAbstractListModel(parent) {
     d = new BackgroundSelectionModelPrivate();
     d->bg = new BackgroundController(BackgroundController::Desktop);
     connect(d->bg, &BackgroundController::currentBackgroundChanged, this, &BackgroundSelectionModel::emitDataChanged);
-    connect(d->bg, &BackgroundController::availableWallpapersChanged, this, [ = ](int newWallpapers) {
+    connect(d->bg, &BackgroundController::availableWallpapersChanged, this, [=](int newWallpapers) {
         beginInsertRows(QModelIndex(), d->oldRowCount, d->oldRowCount + newWallpapers);
         endInsertRows();
     });
@@ -87,7 +87,7 @@ QVariant BackgroundSelectionModel::data(const QModelIndex& index, int role) cons
                 d->px.insert(index.row(), communityPx);
                 return communityPx;
             } else {
-                d->bg->getBackground(bgName, SC_DPI_T(QSize(213, 120), QSize))->then([ = ](BackgroundController::BackgroundData data) {
+                d->bg->getBackground(bgName, SC_DPI_T(QSize(213, 120), QSize)).then([=](BackgroundController::BackgroundData data) {
                     d->px.insert(index.row(), data.px);
                     QTimer::singleShot(0, this, &BackgroundSelectionModel::emitDataChanged);
                 });
@@ -108,8 +108,8 @@ void BackgroundSelectionModel::emitDataChanged() {
     emit dataChanged(index(0), index(rowCount()));
 }
 
-BackgroundSelectionDelegate::BackgroundSelectionDelegate() : QStyledItemDelegate(nullptr) {
-
+BackgroundSelectionDelegate::BackgroundSelectionDelegate() :
+    QStyledItemDelegate(nullptr) {
 }
 
 void BackgroundSelectionDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {

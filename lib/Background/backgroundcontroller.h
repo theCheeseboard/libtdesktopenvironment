@@ -20,6 +20,7 @@
 #ifndef BACKGROUNDCONTROLLER_H
 #define BACKGROUNDCONTROLLER_H
 
+#include <QCoroTask>
 #include <QObject>
 #include <tpromise.h>
 
@@ -43,19 +44,19 @@ class BackgroundController : public QObject {
         };
 
         struct BackgroundData {
-            QPixmap px;
-            bool extendedInfoAvailable = false;
+                QPixmap px;
+                bool extendedInfoAvailable = false;
 
-            QString name;
-            QString location;
-            QString author;
+                QString name;
+                QString location;
+                QString author;
         };
 
         explicit BackgroundController(BackgroundType type, QObject* parent = nullptr);
         ~BackgroundController();
 
-        tPromise<BackgroundData>* getCurrentBackground(QSize screenSize);
-        tPromise<BackgroundData>* getBackground(QString backgroundName, QSize screenSize);
+        QCoro::Task<BackgroundData> getCurrentBackground(QSize screenSize);
+        QCoro::Task<BackgroundData> getBackground(QString backgroundName, QSize screenSize);
         QStringList availableBackgrounds();
 
         void setBackground(QString backgroundName, BackgroundType type);
@@ -80,11 +81,17 @@ class BackgroundController : public QObject {
 
         void timerEvent(QTimerEvent* event);
 
-        tPromise<QNetworkReply*>* get(QString path);
-        tPromise<void>* getNewCommunityBackground();
-        tPromise<BackgroundData>* getCurrentCommunityBackground();
+        QNetworkReply* get(QString path);
+        QCoro::Task<> getNewCommunityBackground();
+        QCoro::Task<BackgroundData> getCurrentCommunityBackground();
         uint communityBackgroundPeriod();
-        tPromise<QStringList>* searchWallpapers(QString searchPath);
+        QCoro::Task<QStringList> searchWallpapers(QString searchPath);
+};
+
+class BackgroundException : public QException {
+    public:
+        void raise() const override { throw *this; }
+        BackgroundException* clone() const override { return new BackgroundException(*this); }
 };
 
 #endif // BACKGROUNDCONTROLLER_H

@@ -21,54 +21,54 @@
 #include "ui_systemslide.h"
 
 #include <QIcon>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QPointer>
-#include <tpropertyanimation.h>
 #include <QTimer>
-#include <QMouseEvent>
+#include <tpropertyanimation.h>
 
 #include "private/slidehud.h"
-#include "private/slidequicksettings.h"
 #include "private/slidepulseaudiomonitor.h"
+#include "private/slidequicksettings.h"
 
+#include "../Background/backgroundcontroller.h"
 #include "../TimeDate/desktoptimedate.h"
 #include "../UPower/desktopupower.h"
-#include "../Background/backgroundcontroller.h"
 #include "../theShellIntegration/quietmodemanager.h"
 
 #include "fft-real/src/FFTRealFixLen.h"
 
 struct SystemSlidePrivate {
-    SlideHud* hud;
-    SlideQuickSettings* quickSettings;
-    SlidePulseaudioMonitor* pulseMonitor;
-    QWidget* coverWidget;
-    QWidget* sideWidget = nullptr;
-    QPointer<QWidget> dragResult;
+        SlideHud* hud;
+        SlideQuickSettings* quickSettings;
+        SlidePulseaudioMonitor* pulseMonitor;
+        QWidget* coverWidget;
+        QWidget* sideWidget = nullptr;
+        QPointer<QWidget> dragResult;
 
-    SystemSlide::BackgroundMode bgMode;
-    DesktopUPower* upower;
-    QuietModeManager* quietmode;
+        SystemSlide::BackgroundMode bgMode;
+        DesktopUPower* upower;
+        QuietModeManager* quietmode;
 
-    bool active = true;
-    bool quickSettingsShown = false;
+        bool active = true;
+        bool quickSettingsShown = false;
 
-    static BackgroundController* bg;
-    bool retrieving = false;
-    bool retrieveAgain = false;
-    BackgroundController::BackgroundData background;
+        static BackgroundController* bg;
+        bool retrieving = false;
+        bool retrieveAgain = false;
+        BackgroundController::BackgroundData background;
 
-    float fftVisPoints[128];
-    ffft::FFTRealFixLen<10> fft;
+        float fftVisPoints[128];
+        ffft::FFTRealFixLen<10> fft;
 
-    QTimer* draggingTimer;
-    int dragging = -1;
-    int lastY = -1;
-    int currentY = -1;
-    int speed = 0;
+        QTimer* draggingTimer;
+        int dragging = -1;
+        int lastY = -1;
+        int currentY = -1;
+        int speed = 0;
 
-    int deactivateSpeedThreshold = 10;
-    bool deactivateOnClick = true;
+        int deactivateSpeedThreshold = 10;
+        bool deactivateOnClick = true;
 };
 
 BackgroundController* SystemSlidePrivate::bg = nullptr;
@@ -124,7 +124,7 @@ SystemSlide::SystemSlide(QWidget* parent) :
 
     d->draggingTimer = new QTimer(this);
     d->draggingTimer->setInterval(50);
-    connect(d->draggingTimer, &QTimer::timeout, this, [ = ] {
+    connect(d->draggingTimer, &QTimer::timeout, this, [=] {
         d->speed = d->lastY - d->currentY;
         d->lastY = d->currentY;
     });
@@ -171,7 +171,7 @@ void SystemSlide::setBackgroundMode(SystemSlide::BackgroundMode mode) {
     }
 
     connect(d->bg, &BackgroundController::currentBackgroundChanged, this, &SystemSlide::backgroundChanged);
-    connect(d->bg, &BackgroundController::shouldShowCommunityLabelsChanged, this, [ = ] {
+    connect(d->bg, &BackgroundController::shouldShowCommunityLabelsChanged, this, [=] {
         if (d->bg->currentBackgroundName(BackgroundController::Desktop) == "community") this->backgroundChanged();
     });
     connect(d->bg, &BackgroundController::stretchTypeChanged, this, &SystemSlide::backgroundChanged);
@@ -191,7 +191,7 @@ void SystemSlide::activate() {
     anim->setDuration(500);
     anim->setEasingCurve(QEasingCurve::OutCubic);
     anim->start();
-    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+    connect(anim, &tVariantAnimation::valueChanged, this, [=](QVariant value) {
         d->hud->move(0, value.toInt());
     });
     connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
@@ -209,7 +209,7 @@ void SystemSlide::deactivate() {
     anim->setDuration(500);
     anim->setEasingCurve(QEasingCurve::OutCubic);
     anim->start();
-    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+    connect(anim, &tVariantAnimation::valueChanged, this, [=](QVariant value) {
         d->hud->move(0, value.toInt());
     });
     connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
@@ -251,49 +251,51 @@ void SystemSlide::upowerStateChanged() {
 }
 
 void SystemSlide::quietModeStateChanged() {
-    d->quietmode->quietMode()->then([ = ](QuietModeManager::QuietMode quietMode) {
-        if (quietMode == QuietModeManager::None) {
-            ui->quietmodePane->setVisible(false);
-        } else {
-            QIcon icon;
-            QString description;
-            switch (quietMode) {
-                case QuietModeManager::Critical:
-                    icon = QIcon::fromTheme("quiet-mode-critical-only");
-                    description = tr("Critical Only");
-                    break;
-                case QuietModeManager::Notifications:
-                    icon = QIcon::fromTheme("quiet-mode");
-                    description = tr("No Notifications");
-                    break;
-                case QuietModeManager::Mute:
-                    icon = QIcon::fromTheme("audio-volume-muted");
-                    description = tr("Mute");
-                    break;
-                default:
-                    break;
-            }
+    d->quietmode->quietMode()->then([=](QuietModeManager::QuietMode quietMode) {
+                                 if (quietMode == QuietModeManager::None) {
+                                     ui->quietmodePane->setVisible(false);
+                                 } else {
+                                     QIcon icon;
+                                     QString description;
+                                     switch (quietMode) {
+                                         case QuietModeManager::Critical:
+                                             icon = QIcon::fromTheme("quiet-mode-critical-only");
+                                             description = tr("Critical Only");
+                                             break;
+                                         case QuietModeManager::Notifications:
+                                             icon = QIcon::fromTheme("quiet-mode");
+                                             description = tr("No Notifications");
+                                             break;
+                                         case QuietModeManager::Mute:
+                                             icon = QIcon::fromTheme("audio-volume-muted");
+                                             description = tr("Mute");
+                                             break;
+                                         default:
+                                             break;
+                                     }
 
-            ui->quietmodeIcon->setPixmap(icon.pixmap(SC_DPI_T(QSize(16, 16), QSize)));
-            ui->quietmodeLabel->setText(description);
-            ui->quietmodePane->setVisible(true);
-        }
-    })->error([ = ](QString error) {
-        ui->quietmodePane->setVisible(false);
-    });
+                                     ui->quietmodeIcon->setPixmap(icon.pixmap(SC_DPI_T(QSize(16, 16), QSize)));
+                                     ui->quietmodeLabel->setText(description);
+                                     ui->quietmodePane->setVisible(true);
+                                 }
+                             })
+        ->error([=](QString error) {
+            ui->quietmodePane->setVisible(false);
+        });
 }
 
-void SystemSlide::backgroundChanged() {
-    if (d->bgMode != DesktopBackground && d->bgMode != LockScreenBackground && d->bgMode != CommunityBackground) return;
+QCoro::Task<> SystemSlide::backgroundChanged() {
+    if (d->bgMode != DesktopBackground && d->bgMode != LockScreenBackground && d->bgMode != CommunityBackground) co_return;
 
     if (d->retrieving) {
         d->retrieveAgain = true;
-        return;
+        co_return;
     }
 
     d->retrieving = true;
 
-    d->bg->getCurrentBackground(this->size())->then([ = ](BackgroundController::BackgroundData data) {
+    try {
+        auto data = co_await d->bg->getCurrentBackground(this->size());
         d->background = data;
 
         if (d->background.extendedInfoAvailable) {
@@ -304,17 +306,16 @@ void SystemSlide::backgroundChanged() {
                 ui->backgroundTitleLabel->setVisible(true);
             }
 
-
             if (!data.location.isEmpty()) {
-//                painter.setFont(QFont(this->font().family(), 10));
-//                QIcon locationIcon = QIcon::fromTheme("gps");
-//                int height = painter.fontMetrics().height();
-//                int width = painter.fontMetrics().horizontalAdvance(data.location) + height;
+                //                painter.setFont(QFont(this->font().family(), 10));
+                //                QIcon locationIcon = QIcon::fromTheme("gps");
+                //                int height = painter.fontMetrics().height();
+                //                int width = painter.fontMetrics().horizontalAdvance(data.location) + height;
 
-//                painter.drawPixmap(currentX, baselineY - height, locationIcon.pixmap(SC_DPI_T(QSize(16, 16), QSize)));
-//                painter.drawText(currentX + height + SC_DPI(6), baselineY - painter.fontMetrics().descent(), data.location);
+                //                painter.drawPixmap(currentX, baselineY - height, locationIcon.pixmap(SC_DPI_T(QSize(16, 16), QSize)));
+                //                painter.drawText(currentX + height + SC_DPI(6), baselineY - painter.fontMetrics().descent(), data.location);
 
-//                currentX += width + SC_DPI(20);
+                //                currentX += width + SC_DPI(20);
             }
 
             if (data.author.isEmpty()) {
@@ -337,20 +338,20 @@ void SystemSlide::backgroundChanged() {
             d->retrieveAgain = false;
             this->backgroundChanged();
         }
-    })->error([ = ](QString error) {
+    } catch (BackgroundException ex) {
         d->retrieving = false;
         if (d->retrieveAgain) {
             d->retrieveAgain = false;
             this->backgroundChanged();
         }
-    });
+    }
 }
 
 void SystemSlide::pulseAudioDataAvailable(const float* data, int length) {
     float ftPoints[1024];
     d->fft.do_fft(ftPoints, data);
 
-    //Rescale each point
+    // Rescale each point
     float maxData = data[0];
     float maxFt = ftPoints[0];
     for (int i = 0; i < 1024; i++) {
@@ -365,14 +366,14 @@ void SystemSlide::pulseAudioDataAvailable(const float* data, int length) {
         ftPoints[i] *= maxData;
     }
 
-    //Put them into baskets
+    // Put them into baskets
     for (int i = 0; i < 32; i++) {
         float newValue = ftPoints[i * 32];
         d->fftVisPoints[i * 4] -= 0.02f;
         if (d->fftVisPoints[i * 4] < newValue) d->fftVisPoints[i * 4] = newValue;
     }
 
-    //Interpolate the other baskets
+    // Interpolate the other baskets
     for (int i = 0; i < 128; i++) {
         if (i % 4 == 0) continue;
 
@@ -390,35 +391,35 @@ void SystemSlide::pulseAudioDataAvailable(const float* data, int length) {
 }
 
 void SystemSlide::showQuickSettings() {
-//    if (d->quickSettingsShown) return;
-//    d->quickSettingsShown = true;
+    //    if (d->quickSettingsShown) return;
+    //    d->quickSettingsShown = true;
 
-//    tVariantAnimation* anim = new tVariantAnimation();
-//    anim->setStartValue(d->quickSettings->y());
-//    anim->setEndValue(0);
-//    anim->setDuration(500);
-//    anim->setEasingCurve(QEasingCurve::OutCubic);
-//    anim->start();
-//    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
-//        d->quickSettings->move(0, value.toInt());
-//    });
-//    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
+    //    tVariantAnimation* anim = new tVariantAnimation();
+    //    anim->setStartValue(d->quickSettings->y());
+    //    anim->setEndValue(0);
+    //    anim->setDuration(500);
+    //    anim->setEasingCurve(QEasingCurve::OutCubic);
+    //    anim->start();
+    //    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+    //        d->quickSettings->move(0, value.toInt());
+    //    });
+    //    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
 }
 
 void SystemSlide::hideQuickSettings() {
-//    if (!d->quickSettingsShown) return;
-//    d->quickSettingsShown = false;
+    //    if (!d->quickSettingsShown) return;
+    //    d->quickSettingsShown = false;
 
-//    tVariantAnimation* anim = new tVariantAnimation();
-//    anim->setStartValue(d->quickSettings->y());
-//    anim->setEndValue(-d->quickSettings->height());
-//    anim->setDuration(500);
-//    anim->setEasingCurve(QEasingCurve::OutCubic);
-//    anim->start();
-//    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
-//        d->quickSettings->move(0, value.toInt());
-//    });
-//    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
+    //    tVariantAnimation* anim = new tVariantAnimation();
+    //    anim->setStartValue(d->quickSettings->y());
+    //    anim->setEndValue(-d->quickSettings->height());
+    //    anim->setDuration(500);
+    //    anim->setEasingCurve(QEasingCurve::OutCubic);
+    //    anim->start();
+    //    connect(anim, &tVariantAnimation::valueChanged, this, [ = ](QVariant value) {
+    //        d->quickSettings->move(0, value.toInt());
+    //    });
+    //    connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
 }
 
 void SystemSlide::resizeEvent(QResizeEvent* event) {
@@ -522,4 +523,3 @@ void SystemSlide::mouseReleaseEvent(QMouseEvent* event) {
     d->draggingTimer->stop();
     d->dragging = -1;
 }
-

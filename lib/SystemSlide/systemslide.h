@@ -20,6 +20,7 @@
 #ifndef SYSTEMSLIDE_H
 #define SYSTEMSLIDE_H
 
+#include <QCoroTask>
 #include <QWidget>
 
 namespace Ui {
@@ -69,7 +70,7 @@ class SystemSlide : public QWidget {
 
         void upowerStateChanged();
         void quietModeStateChanged();
-        void backgroundChanged();
+        QCoro::Task<> backgroundChanged();
 
         void pulseAudioDataAvailable(const float* data, int length);
 

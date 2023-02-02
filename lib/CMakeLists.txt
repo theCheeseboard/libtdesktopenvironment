@@ -96,7 +96,7 @@ set(PRIVATE_HEADERS
 )
 
 add_library(libtdesktopenvironment SHARED)
-cntp_init(libtdesktopenvironment 17)
+cntp_init(libtdesktopenvironment 20)
 set_target_properties(libtdesktopenvironment PROPERTIES
         OUTPUT_NAME tdesktopenvironment
         FRAMEWORK TRUE
