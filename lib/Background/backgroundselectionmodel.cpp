@@ -36,7 +36,7 @@ BackgroundSelectionModel::BackgroundSelectionModel(QObject* parent) :
     d = new BackgroundSelectionModelPrivate();
     d->bg = new BackgroundController(BackgroundController::Desktop);
     connect(d->bg, &BackgroundController::currentBackgroundChanged, this, &BackgroundSelectionModel::emitDataChanged);
-    connect(d->bg, &BackgroundController::availableWallpapersChanged, this, [=](int newWallpapers) {
+    connect(d->bg, &BackgroundController::availableWallpapersChanged, this, [this](int newWallpapers) {
         beginInsertRows(QModelIndex(), d->oldRowCount, d->oldRowCount + newWallpapers);
         endInsertRows();
     });
@@ -87,7 +87,7 @@ QVariant BackgroundSelectionModel::data(const QModelIndex& index, int role) cons
                 d->px.insert(index.row(), communityPx);
                 return communityPx;
             } else {
-                d->bg->getBackground(bgName, SC_DPI_T(QSize(213, 120), QSize)).then([=](BackgroundController::BackgroundData data) {
+                d->bg->getBackground(bgName, SC_DPI_T(QSize(213, 120), QSize)).then([this, index](BackgroundController::BackgroundData data) {
                     d->px.insert(index.row(), data.px);
                     QTimer::singleShot(0, this, &BackgroundSelectionModel::emitDataChanged);
                 });

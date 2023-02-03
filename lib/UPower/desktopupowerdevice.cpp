@@ -45,7 +45,7 @@ DesktopUPowerDevice::DesktopUPowerDevice(QDBusObjectPath path, QObject* parent) 
     d->interface = new QDBusInterface("org.freedesktop.UPower", path.path(), "org.freedesktop.UPower.Device", QDBusConnection::systemBus());
     QDBusConnection::systemBus().connect("org.freedesktop.UPower", path.path(), "org.freedesktop.DBus.Properties", "PropertiesChanged", this, SIGNAL(propertiesUpdated()));
 
-    connect(this, &DesktopUPowerDevice::propertiesUpdated, this, [=] {
+    connect(this, &DesktopUPowerDevice::propertiesUpdated, this, [this] {
         if (this->type() == Battery) {
             DeviceState state = this->state();
             if (d->oldState != Charging && state == Charging) {

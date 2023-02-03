@@ -363,7 +363,7 @@ ApplicationDaemon::ApplicationDaemon() :
         ApplicationPrivate::iconCache.clear();
     });
 
-    connect(this, &ApplicationDaemon::appsUpdateRequired, this, [=] {
+    connect(this, &ApplicationDaemon::appsUpdateRequired, this, [this] {
         d->desktopEntryLocations.clear();
     });
 }

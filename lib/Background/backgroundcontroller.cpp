@@ -76,7 +76,7 @@ QCoro::Task<BackgroundController::BackgroundData> BackgroundController::getBackg
     BackgroundData data;
     data.px = QPixmap(screenSize);
 
-    auto drawBackground = [=](QPixmap pixmap) {
+    auto drawBackground = [this](QPixmap pixmap) {
         QPixmap newPixmap(screenSize);
 
         QPainter painter(&newPixmap);

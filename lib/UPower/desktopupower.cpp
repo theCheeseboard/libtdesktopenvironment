@@ -19,34 +19,35 @@
  * *************************************/
 #include "desktopupower.h"
 
+#include "desktopupowerdevice.h"
 #include <QDBusArgument>
 #include <QDBusInterface>
 #include <QDBusPendingCall>
 #include <QDBusPendingCallWatcher>
 #include <QIcon>
-#include "desktopupowerdevice.h"
 
 struct DesktopUPowerPrivate {
-    QDBusInterface* interface;
-    QDBusInterface* tsInterface;
+        QDBusInterface* interface;
+        QDBusInterface* tsInterface;
 
-    QMap<QDBusObjectPath, DesktopUPowerDevice*> devices;
-    bool powerStretch = false;
+        QMap<QDBusObjectPath, DesktopUPowerDevice*> devices;
+        bool powerStretch = false;
 };
 
-DesktopUPower::DesktopUPower(QObject* parent) : QObject(parent) {
+DesktopUPower::DesktopUPower(QObject* parent) :
+    QObject(parent) {
     d = new DesktopUPowerPrivate();
     d->interface = new QDBusInterface("org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower", QDBusConnection::systemBus());
     d->tsInterface = new QDBusInterface("org.thesuite.theShell", "/org/thesuite/Power", "org.thesuite.Power");
 
     QDBusPendingCallWatcher* devices = new QDBusPendingCallWatcher(d->interface->asyncCall("EnumerateDevices"));
-    connect(devices, &QDBusPendingCallWatcher::finished, this, [ = ] {
+    connect(devices, &QDBusPendingCallWatcher::finished, this, [this, devices] {
         QDBusArgument arg = devices->reply().arguments().first().value<QDBusArgument>();
         QList<QDBusObjectPath> paths;
         arg >> paths;
 
         for (QDBusObjectPath path : paths) {
-            //Add the device
+            // Add the device
             this->deviceAdded(path);
         }
         emit devicesChanged();
@@ -54,7 +55,7 @@ DesktopUPower::DesktopUPower(QObject* parent) : QObject(parent) {
 
     QDBusConnection::sessionBus().connect("org.thesuite.theshell", "/org/thesuite/Power", "org.thesuite.Power", "powerStretchChanged", this, SIGNAL(powerStretchChanged(bool)));
     QDBusPendingCallWatcher* powerStretch = new QDBusPendingCallWatcher(d->tsInterface->asyncCall("powerStretch"));
-    connect(powerStretch, &QDBusPendingCallWatcher::finished, this, [ = ] {
+    connect(powerStretch, &QDBusPendingCallWatcher::finished, this, [this, powerStretch] {
         QDBusMessage msg = powerStretch->reply();
         if (msg.type() != QDBusMessage::ErrorMessage) {
             d->powerStretch = powerStretch->reply().arguments().first().toBool();

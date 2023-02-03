@@ -86,7 +86,7 @@ X11Backend::X11Backend() :
         addWindow(window);
     }
 
-    d->propertyChangeEvents.insert("_NET_CLIENT_LIST", [=] {
+    d->propertyChangeEvents.insert("_NET_CLIENT_LIST", [this] {
         TX11::WindowPropertyPtr<Window> newWindowList = TX11::getRootWindowProperty<Window>("_NET_CLIENT_LIST", XA_WINDOW);
 
         // Find out which windows no longer exist
@@ -110,16 +110,16 @@ X11Backend::X11Backend() :
             }
         }
     });
-    d->propertyChangeEvents.insert("_NET_ACTIVE_WINDOW", [=] {
+    d->propertyChangeEvents.insert("_NET_ACTIVE_WINDOW", [this] {
         emit activeWindowChanged();
     });
-    d->propertyChangeEvents.insert("_NET_NUMBER_OF_DESKTOPS", [=] {
+    d->propertyChangeEvents.insert("_NET_NUMBER_OF_DESKTOPS", [this] {
         emit desktopCountChanged();
     });
-    d->propertyChangeEvents.insert("_NET_DESKTOP_NAMES", [=] {
+    d->propertyChangeEvents.insert("_NET_DESKTOP_NAMES", [this] {
         emit desktopCountChanged();
     });
-    d->propertyChangeEvents.insert("_NET_CURRENT_DESKTOP", [=] {
+    d->propertyChangeEvents.insert("_NET_CURRENT_DESKTOP", [this] {
         emit currentDesktopChanged();
     });
 
@@ -160,7 +160,7 @@ QList<DesktopWmWindowPtr> X11Backend::openWindows() {
 void X11Backend::addWindow(Window window) {
     X11WindowPtr w(new X11Window(window));
     emit windowAdded(w.data());
-    connect(w, &X11Window::destroyed, this, [=] {
+    connect(w, &X11Window::destroyed, this, [this] {
         d->windows.remove(window);
     });
     d->windows.insert(window, w);

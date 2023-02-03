@@ -19,55 +19,56 @@
  * *************************************/
 #include "desktoptimedate.h"
 
-#include <QLocale>
 #include <QDateTime>
+#include <QLabel>
+#include <QLocale>
 #include <QSettings>
 #include <QTimer>
-#include <QLabel>
 #include <tlocale.h>
 
 struct DesktopTimeDatePrivate {
-    QMap<QLabel*, DesktopTimeDate::StringType> updates;
-    QTimer* updateTimer = nullptr;
+        QMap<QLabel*, DesktopTimeDate::StringType> updates;
+        QTimer* updateTimer = nullptr;
 };
 
 DesktopTimeDatePrivate* DesktopTimeDate::d = new DesktopTimeDatePrivate();
 
 QString DesktopTimeDate::timeString(QDateTime d, DesktopTimeDate::StringType type) {
-//    QSettings settings("theSuite", "theShell");
-//    bool use24Hour = settings.value("time/use24hour", true).toBool();
+    //    QSettings settings("theSuite", "theShell");
+    //    bool use24Hour = settings.value("time/use24hour", true).toBool();
 
     QLocale loc = tLocale::timeLocale();
 
     QString amPm;
-//    if (!use24Hour) {
-//        if (d.time().hour() > 12) {
-//            amPm = loc.pmText();
-//            d = d.addSecs(-43200);
-//        } else if (d.time().hour() == 12) {
-//            amPm = loc.pmText();
-//        } else if (d.time().hour() == 0) {
-//            amPm = loc.amText();
-//            d = d.addSecs(43200);
-//        } else {
-//            amPm = loc.amText();
-//        }
-//    }
+    //    if (!use24Hour) {
+    //        if (d.time().hour() > 12) {
+    //            amPm = loc.pmText();
+    //            d = d.addSecs(-43200);
+    //        } else if (d.time().hour() == 12) {
+    //            amPm = loc.pmText();
+    //        } else if (d.time().hour() == 0) {
+    //            amPm = loc.amText();
+    //            d = d.addSecs(43200);
+    //        } else {
+    //            amPm = loc.amText();
+    //        }
+    //    }
 
     switch (type) {
         case FullTime:
-//            if (use24Hour) {
-//                return d.time().toString("HH:mm:ss");
-//            } else {
-//                return (d.time().toString("hh:mm:ss") + amPm);
-//            }
+            //            if (use24Hour) {
+            //                return d.time().toString("HH:mm:ss");
+            //            } else {
+            //                return (d.time().toString("hh:mm:ss") + amPm);
+            //            }
             return loc.toString(d.time(), QLocale::ShortFormat);
         case Time:
             return d.time().toString("HH:mm:ss");
         case AmPm:
             return amPm.toLower();
         case StandardDate:
-//            return loc.toString(d, tr("ddd dd MMM yyyy"));
+        default:
+            //            return loc.toString(d, tr("ddd dd MMM yyyy"));
             return loc.toString(d.date(), QLocale::LongFormat);
     }
 }
@@ -80,20 +81,20 @@ void DesktopTimeDate::makeTimeLabel(QLabel* label, DesktopTimeDate::StringType t
     if (!d->updateTimer) {
         d->updateTimer = new QTimer();
         d->updateTimer->setInterval(1000);
-        QObject::connect(d->updateTimer, &QTimer::timeout, [ = ] {
+        QObject::connect(d->updateTimer, &QTimer::timeout, [=] {
             updateClocks();
         });
         d->updateTimer->start();
     }
 
-    //Decorate the label
+    // Decorate the label
     QFont fnt = label->font();
     if (type == AmPm) {
         fnt.setCapitalization(QFont::SmallCaps);
     }
     label->setFont(fnt);
 
-    QObject::connect(label, &QLabel::destroyed, [ = ] {
+    QObject::connect(label, &QLabel::destroyed, [=] {
         d->updates.remove(label);
     });
     d->updates.insert(label, type);

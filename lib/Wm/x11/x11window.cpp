@@ -77,22 +77,22 @@ X11Window::X11Window(Window wid) :
     XGetWindowAttributes(tX11Info::display(), d->wid, &attrs);
     XSelectInput(tX11Info::display(), d->wid, attrs.your_event_mask | PropertyChangeMask | StructureNotifyMask | SubstructureNotifyMask);
 
-    d->propertyChangeEvents.insert("_NET_WM_NAME", [=] {
+    d->propertyChangeEvents.insert("_NET_WM_NAME", [this] {
         emit titleChanged();
     });
-    d->propertyChangeEvents.insert("_NET_WM_ICON", [=] {
+    d->propertyChangeEvents.insert("_NET_WM_ICON", [this] {
         d->iconNeedsUpdate = true;
         emit iconChanged();
     });
-    d->propertyChangeEvents.insert("_NET_WM_STATE", [=] {
+    d->propertyChangeEvents.insert("_NET_WM_STATE", [this] {
         this->updateState();
         emit windowStateChanged();
     });
-    d->propertyChangeEvents.insert("_NET_WM_WINDOW_TYPE", [=] {
+    d->propertyChangeEvents.insert("_NET_WM_WINDOW_TYPE", [this] {
         emit windowStateChanged();
     });
 
-    d->propertyChangeEvents.insert("_NET_WM_DESKTOP", [=] {
+    d->propertyChangeEvents.insert("_NET_WM_DESKTOP", [this] {
         emit desktopChanged();
     });
     this->updateState();

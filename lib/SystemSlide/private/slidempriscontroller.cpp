@@ -29,6 +29,8 @@
 #include <QPainter>
 #include <libcontemporary_global.h>
 
+#include <QCoroNetworkReply>
+
 struct SlideMprisControllerPrivate {
         QMenu* mprisSelection;
         QActionGroup* menuActionsGroup;
@@ -117,7 +119,7 @@ void SlideMprisControllerPrivate::addServer(QString service, MprisPlayerPtr play
     QObject::connect(player.data(), &MprisPlayerInterface::identityChanged, serverAction, [=] {
         serverAction->setText(player->identity());
     });
-    QObject::connect(serverAction, &QAction::triggered, [=] {
+    QObject::connect(serverAction, &QAction::triggered, [this, player] {
         this->setServer(player);
     });
 
@@ -155,7 +157,7 @@ void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {
         this->menuActions.value(player->service())->setChecked(true);
         parent->setVisible(true);
 
-        auto setMetadataFunction = [=] {
+        auto setMetadataFunction = [this, player]() -> QCoro::Task<> {
             QString statusString;
             QString title = player->metadata().value("xesam:title").toString();
             if (title == "") {
@@ -177,64 +179,62 @@ void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {
             parent->setPalette(defaultPal);
             if (albumArt != "") {
                 QNetworkRequest req((QUrl(albumArt)));
-                QNetworkReply* reply = mgr.get(req);
-                QObject::connect(reply, &QNetworkReply::finished, [=] {
-                    if (reply->error() == QNetworkReply::NoError) {
-                        QImage image = QImage::fromData(reply->readAll());
-                        if (!image.isNull()) {
-                            image = image.scaled(SC_DPI(48), SC_DPI(48), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+                QNetworkReply* reply = co_await mgr.get(req);
+                if (reply->error() == QNetworkReply::NoError) {
+                    QImage image = QImage::fromData(reply->readAll());
+                    if (!image.isNull()) {
+                        image = image.scaled(SC_DPI(48), SC_DPI(48), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 
-                            qulonglong red = 0, green = 0, blue = 0;
+                        qulonglong red = 0, green = 0, blue = 0;
 
-                            QPalette pal = defaultPal;
-                            int totalPixels = 0;
-                            for (int i = 0; i < image.width(); i++) {
-                                for (int j = 0; j < image.height(); j++) {
-                                    QColor c = image.pixelColor(i, j);
-                                    if (c.alpha() != 0) {
-                                        red += c.red();
-                                        green += c.green();
-                                        blue += c.blue();
-                                        totalPixels++;
-                                    }
+                        QPalette pal = defaultPal;
+                        int totalPixels = 0;
+                        for (int i = 0; i < image.width(); i++) {
+                            for (int j = 0; j < image.height(); j++) {
+                                QColor c = image.pixelColor(i, j);
+                                if (c.alpha() != 0) {
+                                    red += c.red();
+                                    green += c.green();
+                                    blue += c.blue();
+                                    totalPixels++;
                                 }
                             }
-
-                            QColor c;
-                            int averageCol = (pal.color(QPalette::Window).red() + pal.color(QPalette::Window).green() + pal.color(QPalette::Window).blue()) / 3;
-
-                            if (totalPixels == 0) {
-                                if (averageCol < 127) {
-                                    c = pal.color(QPalette::Window).darker(200);
-                                } else {
-                                    c = pal.color(QPalette::Window).lighter(200);
-                                }
-                            } else {
-                                c = QColor(red / totalPixels, green / totalPixels, blue / totalPixels);
-
-                                if (averageCol < 127) {
-                                    c = c.darker(200);
-                                } else {
-                                    c = c.lighter(200);
-                                }
-                            }
-
-                            pal.setColor(QPalette::Window, c);
-                            parent->setPalette(pal);
-
-                            QImage rounded(SC_DPI_T(QSize(48, 48), QSize), QImage::Format_ARGB32);
-                            rounded.fill(Qt::transparent);
-                            QPainter p(&rounded);
-                            p.setRenderHint(QPainter::Antialiasing);
-                            p.setBrush(QBrush(image));
-                            p.setPen(Qt::transparent);
-                            p.drawRoundedRect(0, 0, SC_DPI(48), SC_DPI(48), 40, 40, Qt::RelativeSize);
-
-                            ui->mprisIcon->setPixmap(QPixmap::fromImage(rounded));
                         }
+
+                        QColor c;
+                        int averageCol = (pal.color(QPalette::Window).red() + pal.color(QPalette::Window).green() + pal.color(QPalette::Window).blue()) / 3;
+
+                        if (totalPixels == 0) {
+                            if (averageCol < 127) {
+                                c = pal.color(QPalette::Window).darker(200);
+                            } else {
+                                c = pal.color(QPalette::Window).lighter(200);
+                            }
+                        } else {
+                            c = QColor(red / totalPixels, green / totalPixels, blue / totalPixels);
+
+                            if (averageCol < 127) {
+                                c = c.darker(200);
+                            } else {
+                                c = c.lighter(200);
+                            }
+                        }
+
+                        pal.setColor(QPalette::Window, c);
+                        parent->setPalette(pal);
+
+                        QImage rounded(SC_DPI_T(QSize(48, 48), QSize), QImage::Format_ARGB32);
+                        rounded.fill(Qt::transparent);
+                        QPainter p(&rounded);
+                        p.setRenderHint(QPainter::Antialiasing);
+                        p.setBrush(QBrush(image));
+                        p.setPen(Qt::transparent);
+                        p.drawRoundedRect(0, 0, SC_DPI(48), SC_DPI(48), 40, 40, Qt::RelativeSize);
+
+                        ui->mprisIcon->setPixmap(QPixmap::fromImage(rounded));
                     }
-                    reply->deleteLater();
-                });
+                }
+                reply->deleteLater();
             }
         };
         setMetadataFunction();
@@ -245,7 +245,7 @@ void SlideMprisControllerPrivate::setServer(MprisPlayerPtr player) {
             ui->mprisPlay->setIcon(QIcon::fromTheme("media-playback-start"));
         }
         QObject::connect(player.data(), &MprisPlayerInterface::metadataChanged, mprisContextObject, setMetadataFunction);
-        QObject::connect(player.data(), &MprisPlayerInterface::playbackStatusChanged, mprisContextObject, [=] {
+        QObject::connect(player.data(), &MprisPlayerInterface::playbackStatusChanged, mprisContextObject, [this, player] {
             if (player->playbackStatus() == MprisPlayerInterface::Playing) {
                 ui->mprisPlay->setIcon(QIcon::fromTheme("media-playback-pause"));
             } else {

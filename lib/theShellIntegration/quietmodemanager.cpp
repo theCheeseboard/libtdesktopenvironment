@@ -23,19 +23,20 @@
 #include <QDBusPendingCallWatcher>
 
 struct QuietModeManagerPrivate {
-    QDBusInterface* interface;
+        QDBusInterface* interface;
 
-    static QMap<QuietModeManager::QuietMode, QString> quietModeEnumToString;
+        static QMap<QuietModeManager::QuietMode, QString> quietModeEnumToString;
 };
 
 QMap<QuietModeManager::QuietMode, QString> QuietModeManagerPrivate::quietModeEnumToString = {
-    {QuietModeManager::None, "None"},
-    {QuietModeManager::Critical, "CriticalOnly"},
+    {QuietModeManager::None,          "None"           },
+    {QuietModeManager::Critical,      "CriticalOnly"   },
     {QuietModeManager::Notifications, "NoNotifications"},
-    {QuietModeManager::Mute, "Mute"}
+    {QuietModeManager::Mute,          "Mute"           }
 };
 
-QuietModeManager::QuietModeManager(QObject* parent) : QObject(parent) {
+QuietModeManager::QuietModeManager(QObject* parent) :
+    QObject(parent) {
     d = new QuietModeManagerPrivate();
     d->interface = new QDBusInterface("com.vicr123.theshell", "/com/vicr123/theshell/QuietMode", "com.vicr123.theshell.QuietMode");
     QDBusConnection::sessionBus().connect(d->interface->service(), d->interface->path(), d->interface->interface(), "quietModeChanged", this, SLOT(quietModeChangedDBus(QString, QString)));
@@ -47,9 +48,9 @@ QuietModeManager::~QuietModeManager() {
 }
 
 tPromise<void>* QuietModeManager::setQuietMode(QuietModeManager::QuietMode quietMode) {
-    return new tPromise<void>([ = ](tPromiseFunctions<void>::SuccessFunction res, tPromiseFunctions<void>::FailureFunction rej) {
+    return new tPromise<void>([this, quietMode](tPromiseFunctions<void>::SuccessFunction res, tPromiseFunctions<void>::FailureFunction rej) {
         QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(d->interface->asyncCall("setQuietMode", d->quietModeEnumToString.value(quietMode)));
-        connect(watcher, &QDBusPendingCallWatcher::finished, this, [ = ] {
+        connect(watcher, &QDBusPendingCallWatcher::finished, this, [=] {
             watcher->deleteLater();
 
             if (watcher->isError()) {
@@ -62,9 +63,9 @@ tPromise<void>* QuietModeManager::setQuietMode(QuietModeManager::QuietMode quiet
 }
 
 tPromise<QuietModeManager::QuietMode>* QuietModeManager::quietMode() {
-    return new tPromise<QuietMode>([ = ](tPromiseFunctions<QuietMode>::SuccessFunction res, tPromiseFunctions<QuietMode>::FailureFunction rej) {
+    return new tPromise<QuietMode>([this](tPromiseFunctions<QuietMode>::SuccessFunction res, tPromiseFunctions<QuietMode>::FailureFunction rej) {
         QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(d->interface->asyncCall("quietMode"));
-        connect(watcher, &QDBusPendingCallWatcher::finished, this, [ = ] {
+        connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher, rej, res] {
             if (watcher->isError()) {
                 rej(watcher->error().name());
             } else {

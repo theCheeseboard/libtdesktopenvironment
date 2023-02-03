@@ -124,7 +124,7 @@ SystemSlide::SystemSlide(QWidget* parent) :
 
     d->draggingTimer = new QTimer(this);
     d->draggingTimer->setInterval(50);
-    connect(d->draggingTimer, &QTimer::timeout, this, [=] {
+    connect(d->draggingTimer, &QTimer::timeout, this, [this] {
         d->speed = d->lastY - d->currentY;
         d->lastY = d->currentY;
     });
@@ -171,7 +171,7 @@ void SystemSlide::setBackgroundMode(SystemSlide::BackgroundMode mode) {
     }
 
     connect(d->bg, &BackgroundController::currentBackgroundChanged, this, &SystemSlide::backgroundChanged);
-    connect(d->bg, &BackgroundController::shouldShowCommunityLabelsChanged, this, [=] {
+    connect(d->bg, &BackgroundController::shouldShowCommunityLabelsChanged, this, [this] {
         if (d->bg->currentBackgroundName(BackgroundController::Desktop) == "community") this->backgroundChanged();
     });
     connect(d->bg, &BackgroundController::stretchTypeChanged, this, &SystemSlide::backgroundChanged);
@@ -191,7 +191,7 @@ void SystemSlide::activate() {
     anim->setDuration(500);
     anim->setEasingCurve(QEasingCurve::OutCubic);
     anim->start();
-    connect(anim, &tVariantAnimation::valueChanged, this, [=](QVariant value) {
+    connect(anim, &tVariantAnimation::valueChanged, this, [this](QVariant value) {
         d->hud->move(0, value.toInt());
     });
     connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
@@ -209,7 +209,7 @@ void SystemSlide::deactivate() {
     anim->setDuration(500);
     anim->setEasingCurve(QEasingCurve::OutCubic);
     anim->start();
-    connect(anim, &tVariantAnimation::valueChanged, this, [=](QVariant value) {
+    connect(anim, &tVariantAnimation::valueChanged, this, [this](QVariant value) {
         d->hud->move(0, value.toInt());
     });
     connect(anim, &tVariantAnimation::finished, anim, &tVariantAnimation::deleteLater);
@@ -251,7 +251,7 @@ void SystemSlide::upowerStateChanged() {
 }
 
 void SystemSlide::quietModeStateChanged() {
-    d->quietmode->quietMode()->then([=](QuietModeManager::QuietMode quietMode) {
+    d->quietmode->quietMode()->then([this](QuietModeManager::QuietMode quietMode) {
                                  if (quietMode == QuietModeManager::None) {
                                      ui->quietmodePane->setVisible(false);
                                  } else {
@@ -279,7 +279,7 @@ void SystemSlide::quietModeStateChanged() {
                                      ui->quietmodePane->setVisible(true);
                                  }
                              })
-        ->error([=](QString error) {
+        ->error([this](QString error) {
             ui->quietmodePane->setVisible(false);
         });
 }
@@ -490,9 +490,9 @@ bool SystemSlide::eventFilter(QObject* watched, QEvent* event) {
 }
 
 void SystemSlide::mousePressEvent(QMouseEvent* event) {
-    d->dragging = event->y();
-    d->lastY = event->y();
-    d->currentY = event->y();
+    d->dragging = event->position().y();
+    d->lastY = event->position().y();
+    d->currentY = event->position().y();
     d->draggingTimer->start();
 
     hideQuickSettings();
@@ -501,9 +501,9 @@ void SystemSlide::mousePressEvent(QMouseEvent* event) {
 void SystemSlide::mouseMoveEvent(QMouseEvent* event) {
     if (d->dragging != -1) {
         d->currentY = event->y();
-        d->hud->move(0, this->height() - d->hud->height() - (d->dragging - event->y()));
+        d->hud->move(0, this->height() - d->hud->height() - (d->dragging - event->position().y()));
     } else {
-        if (event->y() <= 1) {
+        if (event->position().y() <= 1) {
             showQuickSettings();
         } else {
             hideQuickSettings();

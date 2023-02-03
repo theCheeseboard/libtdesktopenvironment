@@ -20,14 +20,14 @@
 #include "slidequicksettings.h"
 #include "ui_slidequicksettings.h"
 
-#include <QBoxLayout>
-#include <QPainter>
-#include <QMouseEvent>
 #include "../../theShellIntegration/quietmodemanager.h"
+#include <QBoxLayout>
+#include <QMouseEvent>
+#include <QPainter>
 #include <tswitch.h>
 
 struct SlideQuickSettingsPrivate {
-    QuietModeManager* quietMode;
+        QuietModeManager* quietMode;
 };
 
 SlideQuickSettings::SlideQuickSettings(QuietModeManager* quietMode, QWidget* parent) :
@@ -80,27 +80,27 @@ tSwitch* SlideQuickSettings::addToggle(QString title) {
 }
 
 void SlideQuickSettings::quietModeStateChanged() {
-    d->quietMode->quietMode()->then([ = ](QuietModeManager::QuietMode qm) {
-        switch (qm) {
-            case QuietModeManager::None:
-                ui->quietModeSound->setChecked(true);
-                break;
-            case QuietModeManager::Critical:
-                ui->quietModeCriticalOnly->setChecked(true);
-                break;
-            case QuietModeManager::Notifications:
-                ui->quietModeNoNotifications->setChecked(true);
-                break;
-            case QuietModeManager::Mute:
-                ui->quietModeMute->setChecked(true);
-                break;
+    d->quietMode->quietMode()->then([this](QuietModeManager::QuietMode qm) {
+                                 switch (qm) {
+                                     case QuietModeManager::None:
+                                         ui->quietModeSound->setChecked(true);
+                                         break;
+                                     case QuietModeManager::Critical:
+                                         ui->quietModeCriticalOnly->setChecked(true);
+                                         break;
+                                     case QuietModeManager::Notifications:
+                                         ui->quietModeNoNotifications->setChecked(true);
+                                         break;
+                                     case QuietModeManager::Mute:
+                                         ui->quietModeMute->setChecked(true);
+                                         break;
+                                 }
 
-        }
-
-        ui->quietModePane->setVisible(true);
-    })->error([ = ](QString err) {
-        ui->quietModePane->setVisible(false);
-    });
+                                 ui->quietModePane->setVisible(true);
+                             })
+        ->error([this](QString err) {
+            ui->quietModePane->setVisible(false);
+        });
 }
 
 void SlideQuickSettings::on_quietModeSound_toggled(bool checked) {

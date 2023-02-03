@@ -19,17 +19,18 @@
  * *************************************/
 #include "mprisengine.h"
 
-#include <QTimer>
 #include <QDBusConnectionInterface>
+#include <QTimer>
 
 struct MprisEnginePrivate {
-    MprisEngine* instance = nullptr;
-    QMap<QString, MprisPlayerPtr> players;
+        MprisEngine* instance = nullptr;
+        QMap<QString, MprisPlayerPtr> players;
 };
 
 MprisEnginePrivate* MprisEngine::d = new MprisEnginePrivate;
 
-MprisEngine::MprisEngine(QObject* parent) : QObject(parent) {
+MprisEngine::MprisEngine(QObject* parent) :
+    QObject(parent) {
     connect(QDBusConnection::sessionBus().interface(), &QDBusConnectionInterface::serviceOwnerChanged, this, &MprisEngine::serviceOwnerChanged);
     for (QString service : QDBusConnection::sessionBus().interface()->registeredServiceNames().value()) {
         if (service.startsWith("org.mpris.MediaPlayer2.")) registerPlayer(service);
@@ -42,17 +43,17 @@ MprisEngine* MprisEngine::instance() {
 }
 
 void MprisEngine::serviceOwnerChanged(QString serviceName, QString oldOwner, QString newOwner) {
-    if (!serviceName.startsWith("org.mpris.MediaPlayer2.")) return; //Not interested in this service
+    if (!serviceName.startsWith("org.mpris.MediaPlayer2.")) return; // Not interested in this service
     if (newOwner != "") {
-        //Add this player
-        QTimer::singleShot(0, [ = ] {
+        // Add this player
+        QTimer::singleShot(0, [this, serviceName] {
             registerPlayer(serviceName);
         });
     }
 }
 
 MprisPlayerPtr MprisEngine::playerForInterface(QString interface) {
-    //Create the instance if it's not been created
+    // Create the instance if it's not been created
     MprisEngine::instance();
 
     if (d->players.contains(interface)) {
@@ -65,7 +66,7 @@ MprisPlayerPtr MprisEngine::playerForInterface(QString interface) {
 void MprisEngine::registerPlayer(QString service) {
     MprisPlayerPtr player(new MprisPlayerInterface(service));
     d->players.insert(service, player);
-    connect(player.get(), &MprisPlayerInterface::gone, this, [ = ] {
+    connect(player.get(), &MprisPlayerInterface::gone, this, [this, service] {
         d->players.remove(service);
         emit playerGone(service);
     });
@@ -73,7 +74,7 @@ void MprisEngine::registerPlayer(QString service) {
 }
 
 QList<MprisPlayerPtr> MprisEngine::players() {
-    //Create the instance if it's not been created
+    // Create the instance if it's not been created
     MprisEngine::instance();
 
     return d->players.values();
