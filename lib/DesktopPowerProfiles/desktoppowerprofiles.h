@@ -20,8 +20,8 @@
 #ifndef DESKTOPPOWERPROFILES_H
 #define DESKTOPPOWERPROFILES_H
 
-#include <QObject>
 #include <QMap>
+#include <QObject>
 #include <QVariant>
 
 struct DesktopPowerProfilesPrivate;
@@ -40,6 +40,8 @@ class DesktopPowerProfiles : public QObject {
 
         PowerProfile currentPowerProfile();
         void setCurrentPowerProfile(PowerProfile profile);
+
+        bool powerProfilesAvailable();
 
         bool isPerformanceAvailable();
 

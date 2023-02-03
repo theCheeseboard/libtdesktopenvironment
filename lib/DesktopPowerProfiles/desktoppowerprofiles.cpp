@@ -19,14 +19,17 @@
  * *************************************/
 #include "desktoppowerprofiles.h"
 
-#include <QDBusInterface>
+#include <QCoroDBusPendingReply>
 #include <QDBusArgument>
+#include <QDBusConnectionInterface>
+#include <QDBusInterface>
 
 struct DesktopPowerProfilesPrivate {
-    QDBusInterface* powerProfilesDaemon;
+        QDBusInterface* powerProfilesDaemon;
 };
 
-DesktopPowerProfiles::DesktopPowerProfiles(QObject* parent) : QObject(parent) {
+DesktopPowerProfiles::DesktopPowerProfiles(QObject* parent) :
+    QObject(parent) {
     d = new DesktopPowerProfilesPrivate();
     d->powerProfilesDaemon = new QDBusInterface("net.hadess.PowerProfiles", "/net/hadess/PowerProfiles", "net.hadess.PowerProfiles", QDBusConnection::systemBus());
 
@@ -66,12 +69,14 @@ void DesktopPowerProfiles::setCurrentPowerProfile(PowerProfile profile) {
     d->powerProfilesDaemon->setProperty("ActiveProfile", profileString);
 }
 
+bool DesktopPowerProfiles::powerProfilesAvailable() {
+    return QDBusConnection::systemBus().interface()->isServiceRegistered(d->powerProfilesDaemon->service()).value();
+}
+
 bool DesktopPowerProfiles::isPerformanceAvailable() {
     QDBusMessage message = QDBusMessage::createMethodCall(d->powerProfilesDaemon->service(), d->powerProfilesDaemon->path(), "org.freedesktop.DBus.Properties", "Get");
-    message.setArguments({
-        d->powerProfilesDaemon->interface(),
-            "Profiles"
-        });
+    message.setArguments({d->powerProfilesDaemon->interface(),
+        "Profiles"});
     QDBusMessage reply = d->powerProfilesDaemon->connection().call(message);
 
     QDBusArgument propertyValue = reply.arguments().first().value<QDBusVariant>().variant().value<QDBusArgument>();
