@@ -300,7 +300,13 @@ void Application::launchAction(QString action, QMap<QString, QString> replacemen
 }
 
 QIcon Application::icon() {
-    return QIcon::fromTheme(this->getProperty("Icon").toString(), QIcon::fromTheme("generic-app"));
+    auto iconName = this->getProperty("Icon").toString();
+    if (iconName.startsWith("/")) {
+        // Absolute path to icon
+        QIcon icon(iconName);
+        if (!icon.isNull()) return icon;
+    }
+    return QIcon::fromTheme(iconName, QIcon::fromTheme("generic-app"));
 }
 
 QPixmap Application::icon(QSize size, bool cache) {
@@ -317,10 +323,18 @@ QPixmap Application::icon(QSize size, QPixmap fallback, bool cache) {
         size};
 
     if (d->iconCache.contains(descriptor)) return d->iconCache.value(descriptor);
-    QString iconName = this->getProperty("Icon").toString();
-    if (iconName.isEmpty() || !QIcon::hasThemeIcon(iconName)) return fallback;
+    auto iconName = this->getProperty("Icon").toString();
+    QIcon icon;
+    if (iconName.startsWith("/")) {
+        icon = QIcon(iconName);
+    }
+    if (icon.isNull()) {
+        if (iconName.isEmpty() || !QIcon::hasThemeIcon(iconName)) return fallback;
+        icon = QIcon::fromTheme(iconName);
+    }
+    if (icon.isNull()) return fallback;
 
-    QPixmap pixmap = QIcon::fromTheme(iconName).pixmap(size);
+    QPixmap pixmap = icon.pixmap(size);
     if (cache) d->iconCache.insert(descriptor, pixmap);
     return pixmap;
 }

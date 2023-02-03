@@ -483,7 +483,7 @@ QString X11Screen::displayName() const {
 
 QString X11Screen::physicalMonitorId() const {
     QByteArray edid = this->edid();
-    if (edid.count() > 0) return QCryptographicHash::hash(edid, QCryptographicHash::Sha256).toHex();
+    if (edid.length() > 0) return QCryptographicHash::hash(edid, QCryptographicHash::Sha256).toHex();
 
     QScreen* scr = this->qtScreen();
     if (scr) {
