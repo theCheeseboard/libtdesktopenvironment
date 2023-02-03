@@ -56,6 +56,7 @@ int ScreenDaemon::dpi() const {
 
 void ScreenDaemon::setDpi(int dpi) {
     d->backend->setDpi(dpi);
+    emit dpiChanged();
 }
 
 ScreenDaemon::ScreenDaemon() :

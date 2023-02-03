@@ -15,6 +15,8 @@ class X11XSettingsProvider : public QObject {
         void setInt(QString name, quint32 value);
         void setColor(QString name, QColor value);
 
+        void setAsSettingsManager();
+
     signals:
 
     private:

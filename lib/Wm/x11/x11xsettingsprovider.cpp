@@ -1,5 +1,6 @@
 #include "x11xsettingsprovider.h"
 
+#include "Screens/screendaemon.h"
 #include <QColor>
 #include <QMap>
 #include <tx11info.h>
@@ -87,13 +88,10 @@ X11XSettingsProvider::X11XSettingsProvider(QObject* parent) :
     setInt("Gtk/CursorThemeSize", 24);
     setString("Gtk/FontName", "Contemporary 10");
 
-    Atom xsettingsAtom = XInternAtom(tX11Info::display(), "_XSETTINGS_S0", true);
-
-    d->settingsWindow = XCreateSimpleWindow(tX11Info::display(), tX11Info::appRootWindow(), 0, 0, 1, 1, 1, 1, 1);
-    XSetSelectionOwner(tX11Info::display(), xsettingsAtom, d->settingsWindow, CurrentTime);
-
-    TX11::sendMessageToRootWindow("MANAGER", d->settingsWindow, CurrentTime, xsettingsAtom, d->settingsWindow);
-    updateSetting();
+    connect(ScreenDaemon::instance(), &ScreenDaemon::dpiChanged, this, [this] {
+        setInt("Xft/DPI", ScreenDaemon::instance()->dpi() * 1024);
+    });
+    setInt("Xft/DPI", ScreenDaemon::instance()->dpi() * 1024);
 }
 
 X11XSettingsProvider::~X11XSettingsProvider() {
@@ -137,6 +135,16 @@ void X11XSettingsProvider::setColor(QString name, QColor value) {
     setting.colorValue = value;
     d->settings.insert(name, setting);
 
+    updateSetting();
+}
+
+void X11XSettingsProvider::setAsSettingsManager() {
+    Atom xsettingsAtom = XInternAtom(tX11Info::display(), "_XSETTINGS_S0", true);
+
+    d->settingsWindow = XCreateSimpleWindow(tX11Info::display(), tX11Info::appRootWindow(), 0, 0, 1, 1, 1, 1, 1);
+    XSetSelectionOwner(tX11Info::display(), xsettingsAtom, d->settingsWindow, CurrentTime);
+
+    TX11::sendMessageToRootWindow("MANAGER", d->settingsWindow, CurrentTime, xsettingsAtom, d->settingsWindow);
     updateSetting();
 }
 

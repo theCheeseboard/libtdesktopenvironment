@@ -474,7 +474,10 @@ void X11Backend::ungrabKey(quint64 grab) {
 }
 
 void X11Backend::registerAsPrimaryProvider() {
-    d->xsettingsProvider = new X11XSettingsProvider(this);
+    if (!d->xsettingsProvider) {
+        d->xsettingsProvider = new X11XSettingsProvider(this);
+    }
+    d->xsettingsProvider->setAsSettingsManager();
 }
 
 void X11Backend::setScreenOff(bool screenOff) {
