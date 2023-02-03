@@ -21,7 +21,7 @@
 #define QUIETMODEMANAGER_H
 
 #include <QObject>
-#include <tpromise.h>
+#include <QCoroTask>
 
 struct QuietModeManagerPrivate;
 class QuietModeManager : public QObject {
@@ -40,8 +40,8 @@ class QuietModeManager : public QObject {
 
         bool isAvailable();
 
-        tPromise<void>* setQuietMode(QuietMode quietMode);
-        tPromise<QuietMode>* quietMode();
+        QCoro::Task<> setQuietMode(QuietMode quietMode);
+        QCoro::Task<QuietMode> quietMode();
 
     private Q_SLOTS:
         void quietModeChangedDBus(QString newMode, QString oldMode);

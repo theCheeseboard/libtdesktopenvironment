@@ -24,6 +24,7 @@
 #include <QBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
+#include <texception.h>
 #include <tswitch.h>
 
 struct SlideQuickSettingsPrivate {
@@ -79,28 +80,28 @@ tSwitch* SlideQuickSettings::addToggle(QString title) {
     return s;
 }
 
-void SlideQuickSettings::quietModeStateChanged() {
-    d->quietMode->quietMode()->then([this](QuietModeManager::QuietMode qm) {
-                                 switch (qm) {
-                                     case QuietModeManager::None:
-                                         ui->quietModeSound->setChecked(true);
-                                         break;
-                                     case QuietModeManager::Critical:
-                                         ui->quietModeCriticalOnly->setChecked(true);
-                                         break;
-                                     case QuietModeManager::Notifications:
-                                         ui->quietModeNoNotifications->setChecked(true);
-                                         break;
-                                     case QuietModeManager::Mute:
-                                         ui->quietModeMute->setChecked(true);
-                                         break;
-                                 }
+QCoro::Task<> SlideQuickSettings::quietModeStateChanged() {
+    try {
+        auto qm = co_await d->quietMode->quietMode();
+        switch (qm) {
+            case QuietModeManager::None:
+                ui->quietModeSound->setChecked(true);
+                break;
+            case QuietModeManager::Critical:
+                ui->quietModeCriticalOnly->setChecked(true);
+                break;
+            case QuietModeManager::Notifications:
+                ui->quietModeNoNotifications->setChecked(true);
+                break;
+            case QuietModeManager::Mute:
+                ui->quietModeMute->setChecked(true);
+                break;
+        }
 
-                                 ui->quietModePane->setVisible(true);
-                             })
-        ->error([this](QString err) {
-            ui->quietModePane->setVisible(false);
-        });
+        ui->quietModePane->setVisible(true);
+    } catch (tDBusException ex) {
+        ui->quietModePane->setVisible(false);
+    }
 }
 
 void SlideQuickSettings::on_quietModeSound_toggled(bool checked) {

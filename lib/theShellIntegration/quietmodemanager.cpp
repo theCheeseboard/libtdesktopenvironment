@@ -19,8 +19,10 @@
  * *************************************/
 #include "quietmodemanager.h"
 
+#include <QCoroDBusPendingCall>
 #include <QDBusInterface>
 #include <QDBusPendingCallWatcher>
+#include <texception.h>
 
 struct QuietModeManagerPrivate {
         QDBusInterface* interface;
@@ -47,35 +49,17 @@ QuietModeManager::~QuietModeManager() {
     delete d;
 }
 
-tPromise<void>* QuietModeManager::setQuietMode(QuietModeManager::QuietMode quietMode) {
-    return new tPromise<void>([this, quietMode](tPromiseFunctions<void>::SuccessFunction res, tPromiseFunctions<void>::FailureFunction rej) {
-        QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(d->interface->asyncCall("setQuietMode", d->quietModeEnumToString.value(quietMode)));
-        connect(watcher, &QDBusPendingCallWatcher::finished, this, [=] {
-            watcher->deleteLater();
-
-            if (watcher->isError()) {
-                rej(watcher->error().name());
-            } else {
-                res();
-            }
-        });
-    });
+QCoro::Task<> QuietModeManager::setQuietMode(QuietModeManager::QuietMode quietMode) {
+    co_await d->interface->asyncCall("setQuietMode", d->quietModeEnumToString.value(quietMode));
 }
 
-tPromise<QuietModeManager::QuietMode>* QuietModeManager::quietMode() {
-    return new tPromise<QuietMode>([this](tPromiseFunctions<QuietMode>::SuccessFunction res, tPromiseFunctions<QuietMode>::FailureFunction rej) {
-        QDBusPendingCallWatcher* watcher = new QDBusPendingCallWatcher(d->interface->asyncCall("quietMode"));
-        connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, watcher, rej, res] {
-            if (watcher->isError()) {
-                rej(watcher->error().name());
-            } else {
-                QString reply = watcher->reply().arguments().first().toString();
-                res(d->quietModeEnumToString.key(reply));
-            }
-
-            watcher->deleteLater();
-        });
-    });
+QCoro::Task<QuietModeManager::QuietMode> QuietModeManager::quietMode() {
+    auto reply = co_await d->interface->asyncCall("quietMode");
+    if (reply.type() == QDBusMessage::ErrorMessage) {
+        throw tDBusException(reply.errorName());
+    }
+    auto quietMode = reply.arguments().first().toString();
+    co_return d->quietModeEnumToString.key(quietMode);
 }
 
 void QuietModeManager::quietModeChangedDBus(QString newMode, QString oldMode) {

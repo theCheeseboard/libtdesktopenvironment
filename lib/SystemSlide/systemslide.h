@@ -69,7 +69,7 @@ class SystemSlide : public QWidget {
         SystemSlidePrivate* d;
 
         void upowerStateChanged();
-        void quietModeStateChanged();
+        QCoro::Task<> quietModeStateChanged();
         QCoro::Task<> backgroundChanged();
 
         void pulseAudioDataAvailable(const float* data, int length);

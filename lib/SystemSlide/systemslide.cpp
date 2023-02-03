@@ -18,6 +18,7 @@
  *
  * *************************************/
 #include "systemslide.h"
+#include "texception.h"
 #include "ui_systemslide.h"
 
 #include <QIcon>
@@ -250,38 +251,38 @@ void SystemSlide::upowerStateChanged() {
     }
 }
 
-void SystemSlide::quietModeStateChanged() {
-    d->quietmode->quietMode()->then([this](QuietModeManager::QuietMode quietMode) {
-                                 if (quietMode == QuietModeManager::None) {
-                                     ui->quietmodePane->setVisible(false);
-                                 } else {
-                                     QIcon icon;
-                                     QString description;
-                                     switch (quietMode) {
-                                         case QuietModeManager::Critical:
-                                             icon = QIcon::fromTheme("quiet-mode-critical-only");
-                                             description = tr("Critical Only");
-                                             break;
-                                         case QuietModeManager::Notifications:
-                                             icon = QIcon::fromTheme("quiet-mode");
-                                             description = tr("No Notifications");
-                                             break;
-                                         case QuietModeManager::Mute:
-                                             icon = QIcon::fromTheme("audio-volume-muted");
-                                             description = tr("Mute");
-                                             break;
-                                         default:
-                                             break;
-                                     }
-
-                                     ui->quietmodeIcon->setPixmap(icon.pixmap(SC_DPI_T(QSize(16, 16), QSize)));
-                                     ui->quietmodeLabel->setText(description);
-                                     ui->quietmodePane->setVisible(true);
-                                 }
-                             })
-        ->error([this](QString error) {
+QCoro::Task<> SystemSlide::quietModeStateChanged() {
+    try {
+        auto quietMode = co_await d->quietmode->quietMode();
+        if (quietMode == QuietModeManager::None) {
             ui->quietmodePane->setVisible(false);
-        });
+        } else {
+            QIcon icon;
+            QString description;
+            switch (quietMode) {
+                case QuietModeManager::Critical:
+                    icon = QIcon::fromTheme("quiet-mode-critical-only");
+                    description = tr("Critical Only");
+                    break;
+                case QuietModeManager::Notifications:
+                    icon = QIcon::fromTheme("quiet-mode");
+                    description = tr("No Notifications");
+                    break;
+                case QuietModeManager::Mute:
+                    icon = QIcon::fromTheme("audio-volume-muted");
+                    description = tr("Mute");
+                    break;
+                default:
+                    break;
+            }
+
+            ui->quietmodeIcon->setPixmap(icon.pixmap(SC_DPI_T(QSize(16, 16), QSize)));
+            ui->quietmodeLabel->setText(description);
+            ui->quietmodePane->setVisible(true);
+        }
+    } catch (tDBusException ex) {
+        ui->quietmodePane->setVisible(false);
+    }
 }
 
 QCoro::Task<> SystemSlide::backgroundChanged() {
@@ -500,7 +501,7 @@ void SystemSlide::mousePressEvent(QMouseEvent* event) {
 
 void SystemSlide::mouseMoveEvent(QMouseEvent* event) {
     if (d->dragging != -1) {
-        d->currentY = event->y();
+        d->currentY = event->position().y();
         d->hud->move(0, this->height() - d->hud->height() - (d->dragging - event->position().y()));
     } else {
         if (event->position().y() <= 1) {

@@ -160,7 +160,7 @@ QList<DesktopWmWindowPtr> X11Backend::openWindows() {
 void X11Backend::addWindow(Window window) {
     X11WindowPtr w(new X11Window(window));
     emit windowAdded(w.data());
-    connect(w, &X11Window::destroyed, this, [this] {
+    connect(w, &X11Window::destroyed, this, [this, window] {
         d->windows.remove(window);
     });
     d->windows.insert(window, w);

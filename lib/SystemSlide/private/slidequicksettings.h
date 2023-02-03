@@ -20,6 +20,7 @@
 #ifndef SLIDEQUICKSETTINGS_H
 #define SLIDEQUICKSETTINGS_H
 
+#include <QCoroTask>
 #include <QWidget>
 
 namespace Ui {
@@ -55,7 +56,7 @@ class SlideQuickSettings : public QWidget {
 
         tSwitch* addToggle(QString title);
 
-        void quietModeStateChanged();
+        QCoro::Task<> quietModeStateChanged();
 };
 
 #endif // SLIDEQUICKSETTINGS_H
