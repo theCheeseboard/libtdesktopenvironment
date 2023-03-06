@@ -7,5 +7,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     link_directories(/usr/local/lib)
 ENDIF()
 
+find_package(QT REQUIRED NAMES Qt6)
+
 add_subdirectory(wayland-layer-shell)
 add_subdirectory(lib)

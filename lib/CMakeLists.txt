@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.4.0)
 
 project(lib VERSION 1.0.0 LANGUAGES CXX)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia Concurrent)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia Concurrent)
 find_package(libcontemporary REQUIRED)
 cntp_find_pkgconfig(X11 x11)
 cntp_find_pkgconfig(X11_SCRNSAVER xscrnsaver)
@@ -104,7 +104,7 @@ set_target_properties(libtdesktopenvironment PROPERTIES
         VERSION 1.0.0
 )
 
-target_link_libraries(libtdesktopenvironment Qt6::Widgets Qt6::DBus Qt6::Multimedia Qt6::Concurrent libcontemporary)
+target_link_libraries(libtdesktopenvironment Qt::Widgets Qt::DBus Qt::Multimedia Qt::Concurrent libcontemporary)
 target_compile_definitions(libtdesktopenvironment PRIVATE LIBTDESKTOPENVIRONMENT_LIBRARY)
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

@@ -61,6 +61,9 @@ SystemScreen* X11ScreenBackend::primaryScreen() {
     for (SystemScreen* screen : d->screens.values()) {
         if (screen->isPrimary()) return screen;
     }
+    if (d->screens.count() > 1) {
+        return d->screens.values().first();
+    }
     return nullptr;
 }
 
