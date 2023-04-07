@@ -53,6 +53,9 @@ set(SOURCES
     SystemSlide/private/slidempriscontroller.ui
     SystemSlide/private/slidequicksettings.ui
     SystemSlide/systemslide.ui
+
+    SystemJob/systemjobcontroller.cpp
+    SystemJob/systemjob.cpp
 )
 
 set(HEADERS
@@ -84,6 +87,8 @@ set(HEADERS
     Greeter/readypane.h
     Greeter/logingreeter.h
     Greeter/messagepane.h
+    SystemJob/systemjobcontroller.h
+    SystemJob/systemjob.h
 )
 
 set(PRIVATE_HEADERS
