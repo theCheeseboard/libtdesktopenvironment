@@ -46,6 +46,9 @@
         <property name="text">
          <string/>
         </property>
+        <property name="icon">
+         <iconset theme="arrow-down"/>
+        </property>
         <property name="popupMode">
          <enum>QToolButton::InstantPopup</enum>
         </property>

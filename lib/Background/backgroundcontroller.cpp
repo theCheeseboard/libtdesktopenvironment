@@ -134,17 +134,13 @@ QCoro::Task<BackgroundController::BackgroundData> BackgroundController::getBackg
         bool metadataExists = QFile(QDir::homePath() + "/.theshell/backgrounds.conf").exists();
         bool expired = d->settings->value("desktop/fetched").toDateTime().secsTo(QDateTime::currentDateTimeUtc()) > 604800 /* 1 week */;
 
-        auto chooseBackground = [=] {
-
-        };
-
         if (!metadataExists || expired) {
             // Get a new community background, choose a random one and show it
             co_await this->getNewCommunityBackground();
         }
 
-        auto backgroundData = co_await this->getCurrentCommunityBackground();
-        data.px = drawBackground(backgroundData.px);
+        data = co_await this->getCurrentCommunityBackground();
+        data.px = drawBackground(data.px);
         co_return data;
     } else {
         QPixmap image;
@@ -343,9 +339,6 @@ QCoro::Task<BackgroundController::BackgroundData> BackgroundController::getCurre
     if (!doc.isObject()) {
         throw BackgroundException();
     }
-
-    auto readBackground = [=] {
-    };
 
     if (!QFile(QDir::homePath() + "/.theshell/backgrounds/" + background + "/" + background + ".jpeg").exists()) {
         QString fileName = doc.object().value("filename").toString();
