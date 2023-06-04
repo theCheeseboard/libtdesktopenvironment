@@ -20,9 +20,9 @@
 #ifndef DESKTOPWMWINDOW_H
 #define DESKTOPWMWINDOW_H
 
+#include "Applications/application.h"
 #include <QObject>
 #include <QPointer>
-#include "Applications/application.h"
 
 class DesktopWmWindow : public QObject {
         Q_OBJECT
@@ -37,6 +37,7 @@ class DesktopWmWindow : public QObject {
         virtual bool shouldShowInTaskbar() = 0;
         virtual quint64 pid() = 0;
         virtual uint desktop() = 0;
+        virtual bool isOnDesktop(uint desktop) = 0;
         virtual bool isOnCurrentDesktop() = 0;
         virtual void moveToDesktop(uint desktop) = 0;
 

@@ -73,7 +73,7 @@ QVariant BackgroundSelectionModel::data(const QModelIndex& index, int role) cons
                 if (bgName == "community") text = tr("Community Backgrounds");
                 if (bgName == "custom") text = tr("Custom");
 
-                QPixmap communityPx(SC_DPI_T(QSize(213, 120), QSize));
+                QPixmap communityPx(QSize(213, 120));
                 communityPx.fill(QColor(0, 0, 0, 127));
 
                 QPainter painter(&communityPx);
@@ -87,7 +87,7 @@ QVariant BackgroundSelectionModel::data(const QModelIndex& index, int role) cons
                 d->px.insert(index.row(), communityPx);
                 return communityPx;
             } else {
-                d->bg->getBackground(bgName, SC_DPI_T(QSize(213, 120), QSize)).then([this, index](BackgroundController::BackgroundData data) {
+                d->bg->getBackground(bgName, QSize(213, 120)).then([this, index](BackgroundController::BackgroundData data) {
                     d->px.insert(index.row(), data.px);
                     QTimer::singleShot(0, this, &BackgroundSelectionModel::emitDataChanged);
                 });

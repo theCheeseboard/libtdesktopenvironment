@@ -79,7 +79,7 @@ void DesktopWm::setNumDesktops(uint numDesktops) {
 QList<DesktopWmWindowPtr> DesktopWm::windowsOnDesktop(uint desktopNumber) {
     QList<DesktopWmWindowPtr> windows;
     for (DesktopWmWindowPtr window : openWindows()) {
-        if (window->desktop() == desktopNumber) windows.append(window);
+        if (window->desktop() == desktopNumber || window->desktop() == UINT_MAX) windows.append(window);
     }
     return windows;
 }

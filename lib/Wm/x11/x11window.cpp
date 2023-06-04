@@ -203,10 +203,9 @@ void X11Window::close() {
 
 void X11Window::kill() {
     TX11::WindowPropertyPtr<unsigned long> pid = TX11::getWindowProperty<unsigned long>("_NET_WM_PID", d->wid, XA_CARDINAL);
-    if (pid->nItems == 0) {
-        XKillClient(tX11Info::display(), d->wid);
-    } else {
-        // Kill this process by its PID
+    XKillClient(tX11Info::display(), d->wid);
+    if (pid->nItems != 0) {
+        // Also kill this process by its PID for good measure
         ::kill(pid->first(), SIGKILL);
     }
 }
@@ -295,6 +294,11 @@ uint X11Window::desktop() {
     TX11::WindowPropertyPtr<uint> desktop = TX11::getWindowProperty<uint>("_NET_WM_DESKTOP", d->wid, XA_CARDINAL);
     if (desktop->nItems == 0) return 0;
     return desktop->first();
+}
+
+bool X11Window::isOnDesktop(uint desktop) {
+    auto thisDesktop = this->desktop();
+    return thisDesktop == desktop || thisDesktop == UINT_MAX;
 }
 
 bool X11Window::isOnCurrentDesktop() {
