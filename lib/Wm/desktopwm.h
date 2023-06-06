@@ -20,9 +20,9 @@
 #ifndef DESKTOPWM_H
 #define DESKTOPWM_H
 
-#include <QObject>
-#include "desktopwmwindow.h"
 #include "desktopaccessibility.h"
+#include "desktopwmwindow.h"
+#include <QObject>
 
 class QScreen;
 struct DesktopWmPrivate;
@@ -68,7 +68,10 @@ class DesktopWm : public QObject {
         static void ungrabKey(quint64 grab);
 
         static QString displayName(int uid);
+        static QString userName(int uid);
         static QString userDisplayName();
+        static QString userUserName();
+        static int userUid();
 
         static QStringList availableKeyboardLayouts();
         static QString currentKeyboardLayout();

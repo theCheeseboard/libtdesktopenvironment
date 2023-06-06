@@ -133,8 +133,21 @@ QString DesktopWm::displayName(int uid) {
     return pwEntry->pw_name;
 }
 
+QString DesktopWm::userName(int uid) {
+    passwd* pwEntry = getpwuid(uid);
+    return QString::fromLocal8Bit(pwEntry->pw_name);
+}
+
 QString DesktopWm::userDisplayName() {
     return displayName(getuid());
+}
+
+QString DesktopWm::userUserName() {
+    return userName(getuid());
+}
+
+int DesktopWm::userUid() {
+    return getuid();
 }
 
 QStringList DesktopWm::availableKeyboardLayouts() {
