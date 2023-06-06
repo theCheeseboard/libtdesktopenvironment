@@ -23,8 +23,10 @@ set(SOURCES
     Gestures/private/gesturebackend.cpp
     MimeAssociations/mimeassociationmanager.cpp
     Screens/private/screenbackend.cpp
+    Screens/private/overlaywindow.cpp Screens/private/overlaywindow.ui
     Screens/screendaemon.cpp
     Screens/systemscreen.cpp
+    Screens/systempopover.cpp
     SystemSlide/private/slidehud.cpp
     SystemSlide/private/slidempriscontroller.cpp
     SystemSlide/private/slidepulseaudiomonitor.cpp
@@ -69,6 +71,7 @@ set(HEADERS
     MimeAssociations/mimeassociationmanager.h
     Screens/screendaemon.h
     Screens/systemscreen.h
+    Screens/systempopover.h
     SystemSlide/systemslide.h
     TimeDate/desktoptimedate.h
     UPower/desktopupower.h
@@ -94,6 +97,7 @@ set(HEADERS
 set(PRIVATE_HEADERS
     Gestures/private/gesturebackend.h
     Screens/private/screenbackend.h
+    Screens/private/overlaywindow.h
     SystemSlide/private/slidehud.h
     SystemSlide/private/slidempriscontroller.h
     SystemSlide/private/slidepulseaudiomonitor.h
