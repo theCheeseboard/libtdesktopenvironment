@@ -21,20 +21,21 @@
 
 #include "qwayland-wlr-layer-shell-unstable-v1.h"
 #include <private/layershellsurface.h>
+#include <private/qwaylanddisplay_p.h>
 
-WaylandLayerShellIntegration::WaylandLayerShellIntegration() : QtWaylandClient::QWaylandShellIntegration() {
-
+WaylandLayerShellIntegration::WaylandLayerShellIntegration() :
+    QtWaylandClient::QWaylandShellIntegration() {
 }
 
 bool WaylandLayerShellIntegration::initialize(QtWaylandClient::QWaylandDisplay* display) {
     QWaylandShellIntegration::initialize(display);
-    display->addRegistryListener([](void* data, wl_registry * registry, quint32 name, const QString & interface, quint32 version) {
+    display->addRegistryListener([](void* data, wl_registry* registry, quint32 name, const QString& interface, quint32 version) {
         WaylandLayerShellIntegration* integration = static_cast<WaylandLayerShellIntegration*>(data);
         if (interface == "zwlr_layer_shell_v1") {
             integration->layershellShell = new LayerShellShell(new QtWayland::zwlr_layer_shell_v1(registry, name, version));
         }
-
-    }, this);
+    },
+        this);
 
     return layershellShell != nullptr;
 }
