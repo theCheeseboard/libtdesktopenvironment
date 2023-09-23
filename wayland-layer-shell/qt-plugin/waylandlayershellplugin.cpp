@@ -21,8 +21,8 @@
 
 #include "waylandlayershellintegration.h"
 
-WaylandLayerShellPlugin::WaylandLayerShellPlugin()
-    : QtWaylandClient::QWaylandShellIntegrationPlugin() {
+WaylandLayerShellPlugin::WaylandLayerShellPlugin() :
+    QtWaylandClient::QWaylandShellIntegrationPlugin() {
 }
 
 QtWaylandClient::QWaylandShellIntegration* WaylandLayerShellPlugin::create(const QString& key, const QStringList& paramList) {

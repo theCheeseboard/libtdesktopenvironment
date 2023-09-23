@@ -44,6 +44,7 @@ WaylandScreenBackend::WaylandScreenBackend() :
         WaylandScreenBackendPrivate* backend = static_cast<WaylandScreenBackendPrivate*>(data);
         if (strcmp(interface, zwlr_output_manager_v1_interface.name) == 0) {
             backend->parent->QtWayland::zwlr_output_manager_v1::init(registry, name, version);
+            wl_display_roundtrip(backend->display);
         } else if (strcmp(interface, wl_seat_interface.name) == 0) {
             wl_seat* seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, static_cast<quint32>(1))));
             backend->seat = seat;
@@ -83,7 +84,8 @@ QList<SystemScreen*> WaylandScreenBackend::screens() {
 
 SystemScreen* WaylandScreenBackend::primaryScreen() {
     // TODO: Implement
-    return nullptr;
+    if (d->heads.isEmpty()) return nullptr;
+    return d->heads.first();
 }
 
 int WaylandScreenBackend::dpi() const {

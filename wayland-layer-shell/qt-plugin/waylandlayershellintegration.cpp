@@ -28,7 +28,6 @@ WaylandLayerShellIntegration::WaylandLayerShellIntegration() :
 }
 
 bool WaylandLayerShellIntegration::initialize(QtWaylandClient::QWaylandDisplay* display) {
-    QWaylandShellIntegration::initialize(display);
     display->addRegistryListener([](void* data, wl_registry* registry, quint32 name, const QString& interface, quint32 version) {
         WaylandLayerShellIntegration* integration = static_cast<WaylandLayerShellIntegration*>(data);
         if (interface == "zwlr_layer_shell_v1") {

@@ -105,6 +105,7 @@ wl_seat* WaylandBackend::seat() {
 
 void WaylandBackend::signalToplevelClosed(zwlr_foreign_toplevel_handle_v1* toplevel) {
     WaylandWindowPtr window = d->windows.value(toplevel);
+    if (!window) return;
     emit windowRemoved(window.data());
     window->deleteLater();
     d->windows.remove(toplevel);
