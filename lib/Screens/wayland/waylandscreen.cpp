@@ -19,31 +19,32 @@
  * *************************************/
 #include "waylandscreen.h"
 
-#include <QMap>
 #include "waylandmode.h"
+#include <QApplication>
+#include <QMap>
 
 struct WaylandScreenPrivate {
-    QString name;
-    QString description;
-    QString manufacturer;
-    QString model;
-    bool powered;
-    QPoint position;
+        QString name;
+        QString description;
+        QString manufacturer;
+        QString model;
+        bool powered;
+        QPoint position;
 
-    wl_output_transform transform;
+        wl_output_transform transform;
 
-    QList<WaylandMode*> modes;
-    int currentMode = -1;
+        QList<WaylandMode*> modes;
+        int currentMode = -1;
 };
 
-WaylandScreen::WaylandScreen(::zwlr_output_head_v1* head) : SystemScreen(), QtWayland::zwlr_output_head_v1(head) {
+WaylandScreen::WaylandScreen(::zwlr_output_head_v1* head) :
+    SystemScreen(), QtWayland::zwlr_output_head_v1(head) {
     d = new WaylandScreenPrivate();
 }
 
 WaylandScreen::~WaylandScreen() {
     delete d;
 }
-
 
 void WaylandScreen::zwlr_output_head_v1_name(const QString& name) {
     d->name = name;
@@ -191,7 +192,7 @@ QByteArray WaylandScreen::edid() const {
 }
 
 QScreen* WaylandScreen::qtScreen() const {
-    return nullptr;
+    return qApp->primaryScreen();
 }
 
 void WaylandScreen::set() {

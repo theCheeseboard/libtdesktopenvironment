@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-project(theme VERSION 1.0.0 LANGUAGES CXX)
+project(theme VERSION 1.0.0 LANGUAGES C CXX)
 
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS WaylandClient)
 find_package(libcontemporary REQUIRED)

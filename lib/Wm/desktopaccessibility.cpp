@@ -19,8 +19,8 @@
  * *************************************/
 #include "desktopaccessibility.h"
 
-DesktopAccessibility::DesktopAccessibility(QObject* parent) : QObject(parent) {
-
+DesktopAccessibility::DesktopAccessibility(QObject* parent) :
+    QObject(parent) {
 }
 
 QString DesktopAccessibility::accessibilityOptionName(AccessibilityOption option) {

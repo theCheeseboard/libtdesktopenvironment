@@ -1,6 +1,4 @@
-cmake_minimum_required(VERSION 3.4.0)
-
-project(lib VERSION 1.0.0 LANGUAGES CXX)
+project(lib VERSION 1.0.0 LANGUAGES C CXX)
 
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia Concurrent)
 find_package(libcontemporary REQUIRED)
@@ -8,6 +6,7 @@ cntp_find_pkgconfig(X11 x11)
 cntp_find_pkgconfig(X11_SCRNSAVER xscrnsaver)
 cntp_find_pkgconfig(X11_EXT xext)
 cntp_find_pkgconfig(X11_RANDR xrandr)
+cntp_find_pkgconfig(wayland-client wayland-client)
 
 # TODO: Port NetworkManager portions
 # TODO: Port Wayland portions
@@ -171,6 +170,41 @@ IF(${X11_FOUND})
         target_compile_definitions(libtdesktopenvironment PRIVATE HAVE_XRANDR)
     ENDIF()
 ENDIF()
+
+if(${wayland-client_FOUND})
+    target_link_libraries(libtdesktopenvironment PkgConfig::wayland-client)
+    target_compile_definitions(libtdesktopenvironment PRIVATE HAVE_WAYLAND)
+
+    set(SOURCES
+        ${SOURCES}
+        Wm/wayland/waylandaccessibility.cpp
+        Wm/wayland/waylandbackend.cpp
+        Wm/wayland/waylandkeyboardtables.cpp
+        Wm/wayland/waylandwindow.cpp
+        Screens/wayland/waylandmode.cpp
+        Screens/wayland/waylandscreen.cpp
+        Screens/wayland/waylandscreenbackend.cpp
+    )
+
+    set(HEADERS
+        ${HEADERS}
+        Wm/wayland/waylandaccessibility.h
+        Wm/wayland/waylandbackend.h
+        Wm/wayland/waylandkeyboardtables.h
+        Wm/wayland/waylandwindow.h
+        Screens/wayland/waylandmode.h
+        Screens/wayland/waylandscreen.h
+        Screens/wayland/waylandscreenbackend.h
+    )
+
+    tdesktopenvironment_register_wayland_protocol_extension(libtdesktopenvironment FILES
+        wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml
+        wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-keygrab-v1.xml
+        wayland-protocols/wlr-protocols/unstable/wlr-output-management-unstable-v1.xml
+    )
+    target_link_libraries(libtdesktopenvironment Qt::GuiPrivate tdesktopenvironment-wayland-layer-shell-client-lib)
+    target_include_directories(libtdesktopenvironment PRIVATE ../wayland-layer-shell/client-lib/)
+endif()
 
 target_sources(libtdesktopenvironment PRIVATE ${SOURCES} ${HEADERS} ${PRIVATE_HEADERS})
 cntp_target_public_headers(libtdesktopenvironment DESTINATION_DIRECTORY libtdesktopenvironment

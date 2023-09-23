@@ -19,37 +19,38 @@
  * *************************************/
 #include "waylandwindow.h"
 
-#include <QRect>
-#include <QIcon>
 #include "waylandbackend.h"
+#include <QIcon>
+#include <QRect>
 
 struct WaylandWindowPrivate {
-    WaylandBackend* backend;
-    WaylandWindowEventListener* listener;
+        WaylandBackend* backend;
+        WaylandWindowEventListener* listener;
 
-    QString title;
-    ApplicationPointer application;
+        QString title;
+        ApplicationPointer application;
 
-    enum WindowState {
-        NoState = 0,
-        Activated = 1,
-        Maximised = 2,
-        Minimised = 4
-    };
-    typedef QFlags<WindowState> WindowStateFlags;
+        enum WindowState {
+            NoState = 0,
+            Activated = 1,
+            Maximised = 2,
+            Minimised = 4
+        };
+        typedef QFlags<WindowState> WindowStateFlags;
 
-    WindowStateFlags state = NoState;
+        WindowStateFlags state = NoState;
 };
 
 struct WaylandWindowEventListener {
-    WaylandWindow* parent;
+        WaylandWindow* parent;
 
-    WaylandWindowEventListener(WaylandWindow* parentWindow) {
-        this->parent = parentWindow;
-    }
+        WaylandWindowEventListener(WaylandWindow* parentWindow) {
+            this->parent = parentWindow;
+        }
 };
 
-WaylandWindow::WaylandWindow(::zwlr_foreign_toplevel_handle_v1* handle, WaylandBackend* backend) : DesktopWmWindow(), QtWayland::zwlr_foreign_toplevel_handle_v1(handle) {
+WaylandWindow::WaylandWindow(::zwlr_foreign_toplevel_handle_v1* handle, WaylandBackend* backend) :
+    DesktopWmWindow(), QtWayland::zwlr_foreign_toplevel_handle_v1(handle) {
     d = new WaylandWindowPrivate();
     d->backend = backend;
 
@@ -122,7 +123,6 @@ void WaylandWindow::activate() {
 void WaylandWindow::kill() {
 }
 
-
 void WaylandWindow::zwlr_foreign_toplevel_handle_v1_title(const QString& title) {
     d->title = title;
     emit titleChanged();
@@ -166,4 +166,8 @@ void WaylandWindow::zwlr_foreign_toplevel_handle_v1_closed() {
 
 void WaylandWindow::close() {
     this->QtWayland::zwlr_foreign_toplevel_handle_v1::close();
+}
+
+bool WaylandWindow::isOnDesktop(uint desktop) {
+    return desktop == 0;
 }

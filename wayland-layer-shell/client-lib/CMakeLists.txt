@@ -1,7 +1,4 @@
-cmake_minimum_required(VERSION 3.4.0)
-
-project(lib VERSION 1.0.0 LANGUAGES CXX)
-
+project(lib VERSION 1.0.0 LANGUAGES C CXX)
 
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS WaylandClient)
 find_package(libcontemporary REQUIRED)
@@ -49,15 +46,21 @@ target_link_libraries(tdesktopenvironment-wayland-layer-shell-client-lib Qt::Wid
 target_compile_definitions(tdesktopenvironment-wayland-layer-shell-client-lib PRIVATE CLIENTLIB_LIBRARY)
 
 set(CMAKECONFIG_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/tdesktopenvironment-wayland-layer-shell-client-lib)
+set(HEADER_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR}/libtdesktopenvironment/wayland-layer-shell-client-lib)
+set(LIBRARY_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
 
-#install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tdesktopenvironment-wayland-layer-shell-client-libConfig.cmake
-#        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
-#install(EXPORT tdesktopenvironment-wayland-layer-shell-client-libTargets
-#        FILE tdesktopenvironment-wayland-layer-shell-client-libTargets.cmake
-#        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+configure_package_config_file(tdesktopenvironment-wayland-layer-shell-client-libConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/tdesktopenvironment-wayland-layer-shell-client-libConfig.cmake
+        INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR}
+        PATH_VARS HEADER_INSTALL_DIR LIBRARY_INSTALL_DIR)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/tdesktopenvironment-wayland-layer-shell-client-libConfig.cmake
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+install(EXPORT tdesktopenvironment-wayland-layer-shell-client-libTargets
+        FILE tdesktopenvironment-wayland-layer-shell-client-libTargets.cmake
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 install(TARGETS tdesktopenvironment-wayland-layer-shell-client-lib
-#        EXPORT tdesktopenvironment-wayland-layer-shell-client-libTargets
+        EXPORT tdesktopenvironment-wayland-layer-shell-client-libTargets
         PUBLIC_HEADER DESTINATION ${HEADER_INSTALL_DIR}
         INCLUDES DESTINATION ${INCLUDE_INSTALL_DIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

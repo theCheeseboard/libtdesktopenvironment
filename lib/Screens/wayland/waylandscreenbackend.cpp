@@ -19,41 +19,41 @@
  * *************************************/
 #include "waylandscreenbackend.h"
 
-#include <tlogger.h>
+#include "waylandscreen.h"
 #include <QGuiApplication>
 #include <qpa/qplatformnativeinterface.h>
-#include "waylandscreen.h"
+#include <tlogger.h>
 
 struct WaylandScreenBackendPrivate {
-    WaylandScreenBackend* parent;
-    wl_display* display;
-    wl_seat* seat;
+        WaylandScreenBackend* parent;
+        wl_display* display;
+        wl_seat* seat;
 
-    QMap<zwlr_output_head_v1*, WaylandScreen*> heads;
+        QMap<zwlr_output_head_v1*, WaylandScreen*> heads;
 };
 
-WaylandScreenBackend::WaylandScreenBackend() : ScreenBackend() {
+WaylandScreenBackend::WaylandScreenBackend() :
+    ScreenBackend() {
     d = new WaylandScreenBackendPrivate();
 
     d->parent = this;
     d->display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
 
     wl_registry_listener listener = {
-        [](void* data, wl_registry * registry, quint32 name, const char* interface, quint32 version) {
-            WaylandScreenBackendPrivate* backend = static_cast<WaylandScreenBackendPrivate*>(data);
-            if (strcmp(interface, zwlr_output_manager_v1_interface.name) == 0) {
-                backend->parent->QtWayland::zwlr_output_manager_v1::init(registry, name, version);
-            } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-                wl_seat* seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, static_cast<quint32>(1))));
-                backend->seat = seat;
-            }
-        },
-        [](void* data, wl_registry * registry, quint32 name) {
-            Q_UNUSED(data)
-            Q_UNUSED(registry)
-            Q_UNUSED(name)
+        [](void* data, wl_registry* registry, quint32 name, const char* interface, quint32 version) {
+        WaylandScreenBackendPrivate* backend = static_cast<WaylandScreenBackendPrivate*>(data);
+        if (strcmp(interface, zwlr_output_manager_v1_interface.name) == 0) {
+            backend->parent->QtWayland::zwlr_output_manager_v1::init(registry, name, version);
+        } else if (strcmp(interface, wl_seat_interface.name) == 0) {
+            wl_seat* seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, static_cast<quint32>(1))));
+            backend->seat = seat;
         }
-    };
+        },
+        [](void* data, wl_registry* registry, quint32 name) {
+        Q_UNUSED(data)
+        Q_UNUSED(registry)
+        Q_UNUSED(name)
+    }};
 
     wl_registry* registry = wl_display_get_registry(d->display);
     wl_registry_add_listener(registry, &listener, d);
@@ -82,17 +82,17 @@ QList<SystemScreen*> WaylandScreenBackend::screens() {
 }
 
 SystemScreen* WaylandScreenBackend::primaryScreen() {
-    //TODO: Implement
+    // TODO: Implement
     return nullptr;
 }
 
 int WaylandScreenBackend::dpi() const {
-    //TODO: Implement
+    // TODO: Implement
     return 96;
 }
 
 void WaylandScreenBackend::setDpi(int dpi) {
-    //TODO: Implement
+    // TODO: Implement
 }
 
 void WaylandScreenBackend::zwlr_output_manager_v1_head(zwlr_output_head_v1* head) {

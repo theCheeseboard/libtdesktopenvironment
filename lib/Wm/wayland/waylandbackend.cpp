@@ -21,9 +21,9 @@
 
 #include "waylandaccessibility.h"
 #include <QGuiApplication>
-#include <QWidget>
-#include <QTimer>
 #include <QRandomGenerator64>
+#include <QTimer>
+#include <QWidget>
 #include <qpa/qplatformnativeinterface.h>
 
 #include <wayland-client.h>
@@ -35,47 +35,47 @@
 #include "waylandwindow.h"
 
 struct WaylandBackendPrivate {
-    WaylandBackend* parent;
-    WaylandAccessibility* accessibility;
+        WaylandBackend* parent;
+        WaylandAccessibility* accessibility;
 
-    wl_display* display;
-    wl_seat* seat;
-    QMap<zwlr_foreign_toplevel_handle_v1*, WaylandWindowPtr> windows;
+        wl_display* display;
+        wl_seat* seat;
+        QMap<zwlr_foreign_toplevel_handle_v1*, WaylandWindowPtr> windows;
 
-    quint64 nextKeygrabId = 0;
-    QMap<quint64, quint64> extKeygrab;
-    QMap<quint64, quint64> keygrabs;
-    QMap<quint64, std::function<void(quint32)>> keygrabFunctions;
+        quint64 nextKeygrabId = 0;
+        QMap<quint64, quint64> extKeygrab;
+        QMap<quint64, quint64> keygrabs;
+        QMap<quint64, std::function<void(quint32)>> keygrabFunctions;
 };
 
-WaylandBackend::WaylandBackend() : WmBackend() {
+WaylandBackend::WaylandBackend() :
+    WmBackend() {
     d = new WaylandBackendPrivate();
     d->parent = this;
     d->accessibility = new WaylandAccessibility(this);
 
-//    LayerShellQt::Shell::useLayerShell();
+    //    LayerShellQt::Shell::useLayerShell();
     qputenv("QT_WAYLAND_SHELL_INTEGRATION", "tdesktopenvironment-layer-shell");
 
     d->display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
 
     wl_registry_listener listener = {
-        [](void* data, wl_registry * registry, quint32 name, const char* interface, quint32 version) {
-            WaylandBackendPrivate* backend = static_cast<WaylandBackendPrivate*>(data);
-            if (strcmp(interface, zwlr_foreign_toplevel_manager_v1_interface.name) == 0) {
-                backend->parent->QtWayland::zwlr_foreign_toplevel_manager_v1::init(registry, name, qMin<quint32>(version, 3));
-            } else if (strcmp(interface, tdesktopenvironment_keygrab_manager_v1_interface.name) == 0) {
-                backend->parent->QtWayland::tdesktopenvironment_keygrab_manager_v1::init(registry, name, 1);
-            } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-                wl_seat* seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, static_cast<quint32>(1))));
-                backend->seat = seat;
-            }
-        },
-        [](void* data, wl_registry * registry, quint32 name) {
-            Q_UNUSED(data)
-            Q_UNUSED(registry)
-            Q_UNUSED(name)
+        [](void* data, wl_registry* registry, quint32 name, const char* interface, quint32 version) {
+        WaylandBackendPrivate* backend = static_cast<WaylandBackendPrivate*>(data);
+        if (strcmp(interface, zwlr_foreign_toplevel_manager_v1_interface.name) == 0) {
+            backend->parent->QtWayland::zwlr_foreign_toplevel_manager_v1::init(registry, name, qMin<quint32>(version, 3));
+        } else if (strcmp(interface, tdesktopenvironment_keygrab_manager_v1_interface.name) == 0) {
+            backend->parent->QtWayland::tdesktopenvironment_keygrab_manager_v1::init(registry, name, 1);
+        } else if (strcmp(interface, wl_seat_interface.name) == 0) {
+            wl_seat* seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, static_cast<quint32>(1))));
+            backend->seat = seat;
         }
-    };
+        },
+        [](void* data, wl_registry* registry, quint32 name) {
+        Q_UNUSED(data)
+        Q_UNUSED(registry)
+        Q_UNUSED(name)
+    }};
 
     wl_registry* registry = wl_display_get_registry(d->display);
     wl_registry_add_listener(registry, &listener, d);
@@ -115,12 +115,12 @@ DesktopAccessibility* WaylandBackend::accessibility() {
 }
 
 QList<DesktopWmWindowPtr> WaylandBackend::openWindows() {
-    //TODO: Implement
+    // TODO: Implement
     return {};
 }
 
 DesktopWmWindowPtr WaylandBackend::activeWindow() {
-    //TODO: Implement
+    // TODO: Implement
     for (WaylandWindow* window : d->windows.values()) {
         if (window->isActive()) return window;
     }
@@ -128,34 +128,35 @@ DesktopWmWindowPtr WaylandBackend::activeWindow() {
 }
 
 QStringList WaylandBackend::desktops() {
-    //TODO: Implement
+    // TODO: Implement
     return {"Desktop 1", "Desktop 2"};
 }
 
 uint WaylandBackend::currentDesktop() {
-    //TODO: Implement
+    // TODO: Implement
     return 0;
 }
 
 void WaylandBackend::setCurrentDesktop(uint desktopNumber) {
-    //TODO: Implement
+    // TODO: Implement
 }
 
 void WaylandBackend::setNumDesktops(uint numDesktops) {
-    //TODO: Implement
+    // TODO: Implement
 }
 
 void WaylandBackend::setShowDesktop(bool showDesktop) {
-    //TODO: Implement
+    // TODO: Implement
 }
 
 void WaylandBackend::setSystemWindow(QWidget* widget) {
-    //TODO: Implement
+    // TODO: Implement
 }
 
 void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType windowType) {
     widget->show();
-    LayerShellWindow* layerWindow = LayerShellWindow::forWindow(widget->windowHandle());
+    auto* layerWindow = LayerShellWindow::forWindow(widget->windowHandle());
+    if (!layerWindow) return;
     layerWindow->setKeyboardInteractivity(LayerShellWindow::OnDemand);
 
     switch (windowType) {
@@ -176,7 +177,7 @@ void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowTyp
         case DesktopWm::SystemWindowTypeMenu:
             layerWindow->setLayer(LayerShellWindow::Overlay);
             layerWindow->setExclusiveZone(-1);
-//            layerWindow->setAnchors(static_cast<LayerShellWindow::Anchors>(LayerShellWindow::AnchorLeft | LayerShellWindow::AnchorTop | LayerShellWindow::AnchorBottom));
+            //            layerWindow->setAnchors(static_cast<LayerShellWindow::Anchors>(LayerShellWindow::AnchorLeft | LayerShellWindow::AnchorTop | LayerShellWindow::AnchorBottom));
             layerWindow->setAnchors(LayerShellWindow::AnchorRight);
             break;
         case DesktopWm::SystemWindowTypeLockScreen:
@@ -189,11 +190,12 @@ void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowTyp
 }
 
 void WaylandBackend::blurWindow(QWidget* widget) {
-    //TODO: Implement
+    // TODO: Implement
 }
 
 void WaylandBackend::setScreenMarginForWindow(QWidget* widget, QScreen* screen, Qt::Edge edge, int width) {
     LayerShellWindow* layerWindow = LayerShellWindow::forWindow(widget->windowHandle());
+    if (!layerWindow) return;
 
     layerWindow->setExclusiveZone(width);
     LayerShellWindow::Anchors anchors;
@@ -215,16 +217,16 @@ void WaylandBackend::setScreenMarginForWindow(QWidget* widget, QScreen* screen, 
 }
 
 void WaylandBackend::setScreenOff(bool screenOff) {
-    //TODO: Implement
+    // TODO: Implement
 }
 
 bool WaylandBackend::isScreenOff() {
-    //TODO: Implement
+    // TODO: Implement
     return false;
 }
 
 quint64 WaylandBackend::msecsIdle() {
-    //TODO: Implement
+    // TODO: Implement
     return 0;
 }
 
@@ -237,12 +239,12 @@ quint64 WaylandBackend::grabKey(Qt::Key key, Qt::KeyboardModifiers modifiers) {
     QList<quint32> codes = TWayland::toEvdevCodes(key);
     quint32 mod = TWayland::toEvdevMod(modifiers);
     for (quint32 code : codes) {
-        //Create a new keygrab
+        // Create a new keygrab
         quint64 id = QRandomGenerator64::system()->generate();
         while (d->keygrabs.contains(id)) id = QRandomGenerator64::system()->generate();
 
         d->keygrabs.insert(id, TWayland::evdevDescriptor(mod, code));
-        d->keygrabFunctions.insert(id, [ = ](quint32 type) {
+        d->keygrabFunctions.insert(id, [this, keygrabId](quint32 type) {
             emit grabbedKeyPressed(keygrabId);
         });
         QtWayland::tdesktopenvironment_keygrab_manager_v1::grab_key(mod, code);
@@ -267,7 +269,7 @@ void WaylandBackend::ungrabKey(quint64 grab) {
 }
 
 void WaylandBackend::registerAsPrimaryProvider() {
-//noop
+    // noop
 }
 
 void WaylandBackend::zwlr_foreign_toplevel_manager_v1_toplevel(::zwlr_foreign_toplevel_handle_v1* toplevel) {
@@ -277,32 +279,29 @@ void WaylandBackend::zwlr_foreign_toplevel_manager_v1_toplevel(::zwlr_foreign_to
     emit windowAdded(window.data());
 }
 
-
 void WaylandBackend::tdesktopenvironment_keygrab_manager_v1_activated(uint32_t mod, uint32_t key, uint32_t type) {
     quint64 descriptor = TWayland::evdevDescriptor(mod, key);
     if (!d->keygrabs.values().contains(descriptor)) return;
 
     quint64 id = d->keygrabs.key(descriptor);
     d->keygrabFunctions.value(id)(type);
-
 }
 
-
 QStringList WaylandBackend::availableKeyboardLayouts() {
-    //TODO: Implement
+    // TODO: Implement
     return {"us"};
 }
 
 QString WaylandBackend::currentKeyboardLayout() {
-    //TODO: Implement
+    // TODO: Implement
     return "us";
 }
 
 QString WaylandBackend::keyboardLayoutDescription(QString layout) {
-    //TODO: Implement
+    // TODO: Implement
     return "US";
 }
 
 void WaylandBackend::setCurrentKeyboardLayout(QString layout) {
-    //TODO: Implement
+    // TODO: Implement
 }
