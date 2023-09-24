@@ -19,20 +19,21 @@
  * *************************************/
 #include "layershellsurface.h"
 
-#include <private/qwaylandwindow_p.h>
-#include <private/qwaylandsurface_p.h>
-#include <private/qwaylandscreen_p.h>
 #include "layershellshell.h"
+#include <private/qwaylandscreen_p.h>
+#include <private/qwaylandsurface_p.h>
+#include <private/qwaylandwindow_p.h>
 
 struct LayerShellSurfacePrivate {
-    LayerShellShell* shell;
-    QPointer<QtWaylandClient::QWaylandWindow> window;
+        LayerShellShell* shell;
+        QPointer<QtWaylandClient::QWaylandWindow> window;
 
-    QSize queuedSize;
-    bool configured = false;
+        QSize queuedSize;
+        bool configured = false;
 };
 
-LayerShellSurface::LayerShellSurface(LayerShellShell* shell, QtWaylandClient::QWaylandWindow* window) : QtWaylandClient::QWaylandShellSurface(window), QtWayland::zwlr_layer_surface_v1(shell->get_layer_surface(window->waylandSurface()->object(), window->waylandScreen()->output(), QtWayland::zwlr_layer_shell_v1::layer_top, "window")) {
+LayerShellSurface::LayerShellSurface(LayerShellShell* shell, QtWaylandClient::QWaylandWindow* window) :
+    QtWaylandClient::QWaylandShellSurface(window), QtWayland::zwlr_layer_surface_v1(shell->get_layer_surface(window->waylandSurface()->object(), window->waylandScreen()->output(), QtWayland::zwlr_layer_shell_v1::layer_top, "window")) {
     d = new LayerShellSurfacePrivate();
     set_anchor(anchor_top | anchor_bottom | anchor_left | anchor_right);
 }

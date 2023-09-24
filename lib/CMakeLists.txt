@@ -226,4 +226,8 @@ install(TARGETS libtdesktopenvironment
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         FRAMEWORK DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
+install(DIRECTORY wayland-protocols/tdesktopenvironment-protocols
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/libtdesktopenvironment/wayland-protocols
+)
+
 cntp_mark_support_library_directory()
