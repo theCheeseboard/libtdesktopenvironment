@@ -20,19 +20,21 @@
 #ifndef WAYLANDSCREENBACKEND_H
 #define WAYLANDSCREENBACKEND_H
 
-#include <QObject>
 #include "../private/screenbackend.h"
 #include "qwayland-wlr-output-management-unstable-v1.h"
+#include <QObject>
 
 struct WaylandScreenBackendPrivate;
 class WaylandScreenBackend : public ScreenBackend,
-    public QtWayland::zwlr_output_manager_v1 {
+                             public QtWayland::zwlr_output_manager_v1 {
         Q_OBJECT
     public:
         explicit WaylandScreenBackend();
         ~WaylandScreenBackend();
 
         static bool isSuitable();
+
+        uint32_t serial();
 
     signals:
 

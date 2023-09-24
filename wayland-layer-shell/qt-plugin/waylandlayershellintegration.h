@@ -20,8 +20,8 @@
 #ifndef WAYLANDLAYERSHELLINTEGRATION_H
 #define WAYLANDLAYERSHELLINTEGRATION_H
 
-#include <private/qwaylandshellintegration_p.h>
 #include <private/layershellshell.h>
+#include <private/qwaylandshellintegration_p.h>
 
 class WaylandLayerShellIntegration : public QtWaylandClient::QWaylandShellIntegration {
     public:
@@ -29,13 +29,16 @@ class WaylandLayerShellIntegration : public QtWaylandClient::QWaylandShellIntegr
 
     signals:
 
-
         // QWaylandShellIntegration interface
     public:
         bool initialize(QtWaylandClient::QWaylandDisplay* display);
         QtWaylandClient::QWaylandShellSurface* createShellSurface(QtWaylandClient::QWaylandWindow* window);
 
+    private:
         LayerShellShell* layershellShell = nullptr;
+        QWaylandShellIntegration* xdgShellIntegration;
+
+        bool shouldBeLayerShell(QtWaylandClient::QWaylandWindow* window);
 };
 
 #endif // WAYLANDLAYERSHELLINTEGRATION_H

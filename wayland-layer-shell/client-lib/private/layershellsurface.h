@@ -20,14 +20,15 @@
 #ifndef LAYERSHELLSURFACE_H
 #define LAYERSHELLSURFACE_H
 
+#include "qwayland-wlr-layer-shell-unstable-v1.h"
 #include <QObject>
 #include <private/qwaylandshellsurface_p.h>
-#include "qwayland-wlr-layer-shell-unstable-v1.h"
 
 struct LayerShellSurfacePrivate;
 
 class LayerShellShell;
-class LayerShellSurface : public QtWaylandClient::QWaylandShellSurface, public QtWayland::zwlr_layer_surface_v1 {
+class LayerShellSurface : public QtWaylandClient::QWaylandShellSurface,
+                          public QtWayland::zwlr_layer_surface_v1 {
         Q_OBJECT
     public:
         explicit LayerShellSurface(LayerShellShell* shell, QtWaylandClient::QWaylandWindow* window);
@@ -42,7 +43,6 @@ class LayerShellSurface : public QtWaylandClient::QWaylandShellSurface, public Q
 
     private:
         LayerShellSurfacePrivate* d;
-
 
         // zwlr_layer_surface_v1 interface
     protected:

@@ -19,11 +19,15 @@
  * *************************************/
 #include "waylandscreen.h"
 
+#include "../screendaemon.h"
 #include "waylandmode.h"
+#include "waylandscreenbackend.h"
 #include <QApplication>
 #include <QMap>
 
 struct WaylandScreenPrivate {
+        WaylandScreenBackend* backend;
+
         QString name;
         QString description;
         QString manufacturer;
@@ -37,9 +41,10 @@ struct WaylandScreenPrivate {
         int currentMode = -1;
 };
 
-WaylandScreen::WaylandScreen(::zwlr_output_head_v1* head) :
+WaylandScreen::WaylandScreen(::zwlr_output_head_v1* head, WaylandScreenBackend* backend) :
     SystemScreen(), QtWayland::zwlr_output_head_v1(head) {
     d = new WaylandScreenPrivate();
+    d->backend = backend;
 }
 
 WaylandScreen::~WaylandScreen() {
@@ -76,6 +81,7 @@ void WaylandScreen::zwlr_output_head_v1_current_mode(zwlr_output_mode_v1* mode) 
     }
     d->currentMode = -1;
     emit currentModeChanged(d->currentMode);
+    emit geometryChanged(geometry());
 }
 
 void WaylandScreen::zwlr_output_head_v1_position(int32_t x, int32_t y) {
@@ -129,6 +135,8 @@ bool WaylandScreen::isPrimary() const {
 }
 
 void WaylandScreen::setPowered(bool powered) {
+    d->powered = powered;
+    emit poweredChanged(powered);
 }
 
 QRect WaylandScreen::geometry() const {
@@ -136,6 +144,8 @@ QRect WaylandScreen::geometry() const {
 }
 
 void WaylandScreen::move(QPoint topLeft) {
+    d->position = topLeft;
+    emit geometryChanged(geometry());
 }
 
 QList<WaylandScreen::Mode> WaylandScreen::availableModes() const {
@@ -174,6 +184,23 @@ WaylandScreen::Rotation WaylandScreen::currentRotation() const {
 }
 
 void WaylandScreen::setRotation(Rotation rotation) {
+    switch (rotation) {
+        case Landscape:
+            d->transform = WL_OUTPUT_TRANSFORM_NORMAL;
+            break;
+        case Portrait:
+            d->transform = WL_OUTPUT_TRANSFORM_90;
+            break;
+        case UpsideDown:
+            d->transform = WL_OUTPUT_TRANSFORM_180;
+            break;
+        case UpsideDownPortrait:
+            d->transform = WL_OUTPUT_TRANSFORM_270;
+            break;
+        default:
+            d->transform = WL_OUTPUT_TRANSFORM_NORMAL;
+    }
+    emit rotationChanged(currentRotation());
 }
 
 QString WaylandScreen::displayName() const {
@@ -196,6 +223,23 @@ QScreen* WaylandScreen::qtScreen() const {
 }
 
 void WaylandScreen::set() {
+    auto config = zwlr_output_manager_v1_create_configuration(d->backend->object(), d->backend->serial());
+
+    for (auto systemScreen : d->backend->screens()) {
+        auto screen = qobject_cast<WaylandScreen*>(systemScreen);
+        auto screenProperties = screen->d;
+
+        if (screen->d->powered) {
+            auto configHead = zwlr_output_configuration_v1_enable_head(config, screen->object());
+            zwlr_output_configuration_head_v1_set_mode(configHead, screenProperties->modes.at(screenProperties->currentMode)->object());
+            zwlr_output_configuration_head_v1_set_position(configHead, screenProperties->position.x(), screenProperties->position.y());
+            zwlr_output_configuration_head_v1_set_transform(configHead, screenProperties->transform);
+        } else {
+            zwlr_output_configuration_v1_disable_head(config, screen->object());
+        }
+    }
+
+    zwlr_output_configuration_v1_apply(config);
 }
 
 void WaylandScreen::reset() {

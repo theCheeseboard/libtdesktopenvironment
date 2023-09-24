@@ -176,10 +176,11 @@ void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowTyp
             layerWindow->setExclusiveZone(0);
             break;
         case DesktopWm::SystemWindowTypeMenu:
-            layerWindow->setLayer(LayerShellWindow::Overlay);
+            layerWindow->setLayer(LayerShellWindow::Top);
             layerWindow->setExclusiveZone(-1);
             //            layerWindow->setAnchors(static_cast<LayerShellWindow::Anchors>(LayerShellWindow::AnchorLeft | LayerShellWindow::AnchorTop | LayerShellWindow::AnchorBottom));
             layerWindow->setAnchors(LayerShellWindow::AnchorRight);
+            layerWindow->setKeyboardInteractivity(LayerShellWindow::Exclusive);
             break;
         case DesktopWm::SystemWindowTypeLockScreen:
             layerWindow->setLayer(LayerShellWindow::Overlay);

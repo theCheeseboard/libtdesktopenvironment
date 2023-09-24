@@ -28,6 +28,7 @@ struct WaylandScreenBackendPrivate {
         WaylandScreenBackend* parent;
         wl_display* display;
         wl_seat* seat;
+        quint32 serial;
 
         QMap<zwlr_output_head_v1*, WaylandScreen*> heads;
 };
@@ -74,6 +75,10 @@ bool WaylandScreenBackend::isSuitable() {
     return QGuiApplication::platformName().startsWith(QLatin1String("wayland"), Qt::CaseInsensitive);
 }
 
+uint32_t WaylandScreenBackend::serial() {
+    return d->serial;
+}
+
 QList<SystemScreen*> WaylandScreenBackend::screens() {
     QList<SystemScreen*> screens;
     for (WaylandScreen* screen : d->heads.values()) {
@@ -98,10 +103,11 @@ void WaylandScreenBackend::setDpi(int dpi) {
 }
 
 void WaylandScreenBackend::zwlr_output_manager_v1_head(zwlr_output_head_v1* head) {
-    d->heads.insert(head, new WaylandScreen(head));
+    d->heads.insert(head, new WaylandScreen(head, this));
 }
 
 void WaylandScreenBackend::zwlr_output_manager_v1_done(uint32_t serial) {
+    d->serial = serial;
 }
 
 void WaylandScreenBackend::zwlr_output_manager_v1_finished() {
