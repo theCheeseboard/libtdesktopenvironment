@@ -36,6 +36,7 @@ LayerShellSurface::LayerShellSurface(LayerShellShell* shell, QtWaylandClient::QW
     QtWaylandClient::QWaylandShellSurface(window), QtWayland::zwlr_layer_surface_v1(shell->get_layer_surface(window->waylandSurface()->object(), window->waylandScreen()->output(), QtWayland::zwlr_layer_shell_v1::layer_top, "window")) {
     d = new LayerShellSurfacePrivate();
     set_anchor(anchor_top | anchor_bottom | anchor_left | anchor_right);
+    set_keyboard_interactivity(keyboard_interactivity_on_demand);
 }
 
 LayerShellSurface::~LayerShellSurface() {
@@ -45,18 +46,22 @@ LayerShellSurface::~LayerShellSurface() {
 
 void LayerShellSurface::setAnchor(quint32 anchor) {
     set_anchor(anchor);
+    this->window()->waylandSurface()->commit();
 }
 
 void LayerShellSurface::setExclusiveZone(quint32 exclusiveZone) {
     set_exclusive_zone(exclusiveZone);
+    this->window()->waylandSurface()->commit();
 }
 
 void LayerShellSurface::setKeyboardInteractivity(quint32 interactivity) {
     set_keyboard_interactivity(interactivity);
+    this->window()->waylandSurface()->commit();
 }
 
 void LayerShellSurface::setLayer(quint32 layer) {
     set_layer(layer);
+    this->window()->waylandSurface()->commit();
 }
 
 void LayerShellSurface::zwlr_layer_surface_v1_configure(uint32_t serial, uint32_t width, uint32_t height) {
