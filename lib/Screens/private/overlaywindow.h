@@ -40,6 +40,6 @@ class OverlayWindow : public QWidget {
 
         // QWidget interface
     protected:
-        //        void showEvent(QShowEvent *event);
+        void showEvent(QShowEvent* event);
 };
 #endif // OVERLAYWINDOW_H

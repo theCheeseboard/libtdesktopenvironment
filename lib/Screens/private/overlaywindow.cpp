@@ -36,7 +36,6 @@ OverlayWindow::~OverlayWindow() {
     delete ui;
 }
 
-// void OverlayWindow::showEvent(QShowEvent* event) {
-//     QDialog::showEvent(event);
-//     DesktopWm::instance()->setSystemWindow(this, DesktopWm::SystemWindowTypeLockScreen);
-//}
+void OverlayWindow::showEvent(QShowEvent* event) {
+    DesktopWm::instance()->setSystemWindow(this, DesktopWm::SystemWindowTypeLockScreen);
+}
