@@ -36,5 +36,9 @@ class OverlayWindow : public QDialog
 
     private:
         Ui::OverlayWindow *ui;
+
+        // QWidget interface
+    protected:
+        void showEvent(QShowEvent *event);
 };
 #endif // OVERLAYWINDOW_H
