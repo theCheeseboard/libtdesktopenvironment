@@ -23,22 +23,23 @@
 #include <QDialog>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class OverlayWindow; }
+namespace Ui {
+    class OverlayWindow;
+}
 QT_END_NAMESPACE
 
-class OverlayWindow : public QDialog
-{
+class OverlayWindow : public QWidget {
         Q_OBJECT
 
     public:
-        OverlayWindow(QWidget *parent = nullptr);
+        OverlayWindow(QWidget* parent = nullptr);
         ~OverlayWindow();
 
     private:
-        Ui::OverlayWindow *ui;
+        Ui::OverlayWindow* ui;
 
         // QWidget interface
     protected:
-        void showEvent(QShowEvent *event);
+        //        void showEvent(QShowEvent *event);
 };
 #endif // OVERLAYWINDOW_H

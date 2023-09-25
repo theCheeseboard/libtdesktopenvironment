@@ -24,7 +24,7 @@
 #include <tscrim.h>
 
 OverlayWindow::OverlayWindow(QWidget* parent) :
-    QDialog(parent), ui(new Ui::OverlayWindow) {
+    QWidget(parent), ui(new Ui::OverlayWindow) {
     ui->setupUi(this);
     this->setAttribute(Qt::WA_TranslucentBackground);
     this->setWindowFlag(Qt::WindowStaysOnTopHint);
@@ -36,6 +36,7 @@ OverlayWindow::~OverlayWindow() {
     delete ui;
 }
 
-void OverlayWindow::showEvent(QShowEvent* event) {
-    DesktopWm::setSystemWindow(this, DesktopWm::SystemWindowTypeLockScreen);
-}
+// void OverlayWindow::showEvent(QShowEvent* event) {
+//     QDialog::showEvent(event);
+//     DesktopWm::instance()->setSystemWindow(this, DesktopWm::SystemWindowTypeLockScreen);
+//}

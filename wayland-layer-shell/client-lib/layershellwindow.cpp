@@ -20,6 +20,8 @@
 #include "layershellwindow.h"
 
 #include "private/layershellsurface.h"
+#include <private/qwaylandscreen_p.h>
+#include <private/qwaylandshellintegrationfactory_p.h>
 #include <private/qwaylandwindow_p.h>
 
 struct LayerShellWindowPrivate {
@@ -30,6 +32,7 @@ LayerShellWindow* LayerShellWindow::forWindow(QWindow* window) {
     QtWaylandClient::QWaylandWindow* waylandWindow = dynamic_cast<QtWaylandClient::QWaylandWindow*>(window->handle());
     if (!waylandWindow) return nullptr;
 
+    waylandWindow->setShellIntegration(QtWaylandClient::QWaylandShellIntegrationFactory::create("tdesktopenvironment-layer-shell", waylandWindow->waylandScreen()->display()));
     waylandWindow->setVisible(true);
 
     LayerShellSurface* surface = qobject_cast<LayerShellSurface*>(waylandWindow->shellSurface());
