@@ -20,8 +20,12 @@
 #include "waylandwindow.h"
 
 #include "waylandbackend.h"
+#include "waylandwmconstants.h"
+#include <QCoroDBus>
+#include <QDBusInterface>
 #include <QIcon>
 #include <QRect>
+#include <signal.h>
 
 struct WaylandWindowPrivate {
         WaylandBackend* backend;
@@ -29,16 +33,15 @@ struct WaylandWindowPrivate {
 
         QString title;
         ApplicationPointer application;
+        quint64 pid;
+        bool active;
+        bool maximised;
+        bool minimised;
+        bool fullScreen;
 
-        enum WindowState {
-            NoState = 0,
-            Activated = 1,
-            Maximised = 2,
-            Minimised = 4
-        };
-        typedef QFlags<WindowState> WindowStateFlags;
+        uint viewId;
 
-        WindowStateFlags state = NoState;
+        QDBusInterface* interface;
 };
 
 struct WaylandWindowEventListener {
@@ -49,13 +52,23 @@ struct WaylandWindowEventListener {
         }
 };
 
-WaylandWindow::WaylandWindow(::zwlr_foreign_toplevel_handle_v1* handle, WaylandBackend* backend) :
-    DesktopWmWindow(), QtWayland::zwlr_foreign_toplevel_handle_v1(handle) {
+WaylandWindow::WaylandWindow(uint viewId, WaylandBackend* backend) :
+    DesktopWmWindow() {
     d = new WaylandWindowPrivate();
     d->backend = backend;
+    d->viewId = viewId;
 
     d->listener = new WaylandWindowEventListener(this);
-    wl_display_roundtrip(backend->display());
+    d->interface = new QDBusInterface(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor.views", QDBusConnection::sessionBus(), this);
+
+    // clang-format off
+    QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewTitleChanged", this, SLOT(viewTitleChanged(uint,QString)));
+    QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewAppIdChanged", this, SLOT(viewAppIdChanged(uint,QString)));
+    QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewFocusChanged", this, SLOT(viewFocusChanged(uint,bool)));
+    QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewMaximizedChanged", this, SLOT(viewMaximizedChanged(uint,bool)));
+    QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewMinimizedChanged", this, SLOT(viewMinimizedChanged(uint,bool)));
+    this->updateWindow();
+    // clang-format on
 }
 
 WaylandWindow::~WaylandWindow() {
@@ -64,7 +77,66 @@ WaylandWindow::~WaylandWindow() {
 }
 
 bool WaylandWindow::isActive() {
-    return d->state & WaylandWindowPrivate::Activated;
+    return d->active;
+}
+
+void WaylandWindow::viewTitleChanged(uint viewId, QString title) {
+    if (d->viewId == viewId) {
+        d->title = title;
+        emit titleChanged();
+    }
+}
+
+void WaylandWindow::viewAppIdChanged(uint viewId, QString appId) {
+    if (d->viewId == viewId) {
+        d->application = ApplicationPointer(new Application(appId));
+        emit applicationChanged();
+    }
+}
+
+void WaylandWindow::viewFocusChanged(uint viewId, bool haveFocus) {
+    if (d->viewId == viewId) {
+        d->active = true;
+    } else {
+        d->active = false;
+    }
+    emit windowStateChanged();
+}
+
+void WaylandWindow::viewMaximizedChanged(uint viewId, bool maximized) {
+    if (d->viewId == viewId) {
+        d->maximised = maximized;
+        emit windowStateChanged();
+    }
+}
+
+void WaylandWindow::viewMinimizedChanged(uint viewId, bool minimized) {
+    if (d->viewId == viewId) {
+        d->minimised = minimized;
+        emit windowStateChanged();
+    }
+}
+
+QCoro::Task<> WaylandWindow::updateWindow() {
+    // This one needs to be synchronous because we need to have this set before we return
+    auto application = d->interface->call("QueryViewAppId", d->viewId);
+    this->viewAppIdChanged(d->viewId, application.arguments().constFirst().toString());
+
+    auto title = co_await d->interface->asyncCall("QueryViewTitle", d->viewId);
+    this->viewTitleChanged(d->viewId, title.arguments().constFirst().toString());
+
+    auto pid = co_await d->interface->asyncCall("QueryViewPid", d->viewId);
+    d->pid = pid.arguments().constFirst().toUInt();
+
+    auto active = co_await d->interface->asyncCall("QueryViewActive", d->viewId);
+    this->viewFocusChanged(d->viewId, active.arguments().constFirst().toBool());
+
+    auto maximised = co_await d->interface->asyncCall("QueryViewMaximized", d->viewId);
+    this->viewMaximizedChanged(d->viewId, maximised.arguments().constFirst().toBool());
+
+    auto minimised = co_await d->interface->asyncCall("QueryViewMinimized", d->viewId);
+    this->viewMinimizedChanged(d->viewId, minimised.arguments().constFirst().toBool());
+    co_return;
 }
 
 QString WaylandWindow::title() {
@@ -81,15 +153,15 @@ QIcon WaylandWindow::icon() {
 }
 
 bool WaylandWindow::isMinimized() {
-    return d->state & WaylandWindowPrivate::Minimised;
+    return d->minimised;
 }
 
 bool WaylandWindow::isMaximised() {
-    return d->state & WaylandWindowPrivate::Maximised;
+    return d->maximised;
 }
 
 bool WaylandWindow::isFullScreen() {
-    return false;
+    return d->fullScreen;
 }
 
 bool WaylandWindow::shouldShowInTaskbar() {
@@ -97,7 +169,7 @@ bool WaylandWindow::shouldShowInTaskbar() {
 }
 
 quint64 WaylandWindow::pid() {
-    return 0;
+    return d->pid;
 }
 
 uint WaylandWindow::desktop() {
@@ -116,56 +188,15 @@ ApplicationPointer WaylandWindow::application() {
 }
 
 void WaylandWindow::activate() {
-    wl_seat* seat = d->backend->seat();
-    this->QtWayland::zwlr_foreign_toplevel_handle_v1::activate(seat);
+    d->interface->asyncCall("FocusView", d->viewId);
 }
 
 void WaylandWindow::kill() {
-}
-
-void WaylandWindow::zwlr_foreign_toplevel_handle_v1_title(const QString& title) {
-    d->title = title;
-    emit titleChanged();
-}
-
-void WaylandWindow::zwlr_foreign_toplevel_handle_v1_app_id(const QString& app_id) {
-    ApplicationPointer newApp(new Application(app_id));
-    if (newApp->isValid()) {
-        d->application = newApp;
-    } else {
-        d->application.clear();
-    }
-
-    emit applicationChanged();
-    emit iconChanged();
-}
-
-void WaylandWindow::zwlr_foreign_toplevel_handle_v1_state(wl_array* state) {
-    WaylandWindowPrivate::WindowStateFlags windowState = WaylandWindowPrivate::NoState;
-    for (quint32* flag = static_cast<quint32*>(state->data); reinterpret_cast<char*>(flag) < (static_cast<char*>(state->data) + state->size); flag++) {
-        if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_ACTIVATED) {
-            windowState |= WaylandWindowPrivate::Activated;
-        }
-        if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_MAXIMIZED) {
-            windowState |= WaylandWindowPrivate::Maximised;
-        }
-        if (*flag == ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_MINIMIZED) {
-            windowState |= WaylandWindowPrivate::Minimised;
-        }
-    }
-
-    d->state = windowState;
-    emit windowStateChanged();
-    emit d->backend->activeWindowChanged();
-}
-
-void WaylandWindow::zwlr_foreign_toplevel_handle_v1_closed() {
-    d->backend->signalToplevelClosed(this->object());
-    d->backend->activeWindowChanged();
+    ::kill(d->pid, SIGKILL);
 }
 
 void WaylandWindow::close() {
-    this->QtWayland::zwlr_foreign_toplevel_handle_v1::close();
+    d->interface->asyncCall("CloseView", d->viewId);
 }
 
 bool WaylandWindow::isOnDesktop(uint desktop) {

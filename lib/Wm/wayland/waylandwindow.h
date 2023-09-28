@@ -21,27 +21,35 @@
 #define WAYLANDWINDOW_H
 
 #include "Wm/desktopwmwindow.h"
-#include "qwayland-wlr-foreign-toplevel-management-unstable-v1.h"
+#include <QCoroTask>
 #include <QPointer>
 
 struct zwlr_foreign_toplevel_handle_v1;
 struct WaylandWindowPrivate;
 struct WaylandWindowEventListener;
 class WaylandBackend;
-class WaylandWindow : public DesktopWmWindow,
-                      public QtWayland::zwlr_foreign_toplevel_handle_v1 {
+class WaylandWindow : public DesktopWmWindow {
         Q_OBJECT
     public:
-        explicit WaylandWindow(::zwlr_foreign_toplevel_handle_v1* handle, WaylandBackend* backend);
+        explicit WaylandWindow(uint viewId, WaylandBackend* backend);
         ~WaylandWindow();
 
         bool isActive();
 
     signals:
 
+    private slots:
+        void viewTitleChanged(uint viewId, QString title);
+        void viewAppIdChanged(uint viewId, QString appId);
+        void viewFocusChanged(uint viewId, bool haveFocus);
+        void viewMaximizedChanged(uint viewId, bool maximized);
+        void viewMinimizedChanged(uint viewId, bool minimized);
+
     private:
         friend WaylandWindowEventListener;
         WaylandWindowPrivate* d;
+
+        QCoro::Task<> updateWindow();
 
         // DesktopWmWindow interface
     public:
@@ -63,13 +71,6 @@ class WaylandWindow : public DesktopWmWindow,
         void activate();
         void close();
         void kill();
-
-        // zwlr_foreign_toplevel_handle_v1 interface
-    protected:
-        void zwlr_foreign_toplevel_handle_v1_title(const QString& title);
-        void zwlr_foreign_toplevel_handle_v1_app_id(const QString& app_id);
-        void zwlr_foreign_toplevel_handle_v1_state(wl_array* state);
-        void zwlr_foreign_toplevel_handle_v1_closed();
 };
 typedef QPointer<WaylandWindow> WaylandWindowPtr;
 

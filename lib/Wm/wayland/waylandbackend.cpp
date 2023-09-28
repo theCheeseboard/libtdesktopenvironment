@@ -20,6 +20,9 @@
 #include "waylandbackend.h"
 
 #include "waylandaccessibility.h"
+#include <QDBusArgument>
+#include <QDBusConnection>
+#include <QDBusInterface>
 #include <QGuiApplication>
 #include <QRandomGenerator64>
 #include <QTimer>
@@ -33,6 +36,8 @@
 
 #include "waylandkeyboardtables.h"
 #include "waylandwindow.h"
+#include "waylandwmconstants.h"
+#include <ranges/trange.h>
 
 struct WaylandBackendPrivate {
         WaylandBackend* parent;
@@ -40,12 +45,13 @@ struct WaylandBackendPrivate {
 
         wl_display* display;
         wl_seat* seat;
-        QMap<zwlr_foreign_toplevel_handle_v1*, WaylandWindowPtr> windows;
 
         quint64 nextKeygrabId = 0;
         QMap<quint64, quint64> extKeygrab;
         QMap<quint64, quint64> keygrabs;
         QMap<quint64, std::function<void(quint32)>> keygrabFunctions;
+
+        QMap<uint, DesktopWmWindowPtr> windows;
 };
 
 WaylandBackend::WaylandBackend() :
@@ -54,37 +60,24 @@ WaylandBackend::WaylandBackend() :
     d->parent = this;
     d->accessibility = new WaylandAccessibility(this);
 
-    //    LayerShellQt::Shell::useLayerShell();
-    qputenv("QT_WAYLAND_SHELL_INTEGRATION", "tdesktopenvironment-layer-shell");
+    QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewAdded", this, SLOT(viewAdded(uint)));
+    QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewRemoved", this, SLOT(viewRemoved(uint)));
+    QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewFocusChanged", this, SIGNAL(activeWindowChanged()));
 
-    d->display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
-
-    wl_registry_listener listener = {
-        [](void* data, wl_registry* registry, quint32 name, const char* interface, quint32 version) {
-        WaylandBackendPrivate* backend = static_cast<WaylandBackendPrivate*>(data);
-        if (strcmp(interface, zwlr_foreign_toplevel_manager_v1_interface.name) == 0) {
-            backend->parent->QtWayland::zwlr_foreign_toplevel_manager_v1::init(registry, name, qMin<quint32>(version, 3));
-        } else if (strcmp(interface, tdesktopenvironment_keygrab_manager_v1_interface.name) == 0) {
-            backend->parent->QtWayland::tdesktopenvironment_keygrab_manager_v1::init(registry, name, 1);
-        } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-            wl_seat* seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, static_cast<quint32>(1))));
-            backend->seat = seat;
+    QDBusInterface outputInterface(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor.output", QDBusConnection::sessionBus(), this);
+    auto outputIdsArg = outputInterface.call("QueryOutputIds").arguments().first().value<QDBusArgument>();
+    QList<uint> outputIds;
+    outputIdsArg >> outputIds;
+    for (auto id : outputIds) {
+        auto viewsArg = outputInterface.call("QueryOutputViews", id).arguments().first().value<QDBusArgument>();
+        QList<uint> viewIds;
+        viewsArg >> viewIds;
+        for (auto viewId : viewIds) {
+            this->viewAdded(viewId);
         }
-        },
-        [](void* data, wl_registry* registry, quint32 name) {
-        Q_UNUSED(data)
-        Q_UNUSED(registry)
-        Q_UNUSED(name)
-    }};
-
-    wl_registry* registry = wl_display_get_registry(d->display);
-    wl_registry_add_listener(registry, &listener, d);
-    wl_display_roundtrip(d->display);
-
-    if (!this->QtWayland::zwlr_foreign_toplevel_manager_v1::isInitialized()) {
-        tWarn("WaylandBackend") << "The compositor doesn't support the wlr-foreign-toplevel-management protocol";
     }
-    wl_registry_destroy(registry);
+
+    qputenv("QT_WAYLAND_SHELL_INTEGRATION", "tdesktopenvironment-layer-shell");
 }
 
 bool WaylandBackend::isSuitable() {
@@ -103,12 +96,18 @@ wl_seat* WaylandBackend::seat() {
     return d->seat;
 }
 
-void WaylandBackend::signalToplevelClosed(zwlr_foreign_toplevel_handle_v1* toplevel) {
-    WaylandWindowPtr window = d->windows.value(toplevel);
+void WaylandBackend::viewAdded(uint viewId) {
+    DesktopWmWindowPtr window(new WaylandWindow(viewId, this));
+    d->windows.insert(viewId, window);
+    emit windowAdded(window);
+}
+
+void WaylandBackend::viewRemoved(uint viewId) {
+    auto window = d->windows.value(viewId);
     if (!window) return;
-    emit windowRemoved(window.data());
+    emit windowRemoved(window);
+    d->windows.remove(viewId);
     window->deleteLater();
-    d->windows.remove(toplevel);
 }
 
 DesktopAccessibility* WaylandBackend::accessibility() {
@@ -116,14 +115,12 @@ DesktopAccessibility* WaylandBackend::accessibility() {
 }
 
 QList<DesktopWmWindowPtr> WaylandBackend::openWindows() {
-    // TODO: Implement
-    return {};
+    return d->windows.values();
 }
 
 DesktopWmWindowPtr WaylandBackend::activeWindow() {
-    // TODO: Implement
-    for (WaylandWindow* window : d->windows.values()) {
-        if (window->isActive()) return window;
+    for (auto window : d->windows.values()) {
+        if (static_cast<WaylandWindow*>(window.data())->isActive()) return window;
     }
     return nullptr;
 }
@@ -271,13 +268,6 @@ void WaylandBackend::ungrabKey(quint64 grab) {
 
 void WaylandBackend::registerAsPrimaryProvider() {
     // noop
-}
-
-void WaylandBackend::zwlr_foreign_toplevel_manager_v1_toplevel(::zwlr_foreign_toplevel_handle_v1* toplevel) {
-    WaylandWindowPtr window = new WaylandWindow(toplevel, this);
-    d->windows.insert(toplevel, window);
-
-    emit windowAdded(window.data());
 }
 
 void WaylandBackend::tdesktopenvironment_keygrab_manager_v1_activated(uint32_t mod, uint32_t key, uint32_t type) {

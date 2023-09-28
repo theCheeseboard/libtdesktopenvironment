@@ -188,6 +188,7 @@ if(${wayland-client_FOUND})
 
     set(HEADERS
         ${HEADERS}
+        Wm/wayland/waylandwmconstants.h
         Wm/wayland/waylandaccessibility.h
         Wm/wayland/waylandbackend.h
         Wm/wayland/waylandkeyboardtables.h
