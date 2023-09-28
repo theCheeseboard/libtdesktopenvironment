@@ -89,7 +89,24 @@ void WaylandWindow::viewTitleChanged(uint viewId, QString title) {
 
 void WaylandWindow::viewAppIdChanged(uint viewId, QString appId) {
     if (d->viewId == viewId) {
-        d->application = ApplicationPointer(new Application(appId));
+        ApplicationPointer app(new Application(appId));
+        if (app->isValid()) {
+            d->application = app;
+            emit applicationChanged();
+            return;
+        }
+
+        QStringList applications = Application::allApplications();
+        for (const QString& desktopEntry : qAsConst(applications)) {
+            ApplicationPointer app(new Application(desktopEntry));
+            if (appId == app->getProperty("StartupWMClass").toString() || appId == desktopEntry || appId.toLower() == desktopEntry.toLower()) {
+                d->application = app;
+                emit applicationChanged();
+                return;
+            }
+        }
+
+        d->application.clear();
         emit applicationChanged();
     }
 }
