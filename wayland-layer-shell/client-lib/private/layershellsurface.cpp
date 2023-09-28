@@ -30,6 +30,7 @@ struct LayerShellSurfacePrivate {
 
         QSize queuedSize;
         bool configured = false;
+        bool fullAnchor = false;
 };
 
 LayerShellSurface::LayerShellSurface(LayerShellShell* shell, QtWaylandClient::QWaylandWindow* window) :
@@ -37,11 +38,10 @@ LayerShellSurface::LayerShellSurface(LayerShellShell* shell, QtWaylandClient::QW
     d = new LayerShellSurfacePrivate();
     set_anchor(anchor_top | anchor_bottom | anchor_left | anchor_right);
     set_keyboard_interactivity(keyboard_interactivity_on_demand);
+    this->window()->waylandSurface()->commit();
 
-    QSize size = this->window()->geometry().size();
-    if (size.width() == 0) size.setWidth(1);
-    if (size.height() == 0) size.setHeight(1);
-    this->set_size(size.width(), size.height());
+    d->fullAnchor = true;
+    this->setWindowGeometry(this->window()->geometry());
 }
 
 LayerShellSurface::~LayerShellSurface() {
@@ -50,6 +50,12 @@ LayerShellSurface::~LayerShellSurface() {
 }
 
 void LayerShellSurface::setAnchor(quint32 anchor) {
+    d->fullAnchor = anchor == (anchor_top | anchor_bottom | anchor_left | anchor_right);
+    if (d->fullAnchor) {
+        this->setWindowGeometry(QRect());
+    } else {
+        this->setWindowGeometry(this->window()->geometry());
+    }
     set_anchor(anchor);
     this->window()->waylandSurface()->commit();
 }
@@ -96,7 +102,9 @@ bool LayerShellSurface::isExposed() const {
 
 void LayerShellSurface::setWindowGeometry(const QRect& rect) {
     auto newRect = rect;
-    if (newRect.width() == 0) newRect.setWidth(1);
-    if (newRect.height() == 0) newRect.setHeight(1);
+    if (!d->fullAnchor) {
+        if (newRect.width() == 0) newRect.setWidth(1);
+        if (newRect.height() == 0) newRect.setHeight(1);
+    }
     this->set_size(newRect.width(), newRect.height());
 }
