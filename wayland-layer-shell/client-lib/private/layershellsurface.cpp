@@ -37,6 +37,11 @@ LayerShellSurface::LayerShellSurface(LayerShellShell* shell, QtWaylandClient::QW
     d = new LayerShellSurfacePrivate();
     set_anchor(anchor_top | anchor_bottom | anchor_left | anchor_right);
     set_keyboard_interactivity(keyboard_interactivity_on_demand);
+
+    QSize size = this->window()->geometry().size();
+    if (size.width() == 0) size.setWidth(1);
+    if (size.height() == 0) size.setHeight(1);
+    this->set_size(size.width(), size.height());
 }
 
 LayerShellSurface::~LayerShellSurface() {
@@ -90,5 +95,8 @@ bool LayerShellSurface::isExposed() const {
 }
 
 void LayerShellSurface::setWindowGeometry(const QRect& rect) {
-    this->set_size(rect.width(), rect.height());
+    auto newRect = rect;
+    if (newRect.width() == 0) newRect.setWidth(1);
+    if (newRect.height() == 0) newRect.setHeight(1);
+    this->set_size(newRect.width(), newRect.height());
 }

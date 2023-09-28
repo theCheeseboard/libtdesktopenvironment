@@ -173,6 +173,7 @@ void WaylandBackend::setSystemWindow(QWidget* widget, DesktopWm::SystemWindowTyp
             break;
         case DesktopWm::SystemWindowTypeNotification:
             layerWindow->setLayer(LayerShellWindow::Overlay);
+            layerWindow->setAnchors(static_cast<LayerShellWindow::Anchors>(LayerShellWindow::AnchorLeft | LayerShellWindow::AnchorTop | LayerShellWindow::AnchorBottom));
             layerWindow->setExclusiveZone(0);
             break;
         case DesktopWm::SystemWindowTypeMenu:
