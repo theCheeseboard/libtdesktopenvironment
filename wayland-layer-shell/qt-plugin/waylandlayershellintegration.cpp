@@ -20,6 +20,7 @@
 #include "waylandlayershellintegration.h"
 
 #include "qwayland-wlr-layer-shell-unstable-v1.h"
+#include <layershellwindow.h>
 #include <private/layershellsurface.h>
 #include <private/qwaylanddisplay_p.h>
 #include <private/qwaylandshellintegrationfactory_p.h>
@@ -46,11 +47,15 @@ QtWaylandClient::QWaylandShellSurface* WaylandLayerShellIntegration::createShell
     if (layershellShell && shouldBeLayerShell(window)) {
         return new LayerShellSurface(layershellShell, window);
     }
-    return xdgShellIntegration->createShellSurface(window);
+
+    auto shellSurface = xdgShellIntegration->createShellSurface(window);
+    auto layerShell = LayerShellWindow::forWindow(window->transientParent()->window());
+    layerShell->getPopup(shellSurface->surfaceRole());
+    return shellSurface;
 }
 
 bool WaylandLayerShellIntegration::shouldBeLayerShell(QtWaylandClient::QWaylandWindow* window) {
     auto windowType = window->window()->type();
-    //    return !(windowType == Qt::Popup || windowType == Qt::ToolTip);
+    return !(windowType == Qt::Popup || windowType == Qt::ToolTip);
     return true;
 }

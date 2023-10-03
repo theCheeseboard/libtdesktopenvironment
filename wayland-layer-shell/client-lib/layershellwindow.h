@@ -22,6 +22,7 @@
 
 #include <QObject>
 #include <QWindow>
+#include <any>
 
 #include "client-lib_global.h"
 
@@ -58,6 +59,7 @@ class CLIENTLIB_EXPORT LayerShellWindow : public QObject {
         void setExclusiveZone(quint32 exclusiveZone);
         void setAnchors(Anchors anchors);
         void setKeyboardInteractivity(KeyboardInteractivity interactivity);
+        void getPopup(std::any popup);
 
     signals:
 

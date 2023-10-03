@@ -61,6 +61,12 @@ void LayerShellWindow::setKeyboardInteractivity(KeyboardInteractivity interactiv
     d->surface->setKeyboardInteractivity(interactivity);
 }
 
+void LayerShellWindow::getPopup(std::any popup) {
+    if (auto popupRole = std::any_cast<::xdg_popup*>(&popup)) {
+        d->surface->get_popup(*popupRole);
+    }
+}
+
 LayerShellWindow::LayerShellWindow(LayerShellSurface* surface) :
     QObject(surface) {
     d = new LayerShellWindowPrivate();
