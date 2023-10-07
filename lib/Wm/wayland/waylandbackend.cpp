@@ -60,6 +60,33 @@ WaylandBackend::WaylandBackend() :
     d->parent = this;
     d->accessibility = new WaylandAccessibility(this);
 
+    d->display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
+
+    wl_registry_listener listener = {
+        [](void* data, wl_registry* registry, quint32 name, const char* interface, quint32 version) {
+        WaylandBackendPrivate* backend = static_cast<WaylandBackendPrivate*>(data);
+        if (strcmp(interface, tdesktopenvironment_keygrab_manager_v1_interface.name) == 0) {
+            backend->parent->QtWayland::tdesktopenvironment_keygrab_manager_v1::init(registry, name, 1);
+        } else if (strcmp(interface, wl_seat_interface.name) == 0) {
+            wl_seat* seat = static_cast<wl_seat*>(wl_registry_bind(registry, name, &wl_seat_interface, std::min(version, static_cast<quint32>(1))));
+            backend->seat = seat;
+        }
+        },
+        [](void* data, wl_registry* registry, quint32 name) {
+        Q_UNUSED(data)
+        Q_UNUSED(registry)
+        Q_UNUSED(name)
+    }};
+
+    wl_registry* registry = wl_display_get_registry(d->display);
+    wl_registry_add_listener(registry, &listener, d);
+    wl_display_roundtrip(d->display);
+
+    if (!this->QtWayland::tdesktopenvironment_keygrab_manager_v1::isInitialized()) {
+        tWarn("WaylandBackend") << "The compositor doesn't support the tdesktopenvironment_keygrab_manager_v1 protocol";
+    }
+    wl_registry_destroy(registry);
+
     QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewAdded", this, SLOT(viewAdded(uint)));
     QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewRemoved", this, SLOT(viewRemoved(uint)));
     QDBusConnection::sessionBus().connect(WaylandWmConstants::serviceName, WaylandWmConstants::servicePath, "wayland.compositor", "ViewFocusChanged", this, SIGNAL(activeWindowChanged()));
