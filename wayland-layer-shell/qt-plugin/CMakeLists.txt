@@ -27,7 +27,7 @@ add_library(tdesktopenvironment-wayland-shell-qt-plugin SHARED ${SOURCES} ${HEAD
 cntp_init(tdesktopenvironment-wayland-shell-qt-plugin 20)
 tdesktopenvironment_register_wayland_protocol_extension(tdesktopenvironment-wayland-shell-qt-plugin FILES
         ../../plugins/wayland/wayland-protocols/tdesktopenvironment-protocols/wlr-layer-shell-unstable-v1.xml
-    ../../lib/wayland-protocols/wayland-protocols/stable/xdg-shell/xdg-shell.xml
+    ../../plugins/wayland/wayland-protocols/wayland-protocols/stable/xdg-shell/xdg-shell.xml
 )
 set_target_properties(tdesktopenvironment-wayland-shell-qt-plugin PROPERTIES
         PREFIX ""

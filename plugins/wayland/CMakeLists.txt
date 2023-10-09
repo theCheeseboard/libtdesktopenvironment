@@ -40,10 +40,10 @@ else()
     target_include_directories(plugin-${PLUGIN_NAME} PRIVATE ../../wayland-layer-shell/client-lib/)
 
     tdesktopenvironment_register_wayland_protocol_extension(plugin-${PLUGIN_NAME} FILES
-            ../../lib/wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml
+            wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml
             wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-keygrab-v1.xml
             wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-accessibility-v1.xml
-            ../../lib/wayland-protocols/wlr-protocols/unstable/wlr-output-management-unstable-v1.xml
+            wayland-protocols/wlr-protocols/unstable/wlr-output-management-unstable-v1.xml
     )
     install(DIRECTORY wayland-protocols/tdesktopenvironment-protocols
             DESTINATION ${CMAKE_INSTALL_DATADIR}/libtdesktopenvironment/wayland-protocols
