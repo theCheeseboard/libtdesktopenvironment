@@ -201,6 +201,7 @@ if(${wayland-client_FOUND})
     tdesktopenvironment_register_wayland_protocol_extension(libtdesktopenvironment FILES
         wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml
         wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-keygrab-v1.xml
+        wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-accessibility-v1.xml
         wayland-protocols/wlr-protocols/unstable/wlr-output-management-unstable-v1.xml
     )
     target_link_libraries(libtdesktopenvironment Qt::GuiPrivate tdesktopenvironment-wayland-layer-shell-client-lib)

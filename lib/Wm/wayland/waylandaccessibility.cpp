@@ -19,20 +19,72 @@
  * *************************************/
 #include "waylandaccessibility.h"
 
-struct WaylandAccessibilityPrivate {
+#include <QGuiApplication>
+#include <qpa/qplatformnativeinterface.h>
+#include <tlogger.h>
 
+struct WaylandAccessibilityPrivate {
+        wl_display* display;
+        WaylandAccessibility* parent;
+
+        bool isStickyKeysEnabled = false;
 };
 
-WaylandAccessibility::WaylandAccessibility(WaylandBackend* parent) : DesktopAccessibility(parent) {
+WaylandAccessibility::WaylandAccessibility(WaylandBackend* parent) :
+    DesktopAccessibility(parent) {
     d = new WaylandAccessibilityPrivate();
+    d->display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
+    d->parent = this;
+
+    wl_registry_listener listener = {
+        [](void* data, wl_registry* registry, quint32 name, const char* interface, quint32 version) {
+        WaylandAccessibilityPrivate* backend = static_cast<WaylandAccessibilityPrivate*>(data);
+        if (strcmp(interface, tdesktopenvironment_accessibility_sticky_keys_v1_interface.name) == 0) {
+            backend->parent->QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1::init(registry, name, 1);
+        }
+        },
+        [](void* data, wl_registry* registry, quint32 name) {
+        Q_UNUSED(data)
+        Q_UNUSED(registry)
+        Q_UNUSED(name)
+    }};
+
+    wl_registry* registry = wl_display_get_registry(d->display);
+    wl_registry_add_listener(registry, &listener, d);
+    wl_display_roundtrip(d->display);
+
+    if (!this->QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1::isInitialized()) {
+        tWarn("WaylandBackend") << "The compositor doesn't support the tdesktopenvironment_accessibility_sticky_keys_v1 protocol";
+    }
+    wl_registry_destroy(registry);
 }
 
-
 bool WaylandAccessibility::isAccessibilityOptionEnabled(AccessibilityOption option) {
-    //TODO: Implement
-    return false;
+    // TODO: Implement
+    switch (option) {
+        case DesktopAccessibility::StickyKeys:
+            return d->isStickyKeysEnabled;
+            break;
+        case DesktopAccessibility::MouseKeys:
+        case DesktopAccessibility::LastAccessibilityOption:
+        default:
+            return false;
+    }
 }
 
 void WaylandAccessibility::setAccessibilityOptionEnabled(AccessibilityOption option, bool enabled) {
-    //TODO: Implement
+    switch (option) {
+        case DesktopAccessibility::StickyKeys:
+            this->tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_enabled(enabled);
+            break;
+        case DesktopAccessibility::MouseKeys:
+        case DesktopAccessibility::LastAccessibilityOption:
+        default:
+            return;
+    }
+}
+
+void WaylandAccessibility::tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_enabled(uint32_t enabled) {
+    d->isStickyKeysEnabled = enabled;
+    emit accessibilityOptionEnabledChanged(StickyKeys, enabled);
 }

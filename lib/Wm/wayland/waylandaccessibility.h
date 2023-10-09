@@ -21,12 +21,14 @@
 #define WAYLANDACCESSIBILITY_H
 
 #include "../desktopaccessibility.h"
+#include "qwayland-tdesktopenvironment-accessibility-v1.h"
 #include "waylandbackend.h"
 
 #include <QObject>
 
 struct WaylandAccessibilityPrivate;
-class WaylandAccessibility : public DesktopAccessibility {
+class WaylandAccessibility : public DesktopAccessibility,
+                             public QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1 {
         Q_OBJECT
     public:
         explicit WaylandAccessibility(WaylandBackend* parent);
@@ -40,6 +42,10 @@ class WaylandAccessibility : public DesktopAccessibility {
     public:
         bool isAccessibilityOptionEnabled(AccessibilityOption option);
         void setAccessibilityOptionEnabled(AccessibilityOption option, bool enabled);
+
+        // tdesktopenvironment_accessibility_sticky_keys_v1 interface
+    protected:
+        void tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_enabled(uint32_t enabled);
 };
 
 #endif // WAYLANDACCESSIBILITY_H
