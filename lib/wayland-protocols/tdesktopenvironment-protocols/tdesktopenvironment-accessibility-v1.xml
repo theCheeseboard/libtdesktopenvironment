@@ -54,5 +54,19 @@
       </description>
       <arg name="enabled" type="uint" summary="Whether Sticky Keys is enabled or disabled"/>
     </event>
+
+    <event name="sticky_keys_held">
+      <description summary="sticky keys held changed">
+        The event tells the client that the keys that Sticky Keys is holding has changed.
+      </description>
+      <arg name="keys" type="uint" enum="modifier" summary="The keys that Sticky Keys is holding"/>
+    </event>
+
+    <event name="sticky_keys_latched">
+      <description summary="sticky keys latched changed">
+        The event tells the client that the keys that Sticky Keys has latched has changed.
+      </description>
+      <arg name="keys" type="uint" enum="modifier" summary="The keys that Sticky Keys has latched"/>
+    </event>
   </interface>
 </protocol>

@@ -27,6 +27,9 @@ struct WaylandAccessibilityPrivate {
         wl_display* display;
         WaylandAccessibility* parent;
 
+        Qt::KeyboardModifiers latchedKeys;
+        Qt::KeyboardModifiers lockedKeys;
+
         bool isStickyKeysEnabled = false;
 };
 
@@ -87,4 +90,20 @@ void WaylandAccessibility::setAccessibilityOptionEnabled(AccessibilityOption opt
 void WaylandAccessibility::tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_enabled(uint32_t enabled) {
     d->isStickyKeysEnabled = enabled;
     emit accessibilityOptionEnabledChanged(StickyKeys, enabled);
+}
+
+void WaylandAccessibility::tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_held(uint32_t keys) {
+    d->latchedKeys = d->latchedKeys.setFlag(Qt::ControlModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_CONTROL)
+                         .setFlag(Qt::AltModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_ALT)
+                         .setFlag(Qt::ShiftModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_SHIFT)
+                         .setFlag(Qt::MetaModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_SUPER);
+    emit stickyKeysStateChanged(d->latchedKeys, d->lockedKeys);
+}
+
+void WaylandAccessibility::tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_latched(uint32_t keys) {
+    d->lockedKeys = d->lockedKeys.setFlag(Qt::ControlModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_CONTROL)
+                        .setFlag(Qt::AltModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_ALT)
+                        .setFlag(Qt::ShiftModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_SHIFT)
+                        .setFlag(Qt::MetaModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_SUPER);
+    emit stickyKeysStateChanged(d->latchedKeys, d->lockedKeys);
 }

@@ -46,6 +46,8 @@ class WaylandAccessibility : public DesktopAccessibility,
         // tdesktopenvironment_accessibility_sticky_keys_v1 interface
     protected:
         void tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_enabled(uint32_t enabled);
+        void tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_held(uint32_t keys);
+        void tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_latched(uint32_t keys);
 };
 
 #endif // WAYLANDACCESSIBILITY_H
