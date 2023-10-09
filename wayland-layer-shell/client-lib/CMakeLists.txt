@@ -31,7 +31,7 @@ set(PRIVATE_HEADERS
 add_library(tdesktopenvironment-wayland-layer-shell-client-lib SHARED ${SOURCES} ${HEADERS} ${PRIVATE_HEADERS})
 cntp_init(tdesktopenvironment-wayland-layer-shell-client-lib 20)
 tdesktopenvironment_register_wayland_protocol_extension(tdesktopenvironment-wayland-layer-shell-client-lib FILES
-    ../../lib/wayland-protocols/tdesktopenvironment-protocols/wlr-layer-shell-unstable-v1.xml
+        ../../plugins/wayland/wayland-protocols/tdesktopenvironment-protocols/wlr-layer-shell-unstable-v1.xml
     ../../lib/wayland-protocols/wayland-protocols/stable/xdg-shell/xdg-shell.xml
 )
 set_target_properties(tdesktopenvironment-wayland-layer-shell-client-lib PROPERTIES
