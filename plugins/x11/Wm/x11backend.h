@@ -20,7 +20,7 @@
 #ifndef X11BACKEND_H
 #define X11BACKEND_H
 
-#include "../private/wmbackend.h"
+#include "Wm/private/wmbackend.h"
 #include "tx11info.h"
 #include <QAbstractNativeEventFilter>
 #include <QObject>

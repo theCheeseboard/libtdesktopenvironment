@@ -20,7 +20,7 @@
 #ifndef X11WINDOW_H
 #define X11WINDOW_H
 
-#include "../desktopwmwindow.h"
+#include "Wm/desktopwmwindow.h"
 #include <QObject>
 #include <QPointer>
 #include <tx11info.h>

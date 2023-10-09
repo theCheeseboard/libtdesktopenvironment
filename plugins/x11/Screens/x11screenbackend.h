@@ -1,7 +1,7 @@
 /****************************************
  *
  *   INSERT-PROJECT-NAME-HERE - INSERT-GENERIC-NAME-HERE
- *   Copyright (C) 2021 Victor Tran
+ *   Copyright (C) 2020 Victor Tran
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,34 +17,36 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * *************************************/
-#ifndef WAYLANDMODE_H
-#define WAYLANDMODE_H
+#ifndef X11SCREENBACKEND_H
+#define X11SCREENBACKEND_H
 
-#include <QObject>
-#include "qwayland-wlr-output-management-unstable-v1.h"
-#include "../systemscreen.h"
+#include <QAbstractNativeEventFilter>
+#include "Screens/private/screenbackend.h"
 
-struct WaylandModePrivate;
-class WaylandMode : public QObject, public QtWayland::zwlr_output_mode_v1 {
+struct X11ScreenBackendPrivate;
+class X11ScreenBackend : public ScreenBackend, public QAbstractNativeEventFilter {
         Q_OBJECT
     public:
-        explicit WaylandMode(::zwlr_output_mode_v1* mode, QObject* parent = nullptr);
-        ~WaylandMode();
+        explicit X11ScreenBackend();
+        ~X11ScreenBackend();
 
-        QSize size();
-        SystemScreen::Mode mode(int id);
+        static bool isSuitable();
+
+        QList<SystemScreen*> screens();
+        SystemScreen* primaryScreen();
+
+        int dpi() const;
+        void setDpi(int dpi);
 
     signals:
 
     private:
-        WaylandModePrivate* d;
+        X11ScreenBackendPrivate* d;
+        void updateDisplays();
 
-        // zwlr_output_mode_v1 interface
-    protected:
-        void zwlr_output_mode_v1_size(int32_t width, int32_t height);
-        void zwlr_output_mode_v1_refresh(int32_t refresh);
-        void zwlr_output_mode_v1_preferred();
-        void zwlr_output_mode_v1_finished();
+        // QAbstractNativeEventFilter interface
+    public:
+        bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result);
 };
 
-#endif // WAYLANDMODE_H
+#endif // X11SCREENBACKEND_H

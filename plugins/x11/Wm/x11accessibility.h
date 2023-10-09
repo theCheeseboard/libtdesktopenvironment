@@ -17,36 +17,32 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * *************************************/
-#ifndef X11SCREENBACKEND_H
-#define X11SCREENBACKEND_H
+#ifndef X11ACCESSIBILITY_H
+#define X11ACCESSIBILITY_H
 
-#include <QAbstractNativeEventFilter>
-#include "../private/screenbackend.h"
+#include "Wm/desktopaccessibility.h"
+#include "x11backend.h"
 
-struct X11ScreenBackendPrivate;
-class X11ScreenBackend : public ScreenBackend, public QAbstractNativeEventFilter {
+#include <xcb/xcb.h>
+
+struct X11AccessibilityPrivate;
+class X11Accessibility : public DesktopAccessibility {
         Q_OBJECT
     public:
-        explicit X11ScreenBackend();
-        ~X11ScreenBackend();
+        explicit X11Accessibility(X11Backend* parent);
+        ~X11Accessibility();
 
-        static bool isSuitable();
-
-        QList<SystemScreen*> screens();
-        SystemScreen* primaryScreen();
-
-        int dpi() const;
-        void setDpi(int dpi);
+        void postEvent(xcb_generic_event_t* event);
 
     signals:
 
     private:
-        X11ScreenBackendPrivate* d;
-        void updateDisplays();
+        X11AccessibilityPrivate* d;
 
-        // QAbstractNativeEventFilter interface
+        // DesktopAccessibility interface
     public:
-        bool nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result);
+        bool isAccessibilityOptionEnabled(AccessibilityOption option);
+        void setAccessibilityOptionEnabled(AccessibilityOption option, bool enabled);
 };
 
-#endif // X11SCREENBACKEND_H
+#endif // X11ACCESSIBILITY_H

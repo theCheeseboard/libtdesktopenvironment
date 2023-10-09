@@ -5,18 +5,6 @@ project(theme VERSION 1.0.0 LANGUAGES C CXX)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS WaylandClient)
 find_package(libcontemporary REQUIRED)
 
-find_program(WAYLAND_SCANNER wayland-scanner)
-if(NOT WAYLAND_SCANNER)
-    message(FATAL_ERROR "wayland-scanner not found!")
-endif()
-message(STATUS "Found wayland-scanner: ${WAYLAND_SCANNER}")
-
-find_program(QT_WAYLAND_SCANNER qtwaylandscanner)
-if(NOT QT_WAYLAND_SCANNER)
-    message(FATAL_ERROR "qtwaylandscanner not found!")
-endif()
-message(STATUS "Found qtwaylandscanner: ${QT_WAYLAND_SCANNER}")
-
 cntp_define_build_dirs()
 
 cntp_sourcelist(

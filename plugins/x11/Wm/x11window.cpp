@@ -21,7 +21,7 @@
 #include <QDebug>
 #include <QRect>
 
-#include "../desktopwm.h"
+#include "Wm/desktopwm.h"
 #include <QIcon>
 #include <QTimer>
 #include <QtEndian>

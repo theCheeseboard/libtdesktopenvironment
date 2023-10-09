@@ -1,7 +1,7 @@
 #ifndef X11GESTUREDAEMON_H
 #define X11GESTUREDAEMON_H
 
-#include "../private/gesturebackend.h"
+#include "Gestures/private/gesturebackend.h"
 
 struct X11GestureDaemonPrivate;
 class X11GestureDaemon : public GestureBackend {

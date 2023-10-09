@@ -31,7 +31,7 @@
 
 #include <wayland-client.h>
 
-#include <layershellwindow.h>
+#include "layershellwindow.h"
 #include <tlogger.h>
 
 #include "waylandkeyboardtables.h"

@@ -13,6 +13,18 @@ function(tdesktopenvironment_register_wayland_protocol_extension target)
     set(multiValueArgs FILES)
     cmake_parse_arguments(REGISTER_WAYLAND_PROTOCOL_EXTENSIONS "" "" "${multiValueArgs}" ${ARGN})
 
+    find_program(WAYLAND_SCANNER wayland-scanner)
+    if(NOT WAYLAND_SCANNER)
+        message(FATAL_ERROR "wayland-scanner not found!")
+    endif()
+    message(STATUS "Found wayland-scanner: ${WAYLAND_SCANNER}")
+
+    find_program(QT_WAYLAND_SCANNER qtwaylandscanner)
+    if(NOT QT_WAYLAND_SCANNER)
+        message(FATAL_ERROR "qtwaylandscanner not found!")
+    endif()
+    message(STATUS "Found qtwaylandscanner: ${QT_WAYLAND_SCANNER}")
+
     foreach(_file ${REGISTER_WAYLAND_PROTOCOL_EXTENSIONS_FILES})
         get_filename_component(_basename ${_file} NAME_WE)
 
@@ -53,3 +65,4 @@ endfunction()
 
 add_subdirectory(wayland-layer-shell)
 add_subdirectory(lib)
+add_subdirectory(plugins)

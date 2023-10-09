@@ -19,7 +19,7 @@
  * *************************************/
 #include "waylandscreen.h"
 
-#include "../screendaemon.h"
+#include "Screens/screendaemon.h"
 #include "waylandmode.h"
 #include "waylandscreenbackend.h"
 #include <QApplication>

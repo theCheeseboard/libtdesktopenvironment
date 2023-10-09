@@ -1,7 +1,7 @@
 /****************************************
  *
  *   INSERT-PROJECT-NAME-HERE - INSERT-GENERIC-NAME-HERE
- *   Copyright (C) 2020 Victor Tran
+ *   Copyright (C) 2021 Victor Tran
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,32 +17,34 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * *************************************/
-#ifndef X11ACCESSIBILITY_H
-#define X11ACCESSIBILITY_H
+#ifndef WAYLANDMODE_H
+#define WAYLANDMODE_H
 
-#include "../desktopaccessibility.h"
-#include "x11backend.h"
+#include <QObject>
+#include "qwayland-wlr-output-management-unstable-v1.h"
+#include "Screens/systemscreen.h"
 
-#include <xcb/xcb.h>
-
-struct X11AccessibilityPrivate;
-class X11Accessibility : public DesktopAccessibility {
+struct WaylandModePrivate;
+class WaylandMode : public QObject, public QtWayland::zwlr_output_mode_v1 {
         Q_OBJECT
     public:
-        explicit X11Accessibility(X11Backend* parent);
-        ~X11Accessibility();
+        explicit WaylandMode(::zwlr_output_mode_v1* mode, QObject* parent = nullptr);
+        ~WaylandMode();
 
-        void postEvent(xcb_generic_event_t* event);
+        QSize size();
+        SystemScreen::Mode mode(int id);
 
     signals:
 
     private:
-        X11AccessibilityPrivate* d;
+        WaylandModePrivate* d;
 
-        // DesktopAccessibility interface
-    public:
-        bool isAccessibilityOptionEnabled(AccessibilityOption option);
-        void setAccessibilityOptionEnabled(AccessibilityOption option, bool enabled);
+        // zwlr_output_mode_v1 interface
+    protected:
+        void zwlr_output_mode_v1_size(int32_t width, int32_t height);
+        void zwlr_output_mode_v1_refresh(int32_t refresh);
+        void zwlr_output_mode_v1_preferred();
+        void zwlr_output_mode_v1_finished();
 };
 
-#endif // X11ACCESSIBILITY_H
+#endif // WAYLANDMODE_H

@@ -24,13 +24,7 @@
 #include <pwd.h>
 #include <unistd.h>
 
-#ifdef HAVE_X11
-    #include "x11/x11backend.h"
-#endif
-
-#ifdef HAVE_WAYLAND
-    #include "wayland/waylandbackend.h"
-#endif
+#include "TdePlugin/tdepluginmanager.h"
 
 struct DesktopWmPrivate {
         DesktopWm* dwmInstance = nullptr;
@@ -172,18 +166,7 @@ void DesktopWm::registerAsPrimaryProvider() {
 
 DesktopWm::DesktopWm() :
     QObject(nullptr) {
-    // Figure out the best backend to use
-#ifdef HAVE_X11
-    if (X11Backend::isSuitable()) {
-        d->instance = new X11Backend();
-    }
-#endif
-
-#ifdef HAVE_WAYLAND
-    if (WaylandBackend::isSuitable()) {
-        d->instance = new WaylandBackend();
-    }
-#endif
+    d->instance = TdePluginManager::loadedInterface()->wmBackend();
 
     if (d->instance) {
         connect(d->instance, &WmBackend::windowAdded, this, &DesktopWm::windowAdded);

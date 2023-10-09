@@ -20,7 +20,7 @@
 #ifndef WAYLANDSCREENBACKEND_H
 #define WAYLANDSCREENBACKEND_H
 
-#include "../private/screenbackend.h"
+#include "Screens/private/screenbackend.h"
 #include "qwayland-wlr-output-management-unstable-v1.h"
 #include <QObject>
 

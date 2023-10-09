@@ -20,7 +20,7 @@
 #ifndef WAYLANDBACKEND_H
 #define WAYLANDBACKEND_H
 
-#include "../private/wmbackend.h"
+#include "Wm/private/wmbackend.h"
 #include "qwayland-tdesktopenvironment-keygrab-v1.h"
 #include "qwayland-wlr-foreign-toplevel-management-unstable-v1.h"
 #include <QObject>

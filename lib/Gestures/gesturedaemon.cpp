@@ -1,7 +1,8 @@
 #include "gesturedaemon.h"
 
 #include <QDebug>
-#include "x11/x11gesturedaemon.h"
+#include "TdePlugin/tdepluginmanager.h"
+#include "private/gesturebackend.h"
 
 struct GestureDaemonPrivate {
     GestureBackend* backend = nullptr;
@@ -15,12 +16,7 @@ GestureDaemon* GestureDaemon::instance() {
 }
 
 GestureDaemon::GestureDaemon(QObject* parent) : QObject(parent) {
-    //Figure out the best backend to use
-#ifdef HAVE_X11
-    if (X11GestureDaemon::isSuitable()) {
-        d->backend = new X11GestureDaemon();
-    }
-#endif
+    d->backend = TdePluginManager::loadedInterface()->gestureBackend();
 
     if (d->backend) {
         connect(d->backend, &GestureBackend::gestureBegin, this, &GestureDaemon::gestureBegin);

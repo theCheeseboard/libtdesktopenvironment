@@ -21,14 +21,7 @@
 
 #include "private/screenbackend.h"
 #include <QDebug>
-
-#ifdef HAVE_X11
-    #include "x11/x11screenbackend.h"
-#endif
-
-#ifdef HAVE_WAYLAND
-    #include "wayland/waylandscreenbackend.h"
-#endif
+#include "TdePlugin/tdepluginmanager.h"
 
 struct ScreenDaemonPrivate {
         ScreenDaemon* instance = nullptr;
@@ -61,18 +54,7 @@ void ScreenDaemon::setDpi(int dpi) {
 
 ScreenDaemon::ScreenDaemon() :
     QObject(nullptr) {
-    // Figure out the best backend to use
-#ifdef HAVE_X11
-    if (X11ScreenBackend::isSuitable()) {
-        d->backend = new X11ScreenBackend();
-    }
-#endif
-
-#ifdef HAVE_WAYLAND
-    if (WaylandScreenBackend::isSuitable()) {
-        d->backend = new WaylandScreenBackend();
-    }
-#endif
+    d->backend = TdePluginManager::loadedInterface()->screenBackend();
 
     if (d->backend) {
         connect(d->backend, &ScreenBackend::screensUpdated, this, &ScreenDaemon::screensUpdated);

@@ -2,14 +2,8 @@ project(lib VERSION 1.0.0 LANGUAGES C CXX)
 
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia Concurrent)
 find_package(libcontemporary REQUIRED)
-cntp_find_pkgconfig(X11 x11)
-cntp_find_pkgconfig(X11_SCRNSAVER xscrnsaver)
-cntp_find_pkgconfig(X11_EXT xext)
-cntp_find_pkgconfig(X11_RANDR xrandr)
-cntp_find_pkgconfig(wayland-client wayland-client)
 
 # TODO: Port NetworkManager portions
-# TODO: Port Wayland portions
 # TODO: Port pulseaudip portions
 
 set(SOURCES
@@ -57,6 +51,8 @@ set(SOURCES
 
     SystemJob/systemjobcontroller.cpp
     SystemJob/systemjob.cpp
+
+    TdePlugin/tdepluginmanager.cpp
 )
 
 set(HEADERS
@@ -91,6 +87,8 @@ set(HEADERS
     Greeter/messagepane.h
     SystemJob/systemjobcontroller.h
     SystemJob/systemjob.h
+
+    TdePlugin/tdeplugininterface.h
 )
 
 set(PRIVATE_HEADERS
@@ -101,6 +99,7 @@ set(PRIVATE_HEADERS
     SystemSlide/private/slidempriscontroller.h
     SystemSlide/private/slidepulseaudiomonitor.h
     SystemSlide/private/slidequicksettings.h
+    TdePlugin/tdepluginmanager.h
 )
 
 add_library(libtdesktopenvironment SHARED)
@@ -110,6 +109,7 @@ set_target_properties(libtdesktopenvironment PROPERTIES
         FRAMEWORK TRUE
         MACOSX_FRAMEWORK_IDENTIFIER com.vicr123.libtdesktopenvironment
         VERSION 1.0.0
+        CNTP_DATA_SUBDIR libtdesktopenvironment
 )
 
 target_link_libraries(libtdesktopenvironment Qt::Widgets Qt::DBus Qt::Multimedia Qt::Concurrent libcontemporary)
@@ -124,89 +124,6 @@ ELSE()
     set(HEADER_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR}/libtdesktopenvironment)
     set(LIBRARY_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
 ENDIF()
-
-IF(${X11_FOUND})
-    target_link_libraries(libtdesktopenvironment PkgConfig::X11)
-    target_compile_definitions(libtdesktopenvironment PRIVATE HAVE_X11)
-
-    set(SOURCES
-        ${SOURCES}
-        Wm/x11/x11accessibility.cpp
-        Wm/x11/x11backend.cpp
-        Wm/x11/x11functions.cpp
-        Wm/x11/x11keyboardtables.cpp
-        Wm/x11/x11window.cpp
-        Wm/x11/x11xsettingsprovider.cpp
-        Screens/x11/x11screen.cpp
-        Screens/x11/x11screenbackend.cpp
-        Gestures/x11/x11gesturedaemon.cpp
-    )
-
-    set(PRIVATE_HEADERS
-        ${PRIVATE_HEADERS}
-        Wm/x11/x11accessibility.h
-        Wm/x11/x11backend.h
-        Wm/x11/x11functions.h
-        Wm/x11/x11keyboardtables.h
-        Wm/x11/x11window.h
-        Wm/x11/x11xsettingsprovider.h
-        Screens/x11/x11screen.h
-        Screens/x11/x11screenbackend.h
-        Gestures/x11/x11gesturedaemon.h
-    )
-    
-    IF(${X11_SCRNSAVER_FOUND})
-        target_link_libraries(libtdesktopenvironment PkgConfig::X11_SCRNSAVER)
-        target_compile_definitions(libtdesktopenvironment PRIVATE HAVE_XSCRNSAVER)
-    ENDIF()
-    
-    IF(${X11_EXT_FOUND})
-        target_link_libraries(libtdesktopenvironment PkgConfig::X11_EXT)
-        target_compile_definitions(libtdesktopenvironment PRIVATE HAVE_XEXT)
-    ENDIF()
-    
-    IF(${X11_RANDR_FOUND})
-        target_link_libraries(libtdesktopenvironment PkgConfig::X11_RANDR)
-        target_compile_definitions(libtdesktopenvironment PRIVATE HAVE_XRANDR)
-    ENDIF()
-ENDIF()
-
-if(${wayland-client_FOUND})
-    target_link_libraries(libtdesktopenvironment PkgConfig::wayland-client)
-    target_compile_definitions(libtdesktopenvironment PRIVATE HAVE_WAYLAND)
-
-    set(SOURCES
-        ${SOURCES}
-        Wm/wayland/waylandaccessibility.cpp
-        Wm/wayland/waylandbackend.cpp
-        Wm/wayland/waylandkeyboardtables.cpp
-        Wm/wayland/waylandwindow.cpp
-        Screens/wayland/waylandmode.cpp
-        Screens/wayland/waylandscreen.cpp
-        Screens/wayland/waylandscreenbackend.cpp
-    )
-
-    set(HEADERS
-        ${HEADERS}
-        Wm/wayland/waylandwmconstants.h
-        Wm/wayland/waylandaccessibility.h
-        Wm/wayland/waylandbackend.h
-        Wm/wayland/waylandkeyboardtables.h
-        Wm/wayland/waylandwindow.h
-        Screens/wayland/waylandmode.h
-        Screens/wayland/waylandscreen.h
-        Screens/wayland/waylandscreenbackend.h
-    )
-
-    tdesktopenvironment_register_wayland_protocol_extension(libtdesktopenvironment FILES
-        wayland-protocols/wlr-protocols/unstable/wlr-foreign-toplevel-management-unstable-v1.xml
-        wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-keygrab-v1.xml
-        wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-accessibility-v1.xml
-        wayland-protocols/wlr-protocols/unstable/wlr-output-management-unstable-v1.xml
-    )
-    target_link_libraries(libtdesktopenvironment Qt::GuiPrivate tdesktopenvironment-wayland-layer-shell-client-lib)
-    target_include_directories(libtdesktopenvironment PRIVATE ../wayland-layer-shell/client-lib/)
-endif()
 
 target_sources(libtdesktopenvironment PRIVATE ${SOURCES} ${HEADERS} ${PRIVATE_HEADERS})
 cntp_target_public_headers(libtdesktopenvironment DESTINATION_DIRECTORY libtdesktopenvironment

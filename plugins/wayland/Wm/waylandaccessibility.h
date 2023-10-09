@@ -20,7 +20,7 @@
 #ifndef WAYLANDACCESSIBILITY_H
 #define WAYLANDACCESSIBILITY_H
 
-#include "../desktopaccessibility.h"
+#include "Wm/desktopaccessibility.h"
 #include "qwayland-tdesktopenvironment-accessibility-v1.h"
 #include "waylandbackend.h"
 

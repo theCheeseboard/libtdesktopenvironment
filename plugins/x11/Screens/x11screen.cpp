@@ -19,8 +19,8 @@
  * *************************************/
 #include "x11screen.h"
 
-#include "../screendaemon.h"
-#include "Wm/x11/x11functions.h"
+#include "../Wm/x11functions.h"
+#include "Screens/screendaemon.h"
 #include <QApplication>
 #include <QCryptographicHash>
 #include <QMap>
