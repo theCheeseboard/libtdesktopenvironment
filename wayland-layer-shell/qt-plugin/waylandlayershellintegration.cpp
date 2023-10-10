@@ -25,6 +25,7 @@
 #include <private/qwaylanddisplay_p.h>
 #include <private/qwaylandshellintegrationfactory_p.h>
 #include <private/qwaylandwindow_p.h>
+#include <tlogger.h>
 
 WaylandLayerShellIntegration::WaylandLayerShellIntegration() :
     QtWaylandClient::QWaylandShellIntegration() {
@@ -48,8 +49,13 @@ QtWaylandClient::QWaylandShellSurface* WaylandLayerShellIntegration::createShell
         return new LayerShellSurface(layershellShell, window);
     }
 
+    auto parent = window->transientParent();
+    if (!parent) {
+        tWarn("WaylandLayerShellIntegration") << "Found a popup window with no parent. Creating as layer-shell window.";
+        return new LayerShellSurface(layershellShell, window);
+    }
     auto shellSurface = xdgShellIntegration->createShellSurface(window);
-    auto layerShell = LayerShellWindow::forWindow(window->transientParent()->window());
+    auto layerShell = LayerShellWindow::forWindow(parent->window());
     layerShell->getPopup(shellSurface->surfaceRole());
     return shellSurface;
 }
@@ -57,5 +63,4 @@ QtWaylandClient::QWaylandShellSurface* WaylandLayerShellIntegration::createShell
 bool WaylandLayerShellIntegration::shouldBeLayerShell(QtWaylandClient::QWaylandWindow* window) {
     auto windowType = window->window()->type();
     return !(windowType == Qt::Popup || windowType == Qt::ToolTip);
-    return true;
 }
