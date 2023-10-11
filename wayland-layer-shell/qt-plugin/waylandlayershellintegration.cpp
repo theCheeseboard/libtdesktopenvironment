@@ -56,7 +56,7 @@ QtWaylandClient::QWaylandShellSurface* WaylandLayerShellIntegration::createShell
     }
     auto shellSurface = xdgShellIntegration->createShellSurface(window);
     auto layerShell = LayerShellWindow::forWindow(parent->window());
-    layerShell->getPopup(shellSurface->surfaceRole());
+    if (layerShell) layerShell->getPopup(shellSurface->surfaceRole());
     return shellSurface;
 }
 
