@@ -61,6 +61,7 @@ class WaylandBackend : public WmBackend,
         void setCurrentDesktop(uint desktopNumber);
         void setNumDesktops(uint numDesktops);
         void setShowDesktop(bool showDesktop);
+        bool supportsSetNumDesktops();
         void setSystemWindow(QWidget* widget);
         void setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType windowType);
         void blurWindow(QWidget* widget);

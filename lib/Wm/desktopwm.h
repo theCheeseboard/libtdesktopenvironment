@@ -51,6 +51,7 @@ class DesktopWm : public QObject {
         static void setCurrentDesktop(uint desktopNumber);
         static void setNumDesktops(uint numDesktops);
         static QList<DesktopWmWindowPtr> windowsOnDesktop(uint desktopNumber);
+        static bool supportsSetNumDesktops();
 
         static void setShowDesktop(bool showDesktop);
 

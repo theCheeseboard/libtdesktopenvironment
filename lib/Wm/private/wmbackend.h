@@ -20,10 +20,10 @@
 #ifndef WMBACKEND_H
 #define WMBACKEND_H
 
-#include <QObject>
-#include "../desktopwmwindow.h"
-#include "../desktopwm.h"
 #include "../desktopaccessibility.h"
+#include "../desktopwm.h"
+#include "../desktopwmwindow.h"
+#include <QObject>
 
 class WmBackend : public QObject {
         Q_OBJECT
@@ -40,6 +40,7 @@ class WmBackend : public QObject {
         virtual void setCurrentDesktop(uint desktopNumber) = 0;
         virtual void setNumDesktops(uint numDesktops) = 0;
         virtual void setShowDesktop(bool showDesktop) = 0;
+        virtual bool supportsSetNumDesktops() = 0;
 
         virtual void setSystemWindow(QWidget* widget) = 0;
         virtual void setSystemWindow(QWidget* widget, DesktopWm::SystemWindowType windowType) = 0;

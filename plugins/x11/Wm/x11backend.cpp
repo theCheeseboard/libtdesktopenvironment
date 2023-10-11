@@ -436,6 +436,10 @@ void X11Backend::setShowDesktop(bool showDesktop) {
     TX11::sendMessageToRootWindow("_NET_SHOWING_DESKTOP", tX11Info::appRootWindow(), showDesktop ? 1 : 0);
 }
 
+bool X11Backend::supportsSetNumDesktops() {
+    return true;
+}
+
 quint64 X11Backend::msecsIdle() {
 #ifdef HAVE_XSCRNSAVER
     if (d->haveScrnsaver) {

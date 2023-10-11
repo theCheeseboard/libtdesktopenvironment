@@ -174,6 +174,10 @@ void WaylandBackend::setShowDesktop(bool showDesktop) {
     // TODO: Implement
 }
 
+bool WaylandBackend::supportsSetNumDesktops() {
+    return false;
+}
+
 void WaylandBackend::setSystemWindow(QWidget* widget) {
     // TODO: Implement
 }

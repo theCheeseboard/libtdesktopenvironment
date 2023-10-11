@@ -78,6 +78,10 @@ QList<DesktopWmWindowPtr> DesktopWm::windowsOnDesktop(uint desktopNumber) {
     return windows;
 }
 
+bool DesktopWm::supportsSetNumDesktops() {
+    return d->instance->supportsSetNumDesktops();
+}
+
 void DesktopWm::setShowDesktop(bool showDesktop) {
     d->instance->setShowDesktop(showDesktop);
 }
