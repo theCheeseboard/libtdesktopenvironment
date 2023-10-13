@@ -21,6 +21,7 @@ else()
 
     set(HEADERS
             waylandplugin.h
+            twaylandregistry.h
 
             Wm/waylandwmconstants.h
             Wm/waylandaccessibility.h
@@ -34,7 +35,8 @@ else()
 
     set(PLUGIN_NAME wayland)
     add_plugin_tde(${PLUGIN_NAME})
-    target_sources(plugin-${PLUGIN_NAME} PRIVATE ${SOURCES} ${HEADERS})
+
+target_sources(plugin-${PLUGIN_NAME} PRIVATE ${SOURCES} ${HEADERS})
 
     target_link_libraries(plugin-${PLUGIN_NAME} Qt::Widgets libcontemporary Qt::GuiPrivate tdesktopenvironment-wayland-layer-shell-client-lib libtdesktopenvironment PkgConfig::wayland-client)
     target_include_directories(plugin-${PLUGIN_NAME} PRIVATE ../../wayland-layer-shell/client-lib/)

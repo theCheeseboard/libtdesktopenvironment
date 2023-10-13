@@ -19,14 +19,12 @@
  * *************************************/
 #include "waylandaccessibility.h"
 
+#include "twaylandregistry.h"
 #include <QGuiApplication>
 #include <qpa/qplatformnativeinterface.h>
 #include <tlogger.h>
 
 struct WaylandAccessibilityPrivate {
-        wl_display* display;
-        WaylandAccessibility* parent;
-
         Qt::KeyboardModifiers latchedKeys;
         Qt::KeyboardModifiers lockedKeys;
 
@@ -36,30 +34,11 @@ struct WaylandAccessibilityPrivate {
 WaylandAccessibility::WaylandAccessibility(WaylandBackend* parent) :
     DesktopAccessibility(parent) {
     d = new WaylandAccessibilityPrivate();
-    d->display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
-    d->parent = this;
 
-    wl_registry_listener listener = {
-        [](void* data, wl_registry* registry, quint32 name, const char* interface, quint32 version) {
-        WaylandAccessibilityPrivate* backend = static_cast<WaylandAccessibilityPrivate*>(data);
-        if (strcmp(interface, tdesktopenvironment_accessibility_sticky_keys_v1_interface.name) == 0) {
-            backend->parent->QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1::init(registry, name, 1);
-        }
-        },
-        [](void* data, wl_registry* registry, quint32 name) {
-        Q_UNUSED(data)
-        Q_UNUSED(registry)
-        Q_UNUSED(name)
-    }};
-
-    wl_registry* registry = wl_display_get_registry(d->display);
-    wl_registry_add_listener(registry, &listener, d);
-    wl_display_roundtrip(d->display);
-
-    if (!this->QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1::isInitialized()) {
+    tWaylandRegistry registry;
+    if (!registry.init<QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1>(this)) {
         tWarn("WaylandBackend") << "The compositor doesn't support the tdesktopenvironment_accessibility_sticky_keys_v1 protocol";
     }
-    wl_registry_destroy(registry);
 }
 
 bool WaylandAccessibility::isAccessibilityOptionEnabled(AccessibilityOption option) {
