@@ -251,19 +251,19 @@ QScreen* WaylandScreen::qtScreen() const {
 }
 
 void WaylandScreen::set() {
-    auto config = zwlr_output_manager_v1_create_configuration(d->backend->object(), d->backend->serial());
+    auto config = zwlr_output_manager_v1_create_configuration(d->backend->QtWayland::zwlr_output_manager_v1::object(), d->backend->serial());
 
     for (auto systemScreen : d->backend->screens()) {
         auto screen = qobject_cast<WaylandScreen*>(systemScreen);
         auto screenProperties = screen->d;
 
         if (screen->d->powered) {
-            auto configHead = zwlr_output_configuration_v1_enable_head(config, screen->object());
+            auto configHead = zwlr_output_configuration_v1_enable_head(config, screen->QtWayland::zwlr_output_head_v1::object());
             zwlr_output_configuration_head_v1_set_mode(configHead, screenProperties->modes.at(screenProperties->currentMode)->object());
             zwlr_output_configuration_head_v1_set_position(configHead, screenProperties->position.x(), screenProperties->position.y());
             zwlr_output_configuration_head_v1_set_transform(configHead, screenProperties->transform);
         } else {
-            zwlr_output_configuration_v1_disable_head(config, screen->object());
+            zwlr_output_configuration_v1_disable_head(config, screen->QtWayland::zwlr_output_head_v1::object());
         }
     }
 

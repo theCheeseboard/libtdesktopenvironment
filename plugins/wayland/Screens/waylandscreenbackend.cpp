@@ -39,6 +39,9 @@ WaylandScreenBackend::WaylandScreenBackend() :
     if (!d->registry.init<QtWayland::zwlr_output_manager_v1>(this)) {
         tWarn("WaylandScreenBackend") << "The compositor doesn't support the wlr-output-management protocol";
     }
+    if (!d->registry.init<QtWayland::zwlr_gamma_control_manager_v1>(this)) {
+        tWarn("WaylandScreenBackend") << "The compositor doesn't support the wlr-gamma-control protocol";
+    }
 
     auto display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
     wl_display_roundtrip(display);

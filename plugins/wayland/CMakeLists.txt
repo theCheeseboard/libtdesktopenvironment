@@ -46,6 +46,7 @@ target_sources(plugin-${PLUGIN_NAME} PRIVATE ${SOURCES} ${HEADERS})
             wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-keygrab-v1.xml
             wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-accessibility-v1.xml
             wayland-protocols/wlr-protocols/unstable/wlr-output-management-unstable-v1.xml
+            wayland-protocols/wlr-protocols/unstable/wlr-gamma-control-unstable-v1.xml
     )
     install(DIRECTORY wayland-protocols/tdesktopenvironment-protocols
             DESTINATION ${CMAKE_INSTALL_DATADIR}/libtdesktopenvironment/wayland-protocols

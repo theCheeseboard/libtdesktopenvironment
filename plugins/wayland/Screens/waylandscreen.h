@@ -21,12 +21,14 @@
 #define WAYLANDSCREEN_H
 
 #include "Screens/systemscreen.h"
+#include "qwayland-wlr-gamma-control-unstable-v1.h"
 #include "qwayland-wlr-output-management-unstable-v1.h"
 
 class WaylandScreenBackend;
 struct WaylandScreenPrivate;
 class WaylandScreen : public SystemScreen,
-                      public QtWayland::zwlr_output_head_v1 {
+                      public QtWayland::zwlr_output_head_v1,
+                      public QtWayland::zwlr_gamma_control_v1 {
         Q_OBJECT
     public:
         explicit WaylandScreen(::zwlr_output_head_v1* head, WaylandScreenBackend* backend);
