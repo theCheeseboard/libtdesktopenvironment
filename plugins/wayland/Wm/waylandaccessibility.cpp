@@ -57,7 +57,7 @@ bool WaylandAccessibility::isAccessibilityOptionEnabled(AccessibilityOption opti
 void WaylandAccessibility::setAccessibilityOptionEnabled(AccessibilityOption option, bool enabled) {
     switch (option) {
         case DesktopAccessibility::StickyKeys:
-            this->tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_enabled(enabled);
+            this->set_enabled(enabled);
             break;
         case DesktopAccessibility::MouseKeys:
         case DesktopAccessibility::LastAccessibilityOption:
