@@ -39,6 +39,10 @@ struct WaylandScreenPrivate {
 
         QList<WaylandMode*> modes;
         int currentMode = -1;
+
+        bool initialPowered;
+        int initialMode;
+        QPoint initialPoisition;
 };
 
 WaylandScreen::WaylandScreen(::zwlr_output_head_v1* head, WaylandScreenBackend* backend) :
@@ -49,6 +53,27 @@ WaylandScreen::WaylandScreen(::zwlr_output_head_v1* head, WaylandScreenBackend* 
 
 WaylandScreen::~WaylandScreen() {
     delete d;
+}
+
+void WaylandScreen::normaliseScreens() {
+    QRect bounds(0, 0, 0, 0);
+
+    // Find out how far we should offset all of the screens
+    for (SystemScreen* screen : ScreenDaemon::instance()->screens()) {
+        auto* scr = static_cast<WaylandScreen*>(screen);
+        if (!scr->powered()) continue;
+
+        bounds = bounds.united(scr->geometry());
+    }
+
+    // Offset all of the screens
+    for (SystemScreen* screen : ScreenDaemon::instance()->screens()) {
+        auto* scr = static_cast<WaylandScreen*>(screen);
+        if (!scr->powered()) continue;
+
+        scr->d->position -= bounds.topLeft();
+        emit scr->geometryChanged(scr->geometry());
+    }
 }
 
 void WaylandScreen::zwlr_output_head_v1_name(const QString& name) {
@@ -68,6 +93,7 @@ void WaylandScreen::zwlr_output_head_v1_mode(zwlr_output_mode_v1* mode) {
 
 void WaylandScreen::zwlr_output_head_v1_enabled(int32_t enabled) {
     d->powered = enabled;
+    d->initialPowered = enabled;
     emit poweredChanged(d->powered);
 }
 
@@ -75,17 +101,20 @@ void WaylandScreen::zwlr_output_head_v1_current_mode(zwlr_output_mode_v1* mode) 
     for (int i = 0; i < d->modes.length(); i++) {
         if (d->modes.at(i)->object() == mode) {
             d->currentMode = i;
+            d->initialMode = i;
             emit currentModeChanged(d->currentMode);
             return;
         }
     }
     d->currentMode = -1;
+    d->initialMode = -1;
     emit currentModeChanged(d->currentMode);
     emit geometryChanged(geometry());
 }
 
 void WaylandScreen::zwlr_output_head_v1_position(int32_t x, int32_t y) {
     d->position = QPoint(x, y);
+    d->initialPoisition = d->position;
 }
 
 void WaylandScreen::zwlr_output_head_v1_transform(int32_t transform) {
@@ -162,7 +191,6 @@ int WaylandScreen::currentMode() const {
 
 void WaylandScreen::setCurrentMode(int mode) {
     d->currentMode = mode;
-    emit currentModeChanged(d->currentMode);
 }
 
 void WaylandScreen::setAsPrimary() {
@@ -240,7 +268,15 @@ void WaylandScreen::set() {
     }
 
     zwlr_output_configuration_v1_apply(config);
+
+    for (auto systemScreen : d->backend->screens()) {
+        auto screen = qobject_cast<WaylandScreen*>(systemScreen);
+        emit screen->currentModeChanged(screen->d->currentMode);
+    }
 }
 
 void WaylandScreen::reset() {
+    move(d->initialPoisition);
+    setPowered(d->initialPowered);
+    setCurrentMode(d->initialMode);
 }

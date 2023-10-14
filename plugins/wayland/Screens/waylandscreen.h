@@ -37,6 +37,8 @@ class WaylandScreen : public SystemScreen,
     private:
         WaylandScreenPrivate* d;
 
+        void normaliseScreens();
+
         // zwlr_output_head_v1 interface
     protected:
         void zwlr_output_head_v1_name(const QString& name);
