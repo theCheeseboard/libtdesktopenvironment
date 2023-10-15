@@ -51,14 +51,14 @@ class tWaylandRegistry {
         }
 
         wl_seat* seat() {
-            return this->bind<wl_seat>(wl_seat_interface, 1);
+            return this->bind<wl_seat>(&wl_seat_interface, 1);
         }
 
-        template<typename T> T* bind(wl_interface interface, quint32 version) {
-            auto interfaceName = QString::fromLocal8Bit(interface.name);
+        template<typename T> T* bind(const wl_interface* interface, quint32 version) {
+            auto interfaceName = QString::fromLocal8Bit(interface->name);
             for (const auto& item : this->items) {
                 if (item.interface == interfaceName) {
-                    return static_cast<T*>(wl_registry_bind(item.registry, item.name, &interface, std::min(version, static_cast<quint32>(1))));
+                    return static_cast<T*>(wl_registry_bind(item.registry, item.name, interface, std::min(version, static_cast<quint32>(1))));
                 }
             }
             return nullptr;
