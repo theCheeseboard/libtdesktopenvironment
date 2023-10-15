@@ -25,6 +25,7 @@
 #include <tlogger.h>
 
 struct WaylandAccessibilityPrivate {
+        tWaylandRegistry registry;
         Qt::KeyboardModifiers latchedKeys;
         Qt::KeyboardModifiers lockedKeys;
 
@@ -36,11 +37,10 @@ WaylandAccessibility::WaylandAccessibility(WaylandBackend* parent) :
     DesktopAccessibility(parent) {
     d = new WaylandAccessibilityPrivate();
 
-    tWaylandRegistry registry;
-    if (!registry.init<QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1>(this)) {
+    if (!d->registry.init<QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1>(this)) {
         tWarn("WaylandBackend") << "The compositor doesn't support the tdesktopenvironment_accessibility_sticky_keys_v1 protocol";
     }
-    if (!registry.init<QtWayland::tdesktopenvironment_accessibility_mouse_keys_v1>(this)) {
+    if (!d->registry.init<QtWayland::tdesktopenvironment_accessibility_mouse_keys_v1>(this)) {
         tWarn("WaylandBackend") << "The compositor doesn't support the tdesktopenvironment_accessibility_mouse_keys_v1 protocol";
     }
 }

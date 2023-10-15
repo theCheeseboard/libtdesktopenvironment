@@ -43,6 +43,7 @@
 struct WaylandBackendPrivate {
         WaylandAccessibility* accessibility;
 
+        tWaylandRegistry registry;
         wl_display* display;
         wl_seat* seat;
 
@@ -61,9 +62,8 @@ WaylandBackend::WaylandBackend() :
 
     d->display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
 
-    tWaylandRegistry registry;
-    d->seat = registry.seat();
-    if (!registry.init<QtWayland::tdesktopenvironment_keygrab_manager_v1>(this)) {
+    d->seat = d->registry.seat();
+    if (!d->registry.init<QtWayland::tdesktopenvironment_keygrab_manager_v1>(this)) {
         tWarn("WaylandBackend") << "The compositor doesn't support the tdesktopenvironment_keygrab_manager_v1 protocol";
     }
 

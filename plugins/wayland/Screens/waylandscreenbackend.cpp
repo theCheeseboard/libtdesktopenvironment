@@ -26,6 +26,7 @@
 #include <tlogger.h>
 
 struct WaylandScreenBackendPrivate {
+        tWaylandRegistry registry;
         quint32 serial;
 
         QMap<zwlr_output_head_v1*, WaylandScreen*> heads;
@@ -35,8 +36,7 @@ WaylandScreenBackend::WaylandScreenBackend() :
     ScreenBackend() {
     d = new WaylandScreenBackendPrivate();
 
-    tWaylandRegistry registry;
-    if (!registry.init<QtWayland::zwlr_output_manager_v1>(this)) {
+    if (!d->registry.init<QtWayland::zwlr_output_manager_v1>(this)) {
         tWarn("WaylandScreenBackend") << "The compositor doesn't support the wlr-output-management protocol";
     }
 
