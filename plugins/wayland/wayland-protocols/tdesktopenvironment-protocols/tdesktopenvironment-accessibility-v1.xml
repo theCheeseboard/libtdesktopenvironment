@@ -69,4 +69,20 @@
       <arg name="keys" type="uint" enum="modifier" summary="The keys that Sticky Keys has latched"/>
     </event>
   </interface>
+
+  <interface name="tdesktopenvironment_accessibility_mouse_keys_v1" version="1">
+    <request name="set_enabled">
+      <description summary="set enabled">
+        Sets whether Mouse Keys is enabled or disabled.
+      </description>
+      <arg name="enabled" type="uint" summary="Whether Mouse Keys is enabled or disabled"/>
+    </request>
+
+    <event name="mouse_keys_enabled">
+      <description summary="mouse keys enabled changed">
+        The event tells the client that the activation state of Mouse Keys has changed.
+      </description>
+      <arg name="enabled" type="uint" summary="Whether Mouse Keys is enabled or disabled"/>
+    </event>
+  </interface>
 </protocol>

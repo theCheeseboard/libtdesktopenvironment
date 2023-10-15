@@ -29,6 +29,7 @@ struct WaylandAccessibilityPrivate {
         Qt::KeyboardModifiers lockedKeys;
 
         bool isStickyKeysEnabled = false;
+        bool isMouseKeysEnabled = false;
 };
 
 WaylandAccessibility::WaylandAccessibility(WaylandBackend* parent) :
@@ -39,15 +40,17 @@ WaylandAccessibility::WaylandAccessibility(WaylandBackend* parent) :
     if (!registry.init<QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1>(this)) {
         tWarn("WaylandBackend") << "The compositor doesn't support the tdesktopenvironment_accessibility_sticky_keys_v1 protocol";
     }
+    if (!registry.init<QtWayland::tdesktopenvironment_accessibility_mouse_keys_v1>(this)) {
+        tWarn("WaylandBackend") << "The compositor doesn't support the tdesktopenvironment_accessibility_mouse_keys_v1 protocol";
+    }
 }
 
 bool WaylandAccessibility::isAccessibilityOptionEnabled(AccessibilityOption option) {
-    // TODO: Implement
     switch (option) {
         case DesktopAccessibility::StickyKeys:
             return d->isStickyKeysEnabled;
-            break;
         case DesktopAccessibility::MouseKeys:
+            return d->isMouseKeysEnabled;
         case DesktopAccessibility::LastAccessibilityOption:
         default:
             return false;
@@ -57,9 +60,15 @@ bool WaylandAccessibility::isAccessibilityOptionEnabled(AccessibilityOption opti
 void WaylandAccessibility::setAccessibilityOptionEnabled(AccessibilityOption option, bool enabled) {
     switch (option) {
         case DesktopAccessibility::StickyKeys:
-            this->set_enabled(enabled);
+            if (this->QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1::isInitialized()) {
+                this->QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1::set_enabled(enabled);
+            }
             break;
         case DesktopAccessibility::MouseKeys:
+            if (this->QtWayland::tdesktopenvironment_accessibility_mouse_keys_v1::isInitialized()) {
+                this->QtWayland::tdesktopenvironment_accessibility_mouse_keys_v1::set_enabled(enabled);
+            }
+            break;
         case DesktopAccessibility::LastAccessibilityOption:
         default:
             return;
@@ -85,4 +94,9 @@ void WaylandAccessibility::tdesktopenvironment_accessibility_sticky_keys_v1_stic
                         .setFlag(Qt::ShiftModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_SHIFT)
                         .setFlag(Qt::MetaModifier, keys & TDESKTOPENVIRONMENT_ACCESSIBILITY_STICKY_KEYS_V1_MODIFIER_SUPER);
     emit stickyKeysStateChanged(d->latchedKeys, d->lockedKeys);
+}
+
+void WaylandAccessibility::tdesktopenvironment_accessibility_mouse_keys_v1_mouse_keys_enabled(uint32_t enabled) {
+    d->isMouseKeysEnabled = enabled;
+    emit accessibilityOptionEnabledChanged(MouseKeys, enabled);
 }

@@ -28,7 +28,8 @@
 
 struct WaylandAccessibilityPrivate;
 class WaylandAccessibility : public DesktopAccessibility,
-                             public QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1 {
+                             public QtWayland::tdesktopenvironment_accessibility_sticky_keys_v1,
+                             public QtWayland::tdesktopenvironment_accessibility_mouse_keys_v1 {
         Q_OBJECT
     public:
         explicit WaylandAccessibility(WaylandBackend* parent);
@@ -48,6 +49,10 @@ class WaylandAccessibility : public DesktopAccessibility,
         void tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_enabled(uint32_t enabled);
         void tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_held(uint32_t keys);
         void tdesktopenvironment_accessibility_sticky_keys_v1_sticky_keys_latched(uint32_t keys);
+
+        // tdesktopenvironment_accessibility_mouse_keys_v1 interface
+    protected:
+        void tdesktopenvironment_accessibility_mouse_keys_v1_mouse_keys_enabled(uint32_t enabled);
 };
 
 #endif // WAYLANDACCESSIBILITY_H
