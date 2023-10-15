@@ -17,6 +17,8 @@ else()
             Screens/waylandmode.cpp
             Screens/waylandscreen.cpp
             Screens/waylandscreenbackend.cpp
+            Screens/waylandgammacontrol.cpp
+            Screens/waylandoutput.cpp
     )
 
     set(HEADERS
@@ -31,6 +33,8 @@ else()
             Screens/waylandmode.h
             Screens/waylandscreen.h
             Screens/waylandscreenbackend.h
+            Screens/waylandgammacontrol.h
+            Screens/waylandoutput.h
     )
 
     set(PLUGIN_NAME wayland)
@@ -47,6 +51,7 @@ target_sources(plugin-${PLUGIN_NAME} PRIVATE ${SOURCES} ${HEADERS})
             wayland-protocols/tdesktopenvironment-protocols/tdesktopenvironment-accessibility-v1.xml
             wayland-protocols/wlr-protocols/unstable/wlr-output-management-unstable-v1.xml
             wayland-protocols/wlr-protocols/unstable/wlr-gamma-control-unstable-v1.xml
+            ${CMAKE_INSTALL_FULL_DATADIR}/wayland/wayland.xml
     )
     install(DIRECTORY wayland-protocols/tdesktopenvironment-protocols
             DESTINATION ${CMAKE_INSTALL_DATADIR}/libtdesktopenvironment/wayland-protocols

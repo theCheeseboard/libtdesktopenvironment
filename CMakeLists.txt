@@ -28,25 +28,29 @@ function(tdesktopenvironment_register_wayland_protocol_extension target)
     foreach(_file ${REGISTER_WAYLAND_PROTOCOL_EXTENSIONS_FILES})
         get_filename_component(_basename ${_file} NAME_WE)
 
+        if(NOT EXISTS ${_file})
+            set(_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+        endif()
+
         # Wayland scanner
         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/wayland-${_basename}-client-protocol.h"
-                           COMMAND ${WAYLAND_SCANNER} client-header ${CMAKE_CURRENT_SOURCE_DIR}/${_file} "${CMAKE_CURRENT_BINARY_DIR}/wayland-${_basename}-client-protocol.h"
+                           COMMAND ${WAYLAND_SCANNER} client-header ${_file} "${CMAKE_CURRENT_BINARY_DIR}/wayland-${_basename}-client-protocol.h"
                            DEPENDS ${_file}
                            VERBATIM)
 
         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/wayland-${_basename}-client-protocol.c"
-                           COMMAND ${WAYLAND_SCANNER} public-code ${CMAKE_CURRENT_SOURCE_DIR}/${_file} "${CMAKE_CURRENT_BINARY_DIR}/wayland-${_basename}-client-protocol.c"
+                           COMMAND ${WAYLAND_SCANNER} public-code ${_file} "${CMAKE_CURRENT_BINARY_DIR}/wayland-${_basename}-client-protocol.c"
                            DEPENDS ${_file}
                            VERBATIM)
 
         # Qt Wayland scanner
         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/qwayland-${_basename}.h"
-                           COMMAND ${QT_WAYLAND_SCANNER} client-header ${CMAKE_CURRENT_SOURCE_DIR}/${_file} > "${CMAKE_CURRENT_BINARY_DIR}/qwayland-${_basename}.h"
+                           COMMAND ${QT_WAYLAND_SCANNER} client-header ${_file} > "${CMAKE_CURRENT_BINARY_DIR}/qwayland-${_basename}.h"
                            DEPENDS ${_file}
                            VERBATIM)
 
         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/qwayland-${_basename}.cpp"
-                           COMMAND ${QT_WAYLAND_SCANNER} client-code ${CMAKE_CURRENT_SOURCE_DIR}/${_file} > "${CMAKE_CURRENT_BINARY_DIR}/qwayland-${_basename}.cpp"
+                           COMMAND ${QT_WAYLAND_SCANNER} client-code ${_file} > "${CMAKE_CURRENT_BINARY_DIR}/qwayland-${_basename}.cpp"
                            DEPENDS ${_file}
                            VERBATIM)
 

@@ -40,6 +40,7 @@ class WaylandScreen : public SystemScreen,
         WaylandScreenPrivate* d;
 
         void normaliseScreens();
+        void updateGammaRamps();
 
         // zwlr_output_head_v1 interface
     protected:

@@ -2,6 +2,7 @@
 #define TWAYLANDREGISTRY_H
 
 #include <QApplication>
+#include <QCoroGenerator>
 #include <QList>
 #include <qpa/qplatformnativeinterface.h>
 #include <wayland-client-protocol.h>
@@ -50,18 +51,29 @@ class tWaylandRegistry {
             return false;
         }
 
-        wl_seat* seat() {
+        QSharedPointer<wl_seat> seat() {
             return this->bind<wl_seat>(&wl_seat_interface, 1);
         }
 
-        template<typename T> T* bind(const wl_interface* interface, quint32 version) {
+        template<typename T> QSharedPointer<T> bind(const wl_interface* interface, quint32 version) {
             auto interfaceName = QString::fromLocal8Bit(interface->name);
             for (const auto& item : this->items) {
                 if (item.interface == interfaceName) {
-                    return static_cast<T*>(wl_registry_bind(item.registry, item.name, interface, std::min(version, static_cast<quint32>(1))));
+                    auto bound = static_cast<T*>(wl_registry_bind(item.registry, item.name, interface, version));
+                    return QSharedPointer<T>(bound, &tWaylandRegistry::resourceDeleter<T>);
                 }
             }
             return nullptr;
+        }
+
+        template<typename T> QCoro::Generator<QSharedPointer<T>> interfaces(const wl_interface* interface, quint32 version) {
+            auto interfaceName = QString::fromLocal8Bit(interface->name);
+            for (const auto& item : this->items) {
+                if (item.interface == interfaceName) {
+                    auto bound = static_cast<T*>(wl_registry_bind(item.registry, item.name, interface, version));
+                    co_yield QSharedPointer<T>(bound, &tWaylandRegistry::resourceDeleter<T>);
+                }
+            }
         }
 
     private:
@@ -74,6 +86,9 @@ class tWaylandRegistry {
 
         QList<RegistryItem> items;
         wl_registry* registry;
+
+        template<typename T> static void resourceDeleter(T* obj) {
+        }
 };
 
 #endif // TWAYLANDREGISTRY_H

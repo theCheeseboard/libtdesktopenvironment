@@ -20,10 +20,19 @@
 #include "waylandscreen.h"
 
 #include "Screens/screendaemon.h"
+#include "waylandgammacontrol.h"
 #include "waylandmode.h"
 #include "waylandscreenbackend.h"
 #include <QApplication>
 #include <QMap>
+#include <tlogger.h>
+
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <linux/memfd.h>
 
 struct WaylandScreenPrivate {
         WaylandScreenBackend* backend;
@@ -43,6 +52,8 @@ struct WaylandScreenPrivate {
         bool initialPowered;
         int initialMode;
         QPoint initialPoisition;
+
+        QMap<QString, SystemScreen::GammaRamps> gammaRamps;
 };
 
 WaylandScreen::WaylandScreen(::zwlr_output_head_v1* head, WaylandScreenBackend* backend) :
@@ -74,6 +85,50 @@ void WaylandScreen::normaliseScreens() {
         scr->d->position -= bounds.topLeft();
         emit scr->geometryChanged(scr->geometry());
     }
+}
+
+void WaylandScreen::updateGammaRamps() {
+    WaylandGammaControl gammaControl(d->name, d->description, d->backend);
+    if (!gammaControl.isReady()) {
+        tWarn("WaylandScreen") << "Unable to set gamma ramps for " << d->name << " because the wlr_gamma_control object could not be initialised";
+        return;
+    }
+
+    GammaRamps ramps;
+    if (d->gammaRamps.empty()) {
+        // Reset the gamma
+        ramps.red = 1;
+        ramps.green = 1;
+        ramps.blue = 1;
+    } else {
+        // Interpolate all the gamma values
+        auto allRamps = d->gammaRamps.values();
+        ramps = allRamps.front();
+        for (auto i = std::next(allRamps.begin()); i != allRamps.end(); i++) {
+            ramps.red *= i->red;
+            ramps.green *= i->green;
+            ramps.blue *= i->blue;
+        }
+    }
+
+    int num_channels = 3, num_entries = gammaControl.rampSize();
+
+    // Creates an unnamed, temporary file in memory
+    int fd = memfd_create("gamma-ramp", MFD_CLOEXEC | MFD_ALLOW_SEALING);
+    ftruncate(fd, num_channels * num_entries * sizeof(uint16_t));
+
+    uint16_t* table = static_cast<uint16_t*>(mmap(NULL, num_channels * num_entries * sizeof(uint16_t), PROT_WRITE, MAP_SHARED, fd, 0));
+
+    for (int i = 0; i < num_entries; i++) {
+        double factor = static_cast<double>(UINT16_MAX + 1) * i / num_entries;
+        table[i] = table[i + num_entries] = table[i + num_entries * 2] = static_cast<uint16_t>(factor * ramps.red + 0.5);
+    }
+
+    gammaControl.setGamma(fd);
+
+    // Clean up
+    munmap(table, num_channels * num_entries * sizeof(uint16_t));
+    close(fd);
 }
 
 void WaylandScreen::zwlr_output_head_v1_name(const QString& name) {
@@ -150,9 +205,13 @@ void WaylandScreen::setScreenBrightness(double screenBrightness) {
 }
 
 void WaylandScreen::adjustGammaRamps(QString adjustmentName, GammaRamps ramps) {
+    d->gammaRamps.insert(adjustmentName, ramps);
+    updateGammaRamps();
 }
 
 void WaylandScreen::removeGammaRamps(QString adjustmentName) {
+    d->gammaRamps.remove(adjustmentName);
+    updateGammaRamps();
 }
 
 bool WaylandScreen::powered() const {

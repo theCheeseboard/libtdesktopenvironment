@@ -45,7 +45,7 @@ struct WaylandBackendPrivate {
 
         tWaylandRegistry registry;
         wl_display* display;
-        wl_seat* seat;
+        QSharedPointer<wl_seat> seat;
 
         quint64 nextKeygrabId = 0;
         QMap<quint64, quint64> extKeygrab;
@@ -100,7 +100,7 @@ wl_display* WaylandBackend::display() {
 }
 
 wl_seat* WaylandBackend::seat() {
-    return d->seat;
+    return d->seat.data();
 }
 
 void WaylandBackend::viewAdded(uint viewId) {
