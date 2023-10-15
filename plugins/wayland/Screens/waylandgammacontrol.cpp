@@ -32,9 +32,17 @@ WaylandGammaControl::WaylandGammaControl(QString name, QString description, QtWa
             break;
         }
     }
+
+    auto display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
+    wl_display_roundtrip(display);
 }
 
 WaylandGammaControl::~WaylandGammaControl() {
+    this->destroy();
+
+    auto display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
+    wl_display_roundtrip(display);
+
     delete d;
 }
 
