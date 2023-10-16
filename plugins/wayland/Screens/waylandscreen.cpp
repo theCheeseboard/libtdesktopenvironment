@@ -25,6 +25,7 @@
 #include "waylandscreenbackend.h"
 #include <QApplication>
 #include <QMap>
+#include <QPointer>
 #include <tlogger.h>
 
 #include <fcntl.h>
@@ -54,6 +55,7 @@ struct WaylandScreenPrivate {
         QPoint initialPoisition;
 
         QMap<QString, SystemScreen::GammaRamps> gammaRamps;
+        QPointer<WaylandGammaControl> gammaControl;
 };
 
 WaylandScreen::WaylandScreen(::zwlr_output_head_v1* head, WaylandScreenBackend* backend) :
@@ -88,46 +90,55 @@ void WaylandScreen::normaliseScreens() {
 }
 
 void WaylandScreen::updateGammaRamps() {
-    WaylandGammaControl gammaControl(d->name, d->description, d->backend);
-    if (!gammaControl.isReady()) {
+    if (!d->gammaControl) {
+        d->gammaControl = new WaylandGammaControl(d->name, d->description, d->backend, this);
+    }
+
+    if (!d->gammaControl->isReady()) {
         tWarn("WaylandScreen") << "Unable to set gamma ramps for " << d->name << " because the wlr_gamma_control object could not be initialised";
+        d->gammaControl->deleteLater();
+        d->gammaControl = nullptr;
+        return;
+    }
+
+    if (d->gammaRamps.empty()) {
+        // Reset the gamma
+        d->gammaControl->deleteLater();
+        d->gammaControl = nullptr;
         return;
     }
 
     GammaRamps ramps;
-    if (d->gammaRamps.empty()) {
-        // Reset the gamma
-        ramps.red = 1;
-        ramps.green = 1;
-        ramps.blue = 1;
-    } else {
-        // Interpolate all the gamma values
-        auto allRamps = d->gammaRamps.values();
-        ramps = allRamps.front();
-        for (auto i = std::next(allRamps.begin()); i != allRamps.end(); i++) {
-            ramps.red *= i->red;
-            ramps.green *= i->green;
-            ramps.blue *= i->blue;
-        }
+
+    // Interpolate all the gamma values
+    auto allRamps = d->gammaRamps.values();
+    ramps = allRamps.front();
+    for (auto i = std::next(allRamps.begin()); i != allRamps.end(); i++) {
+        ramps.red *= i->red;
+        ramps.green *= i->green;
+        ramps.blue *= i->blue;
     }
 
-    int num_channels = 3, num_entries = gammaControl.rampSize();
+    int channels = 3;
+    int rampSize = d->gammaControl->rampSize();
 
     // Creates an unnamed, temporary file in memory
     int fd = memfd_create("gamma-ramp", MFD_CLOEXEC | MFD_ALLOW_SEALING);
-    ftruncate(fd, num_channels * num_entries * sizeof(uint16_t));
+    ftruncate(fd, channels * rampSize * sizeof(quint16));
 
-    uint16_t* table = static_cast<uint16_t*>(mmap(NULL, num_channels * num_entries * sizeof(uint16_t), PROT_WRITE, MAP_SHARED, fd, 0));
+    auto* table = static_cast<quint16*>(mmap(nullptr, channels * rampSize * sizeof(quint16), PROT_WRITE, MAP_SHARED, fd, 0));
 
-    for (int i = 0; i < num_entries; i++) {
-        double factor = static_cast<double>(UINT16_MAX + 1) * i / num_entries;
-        table[i] = table[i + num_entries] = table[i + num_entries * 2] = static_cast<uint16_t>(factor * ramps.red + 0.5);
+    for (int i = 0; i < rampSize; i++) {
+        double factor = static_cast<double>(UINT16_MAX + 1) * i / rampSize;
+        table[i] = static_cast<quint16>(factor * ramps.red + 0.5);
+        table[i + rampSize] = static_cast<quint16>(factor * ramps.green + 0.5);
+        table[i + rampSize * 2] = static_cast<quint16>(factor * ramps.blue + 0.5);
     }
 
-    gammaControl.setGamma(fd);
+    d->gammaControl->setGamma(fd);
 
     // Clean up
-    munmap(table, num_channels * num_entries * sizeof(uint16_t));
+    munmap(table, channels * rampSize * sizeof(quint16));
     close(fd);
 }
 
