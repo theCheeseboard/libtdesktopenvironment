@@ -87,7 +87,16 @@ bool WaylandScreenBackend::supportsPerScreenDpi() {
 }
 
 void WaylandScreenBackend::zwlr_output_manager_v1_head(zwlr_output_head_v1* head) {
-    d->heads.insert(head, new WaylandScreen(head, this));
+    auto wlScreen = new WaylandScreen(head, this);
+    d->heads.insert(head, wlScreen);
+
+    connect(wlScreen, &WaylandScreen::finished, this, [this, head, wlScreen] {
+        d->heads.remove(head);
+        emit screensUpdated();
+        wlScreen->deleteLater();
+    });
+
+    emit screensUpdated();
 }
 
 void WaylandScreenBackend::zwlr_output_manager_v1_done(uint32_t serial) {

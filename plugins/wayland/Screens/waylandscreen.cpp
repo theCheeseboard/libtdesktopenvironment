@@ -191,6 +191,7 @@ void WaylandScreen::zwlr_output_head_v1_scale(wl_fixed_t scale) {
 }
 
 void WaylandScreen::zwlr_output_head_v1_finished() {
+    emit finished();
 }
 
 void WaylandScreen::zwlr_output_head_v1_make(const QString& make) {

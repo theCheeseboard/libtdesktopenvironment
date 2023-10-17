@@ -35,6 +35,7 @@ class WaylandScreen : public SystemScreen,
         ~WaylandScreen();
 
     signals:
+        void finished();
 
     private:
         WaylandScreenPrivate* d;
