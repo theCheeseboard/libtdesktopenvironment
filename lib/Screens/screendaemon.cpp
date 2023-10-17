@@ -109,6 +109,10 @@ void ScreenDaemon::tryRestoreConfiguration() {
         }
     }
 
+    for (auto screen : this->screens()) {
+        screen->set();
+    }
+
     d->loading = false;
 }
 
