@@ -206,18 +206,18 @@ void X11Backend::loadKeyboardLayouts() {
 }
 
 void X11Backend::updateKeyboardLayout() {
-    //    QProcess xkbmapProcess;
-    //    xkbmapProcess.start("setxkbmap", {"-query"});
-    //    xkbmapProcess.waitForFinished();
+    QProcess xkbmapProcess;
+    xkbmapProcess.start("setxkbmap", {"-query"});
+    xkbmapProcess.waitForFinished();
 
-    //    while (xkbmapProcess.canReadLine()) {
-    //        QString line = xkbmapProcess.readLine().trimmed();
-    //        if (line.startsWith("layout:")) {
-    //            QString layout = line.split(" ", Qt::SkipEmptyParts).at(1);
-    //            d->currentLayout = layout;
-    //            return;
-    //        }
-    //    }
+    while (xkbmapProcess.canReadLine()) {
+        QString line = xkbmapProcess.readLine().trimmed();
+        if (line.startsWith("layout:")) {
+            QString layout = line.split(" ", Qt::SkipEmptyParts).at(1);
+            d->currentLayout = layout;
+            return;
+        }
+    }
 }
 
 bool X11Backend::nativeEventFilter(const QByteArray& eventType, void* message, qintptr* result) {
