@@ -19,13 +19,26 @@
  * *************************************/
 #include "screendaemon.h"
 
-#include "private/screenbackend.h"
-#include <QDebug>
 #include "TdePlugin/tdepluginmanager.h"
+#include "private/screenbackend.h"
+#include "systemscreen.h"
+#include <QDebug>
+#include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QStandardPaths>
+#include <ranges/trange.h>
 
 struct ScreenDaemonPrivate {
         ScreenDaemon* instance = nullptr;
         ScreenBackend* backend = nullptr;
+
+        QJsonObject screenConfigs;
+        QJsonObject geoConfigs;
+
+        bool loading = false;
+        bool autorestore = false;
 };
 
 ScreenDaemonPrivate* ScreenDaemon::d = new ScreenDaemonPrivate();
@@ -52,14 +65,89 @@ void ScreenDaemon::setDpi(int dpi) {
     emit dpiChanged();
 }
 
+bool ScreenDaemon::supportsPerScreenDpi() {
+    return d->backend->supportsPerScreenDpi();
+}
+
+void ScreenDaemon::saveCurrentConfiguration() {
+    if (d->loading) return;
+
+    QJsonObject thisConfigGeo;
+    for (auto screen : this->screens()) {
+        d->screenConfigs.insert(screen->restoreKey(), screen->serialise());
+        thisConfigGeo.insert(screen->restoreKey(), screen->serialiseGeo());
+    }
+    d->geoConfigs.insert(this->geoKey(), thisConfigGeo);
+
+    QJsonObject rootObject;
+    rootObject.insert("screens", d->screenConfigs);
+    rootObject.insert("geos", d->geoConfigs);
+
+    QDir appdata(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    QDir::root().mkpath(appdata.absolutePath());
+    QFile configFile(appdata.absoluteFilePath("screens"));
+    configFile.open(QFile::WriteOnly);
+    configFile.write(QJsonDocument(rootObject).toJson());
+    configFile.close();
+}
+
+void ScreenDaemon::tryRestoreConfiguration() {
+    d->loading = true;
+
+    // Start by restoring screen resolution, etc.
+    for (auto screen : this->screens()) {
+        if (!d->screenConfigs.contains(screen->restoreKey())) continue;
+        screen->load(d->screenConfigs.value(screen->restoreKey()).toObject());
+    }
+
+    // Restore geospatial settings
+    auto geoKey = this->geoKey();
+    if (d->geoConfigs.contains(geoKey)) {
+        auto geoConfig = d->geoConfigs.value(geoKey).toObject();
+        for (auto screen : this->screens()) {
+            screen->loadGeo(geoConfig.value(screen->restoreKey()).toObject());
+        }
+    }
+
+    d->loading = false;
+}
+
+void ScreenDaemon::enableAutomaticRestore() {
+    d->autorestore = true;
+    this->tryRestoreConfiguration();
+}
+
 ScreenDaemon::ScreenDaemon() :
     QObject(nullptr) {
+    QDir appdata(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
+    QDir::root().mkpath(appdata.absolutePath());
+    QFile configFile(appdata.absoluteFilePath("screens"));
+    configFile.open(QFile::ReadOnly);
+    auto rootObject = QJsonDocument::fromJson(configFile.readAll()).object();
+    d->screenConfigs = rootObject.value("screens").toObject();
+    d->geoConfigs = rootObject.value("geos").toObject();
+    configFile.close();
+
     d->backend = TdePluginManager::loadedInterface()->screenBackend();
 
     if (d->backend) {
-        connect(d->backend, &ScreenBackend::screensUpdated, this, &ScreenDaemon::screensUpdated);
+        connect(d->backend, &ScreenBackend::screensUpdated, this, [this] {
+            emit this->screensUpdated();
+            if (d->autorestore) {
+                this->tryRestoreConfiguration();
+            }
+        });
     } else {
         // No suitable backend is available
         qWarning() << "No suitable backend for ScreenDaemon";
     }
+}
+
+QString ScreenDaemon::geoKey() {
+    auto screenNames = tRange(this->screens()).map<QString>([](SystemScreen* screen) {
+                                                  return screen->restoreKey();
+                                              })
+                           .toList();
+    std::sort(screenNames.begin(), screenNames.end());
+    return screenNames.join(";");
 }

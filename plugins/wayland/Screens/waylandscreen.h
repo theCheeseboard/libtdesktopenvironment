@@ -82,6 +82,9 @@ class WaylandScreen : public SystemScreen,
         QScreen* qtScreen() const;
         void set();
         void reset();
+        QString manufacturer() const;
+        QString productName() const;
+        QString restoreKey() const;
 };
 
 #endif // WAYLANDSCREEN_H

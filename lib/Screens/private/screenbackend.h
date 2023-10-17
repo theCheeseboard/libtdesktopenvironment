@@ -33,9 +33,9 @@ class ScreenBackend : public QObject {
 
         virtual int dpi() const = 0;
         virtual void setDpi(int dpi) = 0;
+        virtual bool supportsPerScreenDpi() = 0;
 
     signals:
         void screensUpdated();
-
 };
 #endif // SCREENBACKEND_H

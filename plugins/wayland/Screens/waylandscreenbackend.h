@@ -49,6 +49,7 @@ class WaylandScreenBackend : public ScreenBackend,
         SystemScreen* primaryScreen();
         int dpi() const;
         void setDpi(int dpi);
+        bool supportsPerScreenDpi();
 
         // zwlr_output_manager_v1 interface
     protected:

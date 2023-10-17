@@ -34,6 +34,10 @@ class ScreenDaemon : public QObject {
 
         int dpi() const;
         void setDpi(int dpi);
+        bool supportsPerScreenDpi();
+        void saveCurrentConfiguration();
+        void tryRestoreConfiguration();
+        void enableAutomaticRestore();
 
     signals:
         void screensUpdated();
@@ -42,6 +46,8 @@ class ScreenDaemon : public QObject {
     private:
         explicit ScreenDaemon();
         static ScreenDaemonPrivate* d;
+
+        QString geoKey();
 };
 
 #endif // SCREENDAEMON_H

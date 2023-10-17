@@ -19,6 +19,54 @@
  * *************************************/
 #include "systemscreen.h"
 
-SystemScreen::SystemScreen(QObject* parent) : QObject(parent) {
+#include <QJsonObject>
 
+SystemScreen::SystemScreen(QObject* parent) :
+    QObject(parent) {
+}
+
+QJsonObject SystemScreen::serialise() {
+    QJsonObject object;
+    auto currentMode = this->availableModes().at(this->currentMode());
+
+    QJsonObject mode;
+    mode.insert("width", static_cast<int>(currentMode.width));
+    mode.insert("height", static_cast<int>(currentMode.height));
+    mode.insert("framerate", currentMode.framerate);
+    mode.insert("interlaced", currentMode.isInterlaced);
+
+    object.insert("mode", mode);
+
+    return object;
+}
+
+void SystemScreen::load(QJsonObject config) {
+    // Locate a viable mode
+    auto mode = config.value("mode").toObject();
+    auto width = mode.value("width").toInt();
+    auto height = mode.value("height").toInt();
+    auto framerate = mode.value("height").toDouble();
+    auto interlaced = mode.value("interlaced").toBool();
+    for (auto availableMode : this->availableModes()) {
+        if (availableMode.width == width && availableMode.height == height && availableMode.framerate == framerate && availableMode.isInterlaced == interlaced) {
+            this->setCurrentMode(availableMode.id);
+            break;
+        }
+    }
+}
+
+QJsonObject SystemScreen::serialiseGeo() {
+    QJsonObject geo;
+    geo.insert("left", this->geometry().left());
+    geo.insert("top", this->geometry().top());
+    geo.insert("rotation", this->currentRotation());
+
+    return geo;
+}
+
+void SystemScreen::loadGeo(QJsonObject geo) {
+    this->setRotation(static_cast<Rotation>(geo.value("rotation").toInt()));
+
+    QPoint location(geo.value("left").toInt(), geo.value("top").toInt());
+    this->move(location);
 }

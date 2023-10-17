@@ -81,6 +81,10 @@ void X11ScreenBackend::setDpi(int dpi) {
     XRRSetScreenSize(tX11Info::display(), tX11Info::appRootWindow(), rect.width(), rect.height(), qRound((25.4 * rect.width()) / dpi), qRound((25.4 * rect.height()) / dpi));
 }
 
+bool X11ScreenBackend::supportsPerScreenDpi() {
+    return false;
+}
+
 void X11ScreenBackend::updateDisplays() {
     // Update all the displays
     XRRMonitorInfo* monitorInfo;

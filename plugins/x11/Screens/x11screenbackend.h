@@ -20,11 +20,12 @@
 #ifndef X11SCREENBACKEND_H
 #define X11SCREENBACKEND_H
 
-#include <QAbstractNativeEventFilter>
 #include "Screens/private/screenbackend.h"
+#include <QAbstractNativeEventFilter>
 
 struct X11ScreenBackendPrivate;
-class X11ScreenBackend : public ScreenBackend, public QAbstractNativeEventFilter {
+class X11ScreenBackend : public ScreenBackend,
+                         public QAbstractNativeEventFilter {
         Q_OBJECT
     public:
         explicit X11ScreenBackend();
@@ -37,6 +38,8 @@ class X11ScreenBackend : public ScreenBackend, public QAbstractNativeEventFilter
 
         int dpi() const;
         void setDpi(int dpi);
+
+        bool supportsPerScreenDpi();
 
     signals:
 

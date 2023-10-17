@@ -82,6 +82,10 @@ void WaylandScreenBackend::setDpi(int dpi) {
     // TODO: Implement
 }
 
+bool WaylandScreenBackend::supportsPerScreenDpi() {
+    return true;
+}
+
 void WaylandScreenBackend::zwlr_output_manager_v1_head(zwlr_output_head_v1* head) {
     d->heads.insert(head, new WaylandScreen(head, this));
 }

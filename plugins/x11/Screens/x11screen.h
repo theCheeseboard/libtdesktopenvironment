@@ -27,7 +27,7 @@ typedef XID RROutput;
 typedef XID Atom;
 
 struct X11ScreenPrivate;
-template <typename T> struct OutputProperty;
+template<typename T> struct OutputProperty;
 template<typename T> using OutputPropertyPtr = QSharedPointer<OutputProperty<T>>;
 class X11Screen : public SystemScreen {
         Q_OBJECT
@@ -60,6 +60,10 @@ class X11Screen : public SystemScreen {
         QString displayName() const;
         QString physicalMonitorId() const;
         QByteArray edid() const;
+
+        QString manufacturer() const;
+        QString productName() const;
+        QString restoreKey() const;
 
         QScreen* qtScreen() const;
 

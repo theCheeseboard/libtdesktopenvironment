@@ -30,17 +30,17 @@ class SystemScreen : public QObject {
         explicit SystemScreen(QObject* parent = nullptr);
 
         struct GammaRamps {
-            double red;
-            double green;
-            double blue;
+                double red;
+                double green;
+                double blue;
         };
 
         struct Mode {
-            int id;
-            uint width;
-            uint height;
-            double framerate;
-            bool isInterlaced;
+                int id;
+                uint width;
+                uint height;
+                double framerate;
+                bool isInterlaced;
         };
 
         enum Rotation {
@@ -74,6 +74,14 @@ class SystemScreen : public QObject {
         virtual QString displayName() const = 0;
         virtual QString physicalMonitorId() const = 0;
         virtual QByteArray edid() const = 0;
+
+        virtual QString manufacturer() const = 0;
+        virtual QString productName() const = 0;
+        virtual QString restoreKey() const = 0;
+        QJsonObject serialise();
+        void load(QJsonObject config);
+        QJsonObject serialiseGeo();
+        void loadGeo(QJsonObject geo);
 
         virtual QScreen* qtScreen() const = 0;
 

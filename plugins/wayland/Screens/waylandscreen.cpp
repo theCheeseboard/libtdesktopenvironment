@@ -350,3 +350,15 @@ void WaylandScreen::reset() {
     setPowered(d->initialPowered);
     setCurrentMode(d->initialMode);
 }
+
+QString WaylandScreen::manufacturer() const {
+    return d->manufacturer;
+}
+
+QString WaylandScreen::productName() const {
+    return d->model;
+}
+
+QString WaylandScreen::restoreKey() const {
+    return this->manufacturer() + " " + this->productName();
+}

@@ -503,6 +503,28 @@ QByteArray X11Screen::edid() const {
     return edid;
 }
 
+QString X11Screen::manufacturer() const {
+    QScreen* scr = this->qtScreen();
+    if (scr) {
+        return scr->manufacturer();
+    } else {
+        return "";
+    }
+}
+
+QString X11Screen::productName() const {
+    QScreen* scr = this->qtScreen();
+    if (scr) {
+        return scr->model();
+    } else {
+        return "";
+    }
+}
+
+QString X11Screen::restoreKey() const {
+    return this->manufacturer() + " " + this->productName();
+}
+
 QScreen* X11Screen::qtScreen() const {
     for (QScreen* screen : QApplication::screens()) {
         if (screen->name() == d->name) return screen;
