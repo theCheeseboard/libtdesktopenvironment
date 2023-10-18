@@ -19,6 +19,7 @@ WaylandOutput::WaylandOutput(::wl_output* output, QObject* parent) :
 }
 
 WaylandOutput::~WaylandOutput() {
+    this->release();
     delete d;
 }
 
@@ -39,4 +40,13 @@ void WaylandOutput::output_description(const QString& description) {
 }
 
 void WaylandOutput::output_done() {
+}
+
+void WaylandOutput::output_geometry(int32_t x, int32_t y, int32_t physical_width, int32_t physical_height, int32_t subpixel, const QString& make, const QString& model, int32_t transform) {
+}
+
+void WaylandOutput::output_mode(uint32_t flags, int32_t width, int32_t height, int32_t refresh) {
+}
+
+void WaylandOutput::output_scale(int32_t factor) {
 }
