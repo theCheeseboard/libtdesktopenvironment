@@ -22,6 +22,7 @@
 #include "twaylandregistry.h"
 #include "waylandscreen.h"
 #include <QGuiApplication>
+#include <QTimer>
 #include <qpa/qplatformnativeinterface.h>
 #include <tlogger.h>
 
@@ -92,11 +93,11 @@ void WaylandScreenBackend::zwlr_output_manager_v1_head(zwlr_output_head_v1* head
 
     connect(wlScreen, &WaylandScreen::finished, this, [this, head, wlScreen] {
         d->heads.remove(head);
-        emit screensUpdated();
+        QTimer::singleShot(0, this, &WaylandScreenBackend::screensUpdated);
         wlScreen->deleteLater();
     });
 
-    emit screensUpdated();
+    QTimer::singleShot(0, this, &WaylandScreenBackend::screensUpdated);
 }
 
 void WaylandScreenBackend::zwlr_output_manager_v1_done(uint32_t serial) {
