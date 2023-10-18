@@ -19,15 +19,16 @@ class tWaylandRegistry {
         tWaylandRegistry() {
             auto display = reinterpret_cast<wl_display*>(qApp->platformNativeInterface()->nativeResourceForIntegration("display"));
 
-            wl_registry_listener listener = {
+            this->listener = {
                 [](void* data, wl_registry* registry, quint32 name, const char* interface, quint32 version) {
                 auto* self = static_cast<tWaylandRegistry*>(data);
                 self->items.append({registry, name, QString::fromLocal8Bit(interface), version});
                 },
                 [](void* data, wl_registry* registry, quint32 name) {
-                Q_UNUSED(data)
-                Q_UNUSED(registry)
-                Q_UNUSED(name)
+                auto* self = static_cast<tWaylandRegistry*>(data);
+                self->items.removeIf([name, registry](RegistryItem item) {
+                    return item.registry == registry && item.name == name;
+                });
             }};
 
             registry = wl_display_get_registry(display);
@@ -86,6 +87,7 @@ class tWaylandRegistry {
 
         QList<RegistryItem> items;
         wl_registry* registry;
+        wl_registry_listener listener;
 
         template<typename T> static void resourceDeleter(T* obj) {
         }
