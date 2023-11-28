@@ -71,6 +71,17 @@ QList<SystemScreen*> WaylandScreenBackend::screens() {
 SystemScreen* WaylandScreenBackend::primaryScreen() {
     // TODO: Implement
     if (d->heads.isEmpty()) return nullptr;
+
+    // For now, choose the leftmost screen
+    auto left = d->heads.first()->geometry().left();
+    for (auto head : d->heads) {
+        if (head->geometry().left() < left) left = head->geometry().left();
+    }
+    for (auto head : d->heads) {
+        if (head->geometry().left() == left) return head;
+    }
+
+    // ???
     return d->heads.first();
 }
 

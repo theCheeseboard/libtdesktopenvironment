@@ -32,6 +32,7 @@
 struct BackgroundControllerPrivate {
         QNetworkAccessManager mgr;
         QSettings* settings;
+        QFileSystemWatcher* settingsWatcher;
 
         BackgroundController::BackgroundType type;
         bool retrievingImages = false;
