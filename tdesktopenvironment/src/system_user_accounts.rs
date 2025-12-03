@@ -19,87 +19,87 @@ impl SystemUserAccounts {
     pub fn new(cx: &mut Context<Self>) -> Self {
         cx.spawn(
             async move |weak_entity: WeakEntity<Self>, cx: &mut AsyncApp| {
-                    if weak_entity
-                        .update(cx, |this, cx| {
-                            this.accounts_proxy = None;
-                            cx.notify();
-                        })
-                        .is_err()
-                    {
-                        return;
-                    }
+                if weak_entity
+                    .update(cx, |this, cx| {
+                        this.accounts_proxy = None;
+                        cx.notify();
+                    })
+                    .is_err()
+                {
+                    return;
+                }
 
-                    let Ok(connection) = Connection::system().await else {
-                        cx.background_executor().timer(Duration::from_secs(1)).await;
-                        return;
-                    };
+                let Ok(connection) = Connection::system().await else {
+                    cx.background_executor().timer(Duration::from_secs(1)).await;
+                    return;
+                };
 
-                    let Ok(accounts_proxy) = AccountsProxy::builder(&connection)
-                        .cache_properties(CacheProperties::Yes)
-                        .build()
-                        .await
-                    else {
-                        cx.background_executor().timer(Duration::from_secs(1)).await;
-                        return;
-                    };
+                let Ok(accounts_proxy) = AccountsProxy::builder(&connection)
+                    .cache_properties(CacheProperties::Yes)
+                    .build()
+                    .await
+                else {
+                    cx.background_executor().timer(Duration::from_secs(1)).await;
+                    return;
+                };
 
-                    let accounts_proxy = Rc::new(accounts_proxy);
+                let accounts_proxy = Rc::new(accounts_proxy);
 
-                    let accounts_proxy_clone = accounts_proxy.clone();
-                    let weak_entity_clone = weak_entity.clone();
-                    register_dbus_listener!(
-                        cx,
-                        accounts_proxy_clone.receive_user_added(),
-                        move |args: UserAddedArgs, cx: &mut AsyncApp| {
-                            if weak_entity_clone
-                                .update(cx, |this, cx| {
-                                    this.cached_users.push(args.user().to_owned().into());
-                                })
-                                .is_err()
-                            {
-                                return;
-                            }
-                        }
-                    );
-
-                    let accounts_proxy_clone = accounts_proxy.clone();
-                    let weak_entity_clone = weak_entity.clone();
-                    register_dbus_listener!(
-                        cx,
-                        accounts_proxy_clone.receive_user_deleted(),
-                        move |args: UserDeletedArgs, cx: &mut AsyncApp| {
-                            if weak_entity_clone
-                                .update(cx, |this, cx| {
-                                    this.cached_users
-                                        .retain(|user| user.to_string() != args.user().to_string());
-                                })
-                                .is_err()
-                            {
-                                return;
-                            }
-                        }
-                    );
-
-                    if let Ok(cached_users) = accounts_proxy.list_cached_users().await {
-                        if weak_entity
+                let accounts_proxy_clone = accounts_proxy.clone();
+                let weak_entity_clone = weak_entity.clone();
+                register_dbus_listener!(
+                    cx,
+                    accounts_proxy_clone.receive_user_added(),
+                    move |args: UserAddedArgs, cx: &mut AsyncApp| {
+                        if weak_entity_clone
                             .update(cx, |this, cx| {
-                                this.cached_users = cached_users;
+                                this.cached_users.push(args.user().to_owned().into());
                             })
                             .is_err()
                         {
                             return;
                         }
                     }
+                );
 
+                let accounts_proxy_clone = accounts_proxy.clone();
+                let weak_entity_clone = weak_entity.clone();
+                register_dbus_listener!(
+                    cx,
+                    accounts_proxy_clone.receive_user_deleted(),
+                    move |args: UserDeletedArgs, cx: &mut AsyncApp| {
+                        if weak_entity_clone
+                            .update(cx, |this, cx| {
+                                this.cached_users
+                                    .retain(|user| user.to_string() != args.user().to_string());
+                            })
+                            .is_err()
+                        {
+                            return;
+                        }
+                    }
+                );
+
+                if let Ok(cached_users) = accounts_proxy.list_cached_users().await {
                     if weak_entity
                         .update(cx, |this, cx| {
-                            this.accounts_proxy = Some(accounts_proxy);
-                            cx.notify();
+                            this.cached_users = cached_users;
                         })
                         .is_err()
                     {
                         return;
                     }
+                }
+
+                if weak_entity
+                    .update(cx, |this, cx| {
+                        this.accounts_proxy = Some(accounts_proxy);
+                        cx.notify();
+                    })
+                    .is_err()
+                {
+                    return;
+                }
             },
         )
         .detach();

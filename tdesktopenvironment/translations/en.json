@@ -1,1 +1,18 @@
-{}
+{
+  "POWER_OPTIONS": "Power Options",
+  "POWER_OPTIONS_ADVANCED_REBOOT": "Advanced Reboot",
+  "POWER_OPTIONS_HIBERNATE": "Hibernate",
+  "POWER_OPTIONS_HIBERNATE_DESCRIPTION": "Powers off your computer, but restores the session when powered back on",
+  "POWER_OPTIONS_LOCK": "Lock",
+  "POWER_OPTIONS_LOCK_DESCRIPTION": "Locks your computer with your password",
+  "POWER_OPTIONS_LOG_OUT": "Log Out",
+  "POWER_OPTIONS_LOG_OUT_DESCRIPTION": "Ends your session but keeps your computer on for others",
+  "POWER_OPTIONS_POWER_OFF": "Power Off",
+  "POWER_OPTIONS_POWER_OFF_DESCRIPTION": "Turns off your computer",
+  "POWER_OPTIONS_PROMPT": "What do you want to do now?",
+  "POWER_OPTIONS_REBOOT": "Reboot",
+  "POWER_OPTIONS_REBOOT_DESCRIPTION": "Turns off your computer and turns it back on again",
+  "POWER_OPTIONS_REBOOT_TO_FIRMWARE_SETUP": "Reboot to UEFI Setup",
+  "POWER_OPTIONS_SUSPEND": "Suspend",
+  "POWER_OPTIONS_SUSPEND_DESCRIPTION": "Puts your computer in a low power state so it reopens quickly"
+}

@@ -1,6 +1,7 @@
 use crate::dbus_generated::accounts::accounts::UserAddedArgs;
 
 pub mod accounts;
+pub mod systemd_logind;
 
 macro_rules! register_dbus_listener {
     ($cx: ident, $stream: expr, $callback: expr) => {
@@ -13,7 +14,7 @@ macro_rules! register_dbus_listener {
                         match user.args() {
                             Ok(args) => {
                                 ck(args, cx);
-                            },
+                            }
                             Err(e) => {
                                 error!("Received signal, but could not decode args: {e}");
                             }

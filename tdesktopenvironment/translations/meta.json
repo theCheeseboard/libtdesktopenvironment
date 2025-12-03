@@ -1,1 +1,98 @@
-{}
+{
+  "POWER_OPTIONS": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:262",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_ADVANCED_REBOOT": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:71",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_HIBERNATE": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:164",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_HIBERNATE_DESCRIPTION": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:166",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_LOCK": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:155",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_LOCK_DESCRIPTION": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:157",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_LOG_OUT": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:125",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_LOG_OUT_DESCRIPTION": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:127",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_POWER_OFF": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:34",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_POWER_OFF_DESCRIPTION": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:36",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_PROMPT": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:275",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_REBOOT": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:113",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_REBOOT_DESCRIPTION": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:115",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_REBOOT_TO_FIRMWARE_SETUP": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:90",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_SUSPEND": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:135",
+    "plural": false,
+    "description": null
+  },
+  "POWER_OPTIONS_SUSPEND_DESCRIPTION": {
+    "context": "end_session_popover.rs",
+    "definedIn": "src/components/end_session_popover.rs:137",
+    "plural": false,
+    "description": null
+  }
+}
